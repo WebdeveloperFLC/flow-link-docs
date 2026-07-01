@@ -1,4 +1,5 @@
 import { Eye, RotateCcw } from "lucide-react";
+import { useState } from "react";
 import { usePerformanceHubViewAs } from "@/contexts/PerformanceHubViewAsContext";
 import type { AppRole } from "@/lib/appRoles";
 import { viewAsRoleLabel } from "@/lib/roleViewAs";
@@ -6,28 +7,19 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-const NONE = "__none__";
+const NONE = "";
+
+const selectClass =
+  "flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
  * Performance Hub View As — preview layer for UAT / QA / support.
- * Role + optional branch + optional user. Does not change authentication.
+ * Native selects avoid Radix Select portals inside Popover (FIN-R-001 removeChild crash).
  */
 export function PerformanceHubViewAsPanel() {
   const {
@@ -47,32 +39,30 @@ export function PerformanceHubViewAsPanel() {
     previewRoleLabel,
   } = usePerformanceHubViewAs();
 
+  const [open, setOpen] = useState(false);
+
   if (!canUse) return null;
 
   const triggerLabel = previewRole ? previewRoleLabel : "View as";
 
   return (
-    <Popover>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={cn(
-                "h-8 gap-1.5 border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white text-xs shrink-0",
-                isActive && "border-amber-400/50 bg-amber-950/40 text-amber-200 hover:bg-amber-950/50",
-              )}
-              data-testid="performance-hub-view-as-trigger"
-            >
-              <Eye className="size-3.5 shrink-0" />
-              <span className="hidden sm:inline max-w-[7rem] truncate">{triggerLabel}</span>
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">View as — preview hub as another role</TooltipContent>
-      </Tooltip>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          title={`View as — ${triggerLabel}`}
+          className={cn(
+            "h-8 gap-1.5 border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white text-xs shrink-0",
+            isActive && "border-amber-400/50 bg-amber-950/40 text-amber-200 hover:bg-amber-950/50",
+          )}
+          data-testid="performance-hub-view-as-trigger"
+        >
+          <Eye className="size-3.5 shrink-0" />
+          <span className="hidden sm:inline max-w-[7rem] truncate">{triggerLabel}</span>
+        </Button>
+      </PopoverTrigger>
       <PopoverContent align="end" className="w-72 p-4 space-y-3" sideOffset={8}>
         <div>
           <p className="text-sm font-semibold">View As</p>
@@ -82,65 +72,62 @@ export function PerformanceHubViewAsPanel() {
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">Role</Label>
-          <Select
+          <Label htmlFor="ph-view-as-role" className="text-xs">
+            Role
+          </Label>
+          <select
+            id="ph-view-as-role"
+            className={selectClass}
             value={previewRole ?? NONE}
-            onValueChange={(v) => setPreviewRole(v === NONE ? null : (v as AppRole))}
+            onChange={(e) => setPreviewRole(e.target.value ? (e.target.value as AppRole) : null)}
           >
-            <SelectTrigger className="h-9 text-sm">
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>— Your access —</SelectItem>
-              {roleOptions.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {viewAsRoleLabel(r)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value={NONE}>— Your access —</option>
+            {roleOptions.map((r) => (
+              <option key={r} value={r}>
+                {viewAsRoleLabel(r)}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">Branch</Label>
-          <Select
+          <Label htmlFor="ph-view-as-branch" className="text-xs">
+            Branch
+          </Label>
+          <select
+            id="ph-view-as-branch"
+            className={selectClass}
             value={previewBranchId ?? NONE}
-            onValueChange={(v) => setPreviewBranchId(v === NONE ? null : v)}
             disabled={!previewRole}
+            onChange={(e) => setPreviewBranchId(e.target.value || null)}
           >
-            <SelectTrigger className="h-9 text-sm">
-              <SelectValue placeholder="Default for role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>Default for role</SelectItem>
-              {branchOptions.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value={NONE}>Default for role</option>
+            {branchOptions.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">User (optional)</Label>
-          <Select
+          <Label htmlFor="ph-view-as-user" className="text-xs">
+            User (optional)
+          </Label>
+          <select
+            id="ph-view-as-user"
+            className={selectClass}
             value={previewUserId ?? NONE}
-            onValueChange={(v) => setPreviewUserId(v === NONE ? null : v)}
             disabled={!previewRole || usersLoading}
+            onChange={(e) => setPreviewUserId(e.target.value || null)}
           >
-            <SelectTrigger className="h-9 text-sm">
-              <SelectValue placeholder={usersLoading ? "Loading…" : "Standard role view"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>Standard role view</SelectItem>
-              {userOptions.map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {u.full_name ?? u.id.slice(0, 8)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value={NONE}>{usersLoading ? "Loading…" : "Standard role view"}</option>
+            {userOptions.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.full_name ?? u.id.slice(0, 8)}
+              </option>
+            ))}
+          </select>
         </div>
 
         <Button
@@ -148,7 +135,10 @@ export function PerformanceHubViewAsPanel() {
           variant="secondary"
           size="sm"
           className="w-full gap-1.5"
-          onClick={reset}
+          onClick={() => {
+            reset();
+            setOpen(false);
+          }}
           disabled={!isActive}
         >
           <RotateCcw className="size-3.5" />

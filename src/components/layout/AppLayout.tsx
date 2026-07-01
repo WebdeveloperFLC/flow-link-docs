@@ -400,7 +400,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen flex bg-background">
+      <PerformanceHubViewAsProvider>
+        <div className="min-h-screen flex bg-background">
         {isHidden && (
           <button
             type="button"
@@ -630,13 +631,11 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               data-theme={resolveThemeModeDark(theme.mode) ? "dark" : "light"}
               className="min-h-full flex flex-col"
             >
-              <PerformanceHubViewAsProvider>
-                <PerformanceHubPeriodPreviewBridge>
-                  <PerformanceHubContextBar />
-                  <PerformanceHubViewAsBanner />
-                  <div className="flex-1">{children}</div>
-                </PerformanceHubPeriodPreviewBridge>
-              </PerformanceHubViewAsProvider>
+              <PerformanceHubPeriodPreviewBridge>
+                <PerformanceHubContextBar />
+                <PerformanceHubViewAsBanner />
+                <div className="flex-1">{children}</div>
+              </PerformanceHubPeriodPreviewBridge>
             </div>
           ) : (
             children
@@ -647,6 +646,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         <ThemeCustomizer />
         <AiHelpDrawer />
       </div>
+      </PerformanceHubViewAsProvider>
     </TooltipProvider>
   );
 };

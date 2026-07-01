@@ -84,14 +84,19 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
   const [usersLoading, setUsersLoading] = useState(false);
   const [adminBranchIds, setAdminBranchIds] = useState<string[] | "all">("all");
   const restoredViewAsRef = useRef<AppRole | null | undefined>(undefined);
+  const hubSyncActiveRef = useRef(false);
+  const hydratedRef = useRef(false);
 
-  // Hydrate hub preview from session when admin opens hub
+  // Hydrate hub preview from session once per mount (deferred to avoid mount-time portal race)
   useEffect(() => {
-    if (!user?.id || !canUse) return;
+    if (!user?.id || !canUse || hydratedRef.current) return;
+    if (roleOptions.length === 0) return;
+    hydratedRef.current = true;
     const stored = readPerformanceHubViewAs(user.id);
-    if (stored.role && roleOptions.includes(stored.role)) {
-      setState(stored);
-    }
+    if (!stored.role || !roleOptions.includes(stored.role)) return;
+
+    const frame = window.requestAnimationFrame(() => setState(stored));
+    return () => window.cancelAnimationFrame(frame);
   }, [user?.id, canUse, roleOptions]);
 
   const persist = useCallback(
@@ -225,28 +230,39 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
     };
   }, [canUse, state.role, state.branchId]);
 
-  // Sync preview role to AuthContext only while on Performance Hub paths
+  // Sync preview role to AuthContext only while on Performance Hub paths (deferred — avoids FIN-R-001 portal crash)
   useEffect(() => {
     if (!canUse) return;
 
     if (!onHub) {
-      if (restoredViewAsRef.current !== undefined) {
-        setViewAsRole(restoredViewAsRef.current);
-        restoredViewAsRef.current = undefined;
+      if (hubSyncActiveRef.current) {
+        setViewAsRole(restoredViewAsRef.current ?? null);
+        hubSyncActiveRef.current = false;
       }
+      restoredViewAsRef.current = undefined;
       return;
     }
 
-    if (restoredViewAsRef.current === undefined) {
-      restoredViewAsRef.current = viewAsRole;
-    }
+    const frame = window.requestAnimationFrame(() => {
+      if (restoredViewAsRef.current === undefined) {
+        restoredViewAsRef.current = viewAsRole;
+      }
 
-    if (state.role) {
+      if (!state.role) {
+        if (hubSyncActiveRef.current) {
+          setViewAsRole(restoredViewAsRef.current ?? null);
+          hubSyncActiveRef.current = false;
+        }
+        return;
+      }
+
+      hubSyncActiveRef.current = true;
       setViewAsRole(state.role);
-    } else if (restoredViewAsRef.current !== undefined) {
-      setViewAsRole(restoredViewAsRef.current);
-    }
-  }, [canUse, onHub, state.role, setViewAsRole, viewAsRole]);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- never depend on viewAsRole (prevents sync loop)
+  }, [canUse, onHub, state.role, setViewAsRole]);
 
   // Clear user if no longer in filtered list
   useEffect(() => {

@@ -6,6 +6,16 @@
 
 ---
 
+## 2026-06-30 — View As removeChild crash fix (EXTEND)
+
+**Issue:** `NotFoundError: removeChild` on Performance Hub startup (FIN-R-001 class).
+
+**Cause:** Radix Select portals nested inside Popover + Tooltip; auth sync loop on mount.
+
+**Fix:** Native `<select>` in View As panel; remove Tooltip nesting; defer hydrate/auth sync via `requestAnimationFrame`; lift `PerformanceHubViewAsProvider` to wrap full AppLayout.
+
+---
+
 ## 2026-07-01 — Performance Hub View As preview (CREATE)
 
 **Components:** `PerformanceHubViewAsPanel.tsx`, `PerformanceHubViewAsContext.tsx`, `performanceHubViewAs.ts`
