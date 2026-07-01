@@ -3,21 +3,15 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  AlertTriangle, CalendarClock, ChevronDown, FileText, Printer, Send,
-  ArrowRightCircle, Eye, CheckCircle2, Ban, Clock, FilePlus2,
-  Download, FileDown, Link2, Calculator, PauseCircle, PlayCircle, ArrowRightLeft,
+  AlertTriangle, FileText, Printer, Eye, CheckCircle2, FilePlus2, FileDown,
 } from "lucide-react";
 import {
   CommissionLifecycleDialog,
-  LifecycleBadges,
   isReadyForClaim,
-  canMarkEligible,
   type LifecycleStudent,
 } from "./CommissionLifecycleDialog";
 import { useClaimCycles, useInvoices } from "../hooks/useInstitutionData";
@@ -27,6 +21,17 @@ import {
 import { simulateCommission, type RuleLike } from "../lib/commissionEngine";
 import { resolveCommissionForStudent } from "../lib/commissionRuleResolver";
 import type { CommissionStudent } from "../types/upi";
+import { ClaimSummaryDashboard } from "./claims/ClaimSummaryDashboard";
+import { ClaimWorkflowStrip } from "./claims/ClaimWorkflowStrip";
+import { ClaimStudentVerificationTable } from "./claims/ClaimStudentVerificationTable";
+import { ClaimValidationDialog } from "./claims/ClaimValidationDialog";
+import { ClaimSubmissionPackageDialog } from "./claims/ClaimSubmissionPackageDialog";
+import {
+  computeClaimSummary,
+  submissionTemplate,
+  validateClaimForSubmission,
+  type ClaimStudentRow,
+} from "../lib/claimBusinessView";
 
 // ---------- types ----------
 interface Student {
@@ -80,6 +85,12 @@ interface Student {
   commission_period_code?: string | null;
   tuition_paid_date?: string | null;
   enrollment_confirmed_date?: string | null;
+  expected_amount?: number | null;
+  amended_expected_amount?: number | null;
+  approved_amount?: number | null;
+  amount_received?: number | null;
+  amount_outstanding?: number | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 interface Invoice {
@@ -138,16 +149,6 @@ const BLOCK_CLAUSE: Record<string, string> = {
   other: "Other — see notes",
 };
 
-const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  eligible: { label: "Eligible", cls: "bg-green-100 text-green-800 border-green-300" },
-  blocked: { label: "Blocked", cls: "bg-red-100 text-red-800 border-red-300" },
-  carried_forward: { label: "Carried Forward", cls: "bg-amber-100 text-amber-900 border-amber-300" },
-  paid: { label: "Paid", cls: "bg-blue-100 text-blue-800 border-blue-300" },
-  pending: { label: "Pending", cls: "bg-gray-100 text-gray-700 border-gray-300" },
-  partially_paid: { label: "Partial", cls: "bg-indigo-100 text-indigo-800 border-indigo-300" },
-  rejected: { label: "Rejected", cls: "bg-red-100 text-red-800 border-red-300" },
-};
-
 const INVOICE_BADGE: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   draft: "secondary", sent: "default", submitted: "default", approved: "default",
   paid: "default", partially_paid: "outline", overdue: "destructive",
@@ -156,8 +157,6 @@ const INVOICE_BADGE: Record<string, "default" | "secondary" | "destructive" | "o
 
 const fmt = (n: number | null | undefined, ccy = "CAD") =>
   n == null ? "—" : `${ccy} ${Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-
-const daysUntil = (d?: string | null) => (d ? Math.ceil((new Date(d).getTime() - Date.now()) / 86400000) : null);
 
 // ---------- main panel ----------
 export function ClaimsPanel({
@@ -182,19 +181,30 @@ export function ClaimsPanel({
   const [submitFor, setSubmitFor] = useState<{ cycleId: string; cycleLabel: string } | null>(null);
   const [printCycle, setPrintCycle] = useState<{ cycle: any; students: Student[]; invoice: Invoice | null } | null>(null);
   const [printInvoice, setPrintInvoice] = useState<{ invoice: Invoice; items: LineItem[] } | null>(null);
+  const [institutionName, setInstitutionName] = useState("Institution");
+  const [institutionMeta, setInstitutionMeta] = useState<Record<string, unknown>>({});
+  const [billingProfiles, setBillingProfiles] = useState<{ id: string; profile_name: string; is_default: boolean; metadata?: Record<string, unknown> }[]>([]);
+  const [validatedAtByCycle, setValidatedAtByCycle] = useState<Record<string, string>>({});
+  const [validationFor, setValidationFor] = useState<{ cycleId: string; periodLabel: string; issues: ReturnType<typeof validateClaimForSubmission> } | null>(null);
+  const [packageFor, setPackageFor] = useState<{ cycleId: string; periodLabel: string } | null>(null);
 
   const loadAll = async () => {
     setLoading(true);
-    const [s, i, r, t] = await Promise.all([
+    const [s, i, r, t, inst, bp] = await Promise.all([
       supabase.from("upi_commission_students").select("*").eq("institution_id", institutionId).order("student_name"),
       supabase.from("upi_commission_invoices").select("*").eq("institution_id", institutionId).order("invoice_date", { ascending: false }),
       supabase.from("upi_partnership_routes").select("id, display_name").eq("institution_id", institutionId).order("display_name"),
       supabase.from("upi_commission_transfer_events" as any).select("id, source_student_commission_id, transfer_reason").eq("institution_id", institutionId).eq("event_status", "open"),
+      supabase.from("upi_institutions").select("name, metadata").eq("id", institutionId).maybeSingle(),
+      supabase.from("upi_billing_profiles" as any).select("id, profile_name, is_default, metadata").eq("institution_id", institutionId).eq("status", "active"),
     ]);
     setStudents((s.data ?? []) as any);
     setInvoices((i.data ?? []) as any);
     setRoutes((r.data ?? []) as any);
     setOpenTransfers((t.data ?? []) as any);
+    setInstitutionName(inst.data?.name ?? "Institution");
+    setInstitutionMeta((inst.data?.metadata ?? {}) as Record<string, unknown>);
+    setBillingProfiles((bp.data ?? []) as any);
     setLoading(false);
   };
   useEffect(() => { loadAll(); }, [institutionId]);
@@ -375,16 +385,33 @@ export function ClaimsPanel({
     return m;
   }, [invoices]);
 
-  const totals = useMemo(() => {
-    let expected = 0, received = 0, blocked = 0, carried = 0;
-    for (const s of students) {
-      if (s.commission_status === "eligible" || s.commission_status === "paid") expected += Number(s.commission_amount ?? 0);
-      if (s.commission_status === "paid") received += Number(s.commission_amount ?? 0);
-      if (s.commission_status === "blocked") blocked += 1;
-      if (s.commission_status === "carried_forward") carried += 1;
+  const defaultBillingProfile = billingProfiles.find((b) => b.is_default) ?? billingProfiles[0];
+
+  const runValidate = (cycleId: string, periodLabel: string) => {
+    const rows = (byCycle.get(cycleId) ?? []) as ClaimStudentRow[];
+    setValidationFor({ cycleId, periodLabel, issues: validateClaimForSubmission(rows) });
+  };
+
+  const confirmValidation = (cycleId: string) => {
+    setValidatedAtByCycle((prev) => ({ ...prev, [cycleId]: new Date().toISOString() }));
+    toast.success("Claim validated — you may preview and submit");
+  };
+
+  const trySubmitClaim = (cycleId: string, cycleLabel: string) => {
+    if (!validatedAtByCycle[cycleId]) {
+      toast.error("Validate claim before submission");
+      runValidate(cycleId, cycleLabel);
+      return;
     }
-    return { expected, received, outstanding: expected - received, blocked, carried };
-  }, [students]);
+    const rows = byCycle.get(cycleId) ?? [];
+    const inv = invByCycle.get(cycleId);
+    const summary = computeClaimSummary(rows as ClaimStudentRow[], inv ?? null, { validated: true });
+    if (!summary.canSubmitToday) {
+      toast.error("Submission blocked — resolve issues in the claim summary");
+      return;
+    }
+    setSubmitFor({ cycleId, cycleLabel });
+  };
 
   const markInvoicePaid = async (inv: Invoice) => {
     // Legacy direct mark-paid removed in Phase 2A — use receipt workflow.
@@ -401,6 +428,10 @@ export function ClaimsPanel({
 
   const submitClaim = async () => {
     if (!submitFor) return;
+    if (!validatedAtByCycle[submitFor.cycleId]) {
+      toast.error("Validate claim before submission");
+      return;
+    }
     const eligible = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => isReadyForClaim(s) && s.claim_status !== "submitted");
     const ids = eligible.map((s) => s.id);
     if (ids.length === 0) return toast.error("No eligible students");
@@ -478,28 +509,9 @@ export function ClaimsPanel({
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        {/* Summary */}
-        <div className="grid gap-3 md:grid-cols-5">
-          <Card className="p-4">
-            <div className="text-xs text-muted-foreground">Expected</div>
-            <div className="text-2xl font-semibold">{fmt(totals.expected)}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs text-muted-foreground">Received</div>
-            <div className="text-2xl font-semibold text-green-700">{fmt(totals.received)}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs text-muted-foreground">Outstanding</div>
-            <div className="text-2xl font-semibold text-amber-700">{fmt(totals.outstanding)}</div>
-          </Card>
-          <Card className="p-4 border-red-200">
-            <div className="text-xs text-red-700">Blocked students</div>
-            <div className="text-2xl font-semibold text-red-700">{totals.blocked}</div>
-          </Card>
-          <Card className="p-4 border-amber-200">
-            <div className="text-xs text-amber-700">Carried forward</div>
-            <div className="text-2xl font-semibold text-amber-700">{totals.carried}</div>
-          </Card>
+        <div className="rounded-md border border-blue-200 bg-blue-50/50 px-4 py-3 text-sm">
+          <span className="font-medium text-blue-950">Claim-centric workspace.</span>{" "}
+          Each cycle answers: <em>Can I submit this claim today?</em> Validate before submission; students are verified inside the claim.
         </div>
 
         {openTransfers.length > 0 && (
@@ -513,267 +525,80 @@ export function ClaimsPanel({
           <Card className="p-8 text-center text-sm text-muted-foreground">No claim cycles for this institution.</Card>
         )}
 
-        {/* Cycles */}
-        <div className="space-y-3">
+        {/* Claims — one card per cycle */}
+        <div className="space-y-6">
           {cycles.map((c: any) => {
-            const rows = byCycle.get(c.id) ?? [];
-            const eligible = rows.filter((r) => isReadyForClaim(r));
-            const blocked = rows.filter((r) => r.commission_status === "blocked");
-            const carried = rows.filter((r) => r.commission_status === "carried_forward");
-            const pending = rows.filter((r) => r.commission_status === "pending");
-            const dleft = daysUntil(c.claim_due_date);
-            const overdue = dleft != null && dleft < 0 && !["closed", "paid"].includes(c.status);
+            const rows = (byCycle.get(c.id) ?? []) as ClaimStudentRow[];
             const inv = invByCycle.get(c.id);
+            const validated = !!validatedAtByCycle[c.id];
+            const validatedAt = validatedAtByCycle[c.id] ?? null;
+            const tmpl = submissionTemplate(
+              institutionMeta,
+              defaultBillingProfile
+                ? { profile_name: defaultBillingProfile.profile_name, metadata: defaultBillingProfile.metadata }
+                : null,
+            );
+            const summary = computeClaimSummary(
+              rows,
+              inv
+                ? {
+                    id: inv.id,
+                    invoice_number: inv.invoice_number,
+                    status: inv.status,
+                    total_amount: inv.total_amount,
+                    currency: inv.currency,
+                  }
+                : null,
+              { validated },
+            );
+            const readyCount = rows.filter((s) => isReadyForClaim(s as Student) && s.claim_status !== "submitted").length;
 
             return (
-              <Card key={c.id} className="p-4 space-y-4">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div>
-                    <div className="font-semibold flex items-center gap-2 flex-wrap">
-                      {c.period_label}
-                      {c.intake && <Badge variant="outline">{c.intake}</Badge>}
-                      <Badge variant="secondary">{c.status}</Badge>
-                      {overdue && <Badge variant="destructive" className="gap-1"><AlertTriangle className="size-3" /> Overdue</Badge>}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
-                      {c.claim_due_date && (
-                        <span className="flex items-center gap-1">
-                          <CalendarClock className="size-3" />
-                          Due {new Date(c.claim_due_date).toLocaleDateString()}
-                          {dleft != null && ` (${Math.abs(dleft)}d ${dleft < 0 ? "overdue" : "left"})`}
-                        </span>
-                      )}
-                      <span>{rows.length} students · {eligible.length} eligible · {blocked.length} blocked · {carried.length} carried</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={() => printCycleNow(c)}>
-                      <Printer className="size-4 mr-1" /> Print
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => exportCycleCsv(c)}>
-                      <Download className="size-4 mr-1" /> CSV
-                    </Button>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="sm" variant="outline" onClick={() => printCycleNow(c)}>
-                          <FileDown className="size-4 mr-1" /> PDF
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Uses your browser's "Save as PDF" in the print dialog.</TooltipContent>
-                    </Tooltip>
-                    {eligible.length > 0 && (
-                      <Button size="sm" variant="outline" onClick={() => setSubmitFor({ cycleId: c.id, cycleLabel: c.period_label })}>
-                        <Send className="size-4 mr-1" /> Submit Claim
-                      </Button>
-                    )}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={c.status !== "draft" || recalcBusy === c.id}
-                            onClick={() => recalcCycle(c.id)}
-                          >
-                            <Calculator className="size-4 mr-1" />
-                            {recalcBusy === c.id ? "Recalculating…" : "Recalculate All"}
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      {c.status !== "draft" && (
-                        <TooltipContent>Amounts are frozen once a cycle is submitted</TooltipContent>
-                      )}
-                    </Tooltip>
-                  </div>
-                </div>
+              <div key={c.id} className="space-y-4">
+                <ClaimSummaryDashboard
+                  institutionName={institutionName}
+                  periodLabel={c.period_label}
+                  cycleStatus={c.status}
+                  submissionMethod={tmpl.method}
+                  submissionTemplate={tmpl.label}
+                  billingProfileName={defaultBillingProfile?.profile_name}
+                  claimDueDate={c.claim_due_date}
+                  validated={validated}
+                  validatedAt={validatedAt}
+                  summary={summary}
+                />
 
-                {/* Student table */}
-                {rows.length > 0 && (
-                  <div className="border rounded-md overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Student</TableHead>
-                          <TableHead>Program</TableHead>
-                          <TableHead>Intake</TableHead>
-                          <TableHead className="text-right">Tuition</TableHead>
-                          <TableHead className="text-right">Commission</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {rows.map((s) => {
-                          const sb = STATUS_BADGE[s.commission_status] ?? STATUS_BADGE.pending;
-                          return (
-                            <TableRow key={s.id}>
-                              <TableCell>
-                                <div className="font-medium flex items-center gap-1">
-                                  <span>{NATIONALITY_FLAG[s.nationality ?? ""] ?? "🌐"}</span>
-                                  {s.student_name}
-                                </div>
-                                <div className="text-xs text-muted-foreground">{s.country_of_origin}{s.student_id_at_institution ? ` · ${s.student_id_at_institution}` : ""}</div>
-                              </TableCell>
-                              <TableCell className="text-sm">
-                                {s.program_name}
-                                {s.program_level && <div className="text-xs text-muted-foreground">{s.program_level}</div>}
-                              </TableCell>
-                              <TableCell className="text-sm">{s.intake_term ?? "—"}</TableCell>
-                              <TableCell className="text-right text-sm">{fmt(s.tuition_paid_amount ?? s.tuition_amount)}</TableCell>
-                              <TableCell className="text-right text-sm font-medium">
-                                <div>{fmt(s.commission_amount)}</div>
-                                <div className="text-[10px] text-muted-foreground font-normal">
-                                  {s.commission_calculated_date
-                                    ? `Calculated ${new Date(s.commission_calculated_date).toLocaleDateString()}`
-                                    : "Not yet calculated"}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-1">
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${sb.cls}`}>{sb.label}</span>
-                                  {s.commission_status === "blocked" && s.block_reason && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <AlertTriangle className="size-3.5 text-red-600 cursor-help" />
-                                      </TooltipTrigger>
-                                      <TooltipContent className="max-w-xs">
-                                        <div className="font-medium text-xs">{BLOCK_CLAUSE[s.block_reason] ?? s.block_reason}</div>
-                                        {s.block_notes && <div className="text-xs mt-1">{s.block_notes}</div>}
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                </div>
-                                <LifecycleBadges s={s} />
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-1 flex-wrap">
-                                  <Button size="sm" variant="ghost" onClick={() => setViewStudent(s)}><Eye className="size-3.5" /></Button>
-                                  {canMarkEligible(s) && (
-                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "eligible")} title="Mark eligible & snapshot">
-                                      <CheckCircle2 className="size-3.5 text-green-600" />
-                                    </Button>
-                                  )}
-                                  {(s.commission_status === "eligible" || s.commission_status === "pending" || s.eligibility_status === "eligible") && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      disabled={recalcBusy === s.id}
-                                      onClick={() => recalcStudent(s)}
-                                      title="Recalculate commission"
-                                    >
-                                      <Calculator className="size-3.5" />
-                                    </Button>
-                                  )}
-                                  {s.hold_status !== "active" && s.eligibility_status !== "cancelled" && (
-                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "hold")} title="Apply hold">
-                                      <PauseCircle className="size-3.5" />
-                                    </Button>
-                                  )}
-                                  {s.hold_status === "active" && (
-                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "release")} title="Release hold">
-                                      <PlayCircle className="size-3.5 text-blue-600" />
-                                    </Button>
-                                  )}
-                                  {!transferByStudent.has(s.id) && s.eligibility_status !== "cancelled" && (
-                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "transfer")} title="Initiate transfer">
-                                      <ArrowRightLeft className="size-3.5" />
-                                    </Button>
-                                  )}
-                                  {transferByStudent.has(s.id) && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => openLifecycle(s, "transfer_outcome", transferByStudent.get(s.id)!.id)}
-                                      title="Resolve transfer"
-                                    >
-                                      <ArrowRightLeft className="size-3.5 text-amber-600" />
-                                    </Button>
-                                  )}
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span>
-                                        <Button size="sm" variant="ghost" disabled aria-label="Link to client">
-                                          <Link2 className="size-3.5" />
-                                        </Button>
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Coming soon — manual linking UI in development</TooltipContent>
-                                  </Tooltip>
-                                  {s.commission_status === "carried_forward" && s.carry_forward_to_cycle_id && (
-                                    <Button size="sm" variant="ghost" onClick={() => moveToNextCycle(s)} title="Move to next cycle">
-                                      <ArrowRightCircle className="size-3.5" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                <ClaimWorkflowStrip
+                  validated={validated}
+                  canSubmit={summary.canSubmitToday && readyCount > 0}
+                  onRecalculate={() => recalcCycle(c.id)}
+                  onValidate={() => runValidate(c.id, c.period_label)}
+                  onPreview={() => printCycleNow(c)}
+                  onPackage={() => setPackageFor({ cycleId: c.id, periodLabel: c.period_label })}
+                  onSubmit={() => trySubmitClaim(c.id, c.period_label)}
+                  onInvoice={() => (inv ? setViewInvoice(inv) : generateInvoice(c.id))}
+                  onPayment={() => inv && markInvoicePaid(inv)}
+                  recalcBusy={recalcBusy === c.id}
+                />
+
+                {rows.length > 0 ? (
+                  <ClaimStudentVerificationTable
+                    rows={rows}
+                    onView={(s) => setViewStudent(s as Student)}
+                    onLifecycle={(s, mode, tid) => openLifecycle(s as Student, mode, tid)}
+                    onRecalc={(s) => recalcStudent(s as Student)}
+                    onMoveCarryForward={(s) => moveToNextCycle(s as Student)}
+                    transferByStudent={transferByStudent}
+                    recalcBusyId={recalcBusy}
+                    onUpdated={loadAll}
+                  />
+                ) : (
+                  <Card className="p-4 text-sm text-muted-foreground text-center">
+                    No students in this claim cycle.
+                  </Card>
                 )}
 
-                {/* Blocked section */}
-                {blocked.length > 0 && (
-                  <Collapsible defaultOpen>
-                    <CollapsibleTrigger asChild>
-                      <button className="w-full flex items-center justify-between rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100">
-                        <span className="flex items-center gap-2"><Ban className="size-4" /> Blocked students ({blocked.length})</span>
-                        <ChevronDown className="size-4" />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="border border-t-0 border-red-200 rounded-b-md px-3 py-2 space-y-2">
-                      {blocked.map((s) => (
-                        <div key={s.id} className="text-sm border-b border-red-100 last:border-0 pb-2 last:pb-0">
-                          <div className="font-medium">{NATIONALITY_FLAG[s.nationality ?? ""] ?? "🌐"} {s.student_name} <span className="text-muted-foreground font-normal">— {s.program_name}</span></div>
-                          <div className="text-red-700 text-xs mt-0.5">{s.block_reason ? BLOCK_CLAUSE[s.block_reason] : "Unknown reason"}</div>
-                          {s.block_notes && <div className="text-xs text-muted-foreground mt-0.5">{s.block_notes}</div>}
-                        </div>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
-
-                {/* Carried forward section */}
-                {carried.length > 0 && (
-                  <Collapsible defaultOpen>
-                    <CollapsibleTrigger asChild>
-                      <button className="w-full flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100">
-                        <span className="flex items-center gap-2"><Clock className="size-4" /> Carried forward ({carried.length})</span>
-                        <ChevronDown className="size-4" />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="border border-t-0 border-amber-200 rounded-b-md px-3 py-2 space-y-2">
-                      {carried.map((s) => {
-                        const target = cycles.find((c: any) => c.id === s.carry_forward_to_cycle_id);
-                        return (
-                          <div key={s.id} className="text-sm flex items-center justify-between gap-2">
-                            <div>
-                              <div className="font-medium">{NATIONALITY_FLAG[s.nationality ?? ""] ?? "🌐"} {s.student_name} <span className="text-muted-foreground font-normal">— {s.program_name}</span></div>
-                              <div className="text-xs text-muted-foreground">{s.carry_forward_reason} → {target?.period_label ?? "next cycle"}</div>
-                            </div>
-                            {s.carry_forward_to_cycle_id && (
-                              <Button size="sm" variant="outline" onClick={() => moveToNextCycle(s)}>
-                                <ArrowRightCircle className="size-3.5 mr-1" /> Move now
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
-
-                {/* Pending hint */}
-                {pending.length > 0 && (
-                  <div className="text-xs text-muted-foreground border-l-2 border-muted pl-2">
-                    {pending.length} student(s) pending — awaiting consent, enrollment, or tuition payment.
-                  </div>
-                )}
-
-                {/* Invoice section */}
-                <div className="border-t pt-3">
+                <div className="rounded-md border bg-muted/20 p-3">
                   {inv ? (
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div className="flex items-center gap-3">
@@ -787,7 +612,7 @@ export function ClaimsPanel({
                         </div>
                         <Badge variant={INVOICE_BADGE[inv.status] ?? "outline"}>{inv.status}</Badge>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button size="sm" variant="outline" onClick={() => setViewInvoice(inv)}>
                           <Eye className="size-3.5 mr-1" /> View invoice
                         </Button>
@@ -796,20 +621,20 @@ export function ClaimsPanel({
                         </Button>
                         {["sent", "submitted", "approved", "partially_paid"].includes(inv.status) && (
                           <Button size="sm" onClick={() => markInvoicePaid(inv)}>
-                            <CheckCircle2 className="size-3.5 mr-1" /> Record receipt
+                            <CheckCircle2 className="size-3.5 mr-1" /> Record commission payment
                           </Button>
                         )}
                       </div>
                     </div>
-                  ) : eligible.length > 0 ? (
+                  ) : readyCount > 0 ? (
                     <Button size="sm" variant="outline" onClick={() => generateInvoice(c.id)}>
-                      <FilePlus2 className="size-4 mr-1" /> Generate Invoice ({eligible.length} eligible)
+                      <FilePlus2 className="size-4 mr-1" /> Generate invoice ({readyCount} ready)
                     </Button>
                   ) : (
-                    <div className="text-xs text-muted-foreground">No invoice yet — no eligible students.</div>
+                    <div className="text-xs text-muted-foreground">No invoice yet — validate claim and mark students ready first.</div>
                   )}
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -862,17 +687,19 @@ export function ClaimsPanel({
           <DialogContent>
             <DialogHeader><DialogTitle>Submit claim — {submitFor?.cycleLabel}</DialogTitle></DialogHeader>
             {submitFor && (() => {
-              const list = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => isReadyForClaim(s));
+              const list = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => isReadyForClaim(s) && s.claim_status !== "submitted");
+              const total = list.reduce((sum, s) => sum + Number(s.commission_amount ?? s.expected_amount ?? 0), 0);
               return (
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">
-                    Submitting {list.length} student(s) to the institution for validation.
+                    Validated claim — submitting {list.length} student(s) to the institution for review.
+                    Total expected: {fmt(total)}.
                   </div>
                   <div className="border rounded-md max-h-64 overflow-y-auto divide-y">
                     {list.map((s) => (
                       <div key={s.id} className="px-3 py-2 text-sm flex justify-between">
                         <span>{NATIONALITY_FLAG[s.nationality ?? ""] ?? "🌐"} {s.student_name} <span className="text-muted-foreground">· {s.program_name}</span></span>
-                        <span className="font-medium">{fmt(s.commission_amount)}</span>
+                        <span className="font-medium">{fmt(s.commission_amount ?? s.expected_amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -885,6 +712,41 @@ export function ClaimsPanel({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {validationFor && (
+          <ClaimValidationDialog
+            open
+            onClose={() => setValidationFor(null)}
+            onConfirm={() => confirmValidation(validationFor.cycleId)}
+            periodLabel={validationFor.periodLabel}
+            issues={validationFor.issues}
+          />
+        )}
+
+        {packageFor && (() => {
+          const cycle = cycles.find((c: any) => c.id === packageFor.cycleId);
+          const rows = byCycle.get(packageFor.cycleId) ?? [];
+          const inv = invByCycle.get(packageFor.cycleId);
+          const tmpl = submissionTemplate(institutionMeta, defaultBillingProfile ? { profile_name: defaultBillingProfile.profile_name, metadata: defaultBillingProfile.metadata } : null);
+          const expectedTotal = rows.reduce((sum, s) => sum + Number(s.expected_amount ?? s.commission_amount ?? 0), 0);
+          return (
+            <ClaimSubmissionPackageDialog
+              open
+              onClose={() => setPackageFor(null)}
+              periodLabel={packageFor.periodLabel}
+              institutionName={institutionName}
+              templateLabel={tmpl.label}
+              submissionMethod={tmpl.method}
+              studentCount={rows.length}
+              expectedTotal={fmt(expectedTotal)}
+              hasInvoice={!!inv}
+              invoiceNumber={inv?.invoice_number}
+              onExportCsv={() => cycle && exportCycleCsv(cycle)}
+              onPrint={() => cycle && printCycleNow(cycle)}
+              onDownloadInvoice={inv ? () => downloadInvoicePdf(inv) : undefined}
+            />
+          );
+        })()}
 
         {/* Hidden print roots — visible only via @media print when fl-print-active */}
         {printCycle && (

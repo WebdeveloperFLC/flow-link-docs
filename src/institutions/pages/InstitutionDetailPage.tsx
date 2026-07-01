@@ -590,7 +590,7 @@ export default function InstitutionDetailPage() {
             {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="commissions">Commissions</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="claims">Claims</TabsTrigger>}
-            {canSeeCommissions && <TabsTrigger value="receipts">Receipts</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="receipts">Commission payments</TabsTrigger>}
             <TabsTrigger value="promotions">Promotions</TabsTrigger>
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
@@ -977,7 +977,7 @@ export default function InstitutionDetailPage() {
                 onInitialInvoiceConsumed={() => setReceiptInvoiceId(null)}
               />
             ) : (
-              <LockedPanel label="Receipts" />
+              <LockedPanel label="Commission payments" />
             )}
           </TabsContent>
 

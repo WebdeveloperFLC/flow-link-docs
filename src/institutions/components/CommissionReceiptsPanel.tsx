@@ -142,9 +142,9 @@ export function CommissionReceiptsPanel({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="text-base font-medium">Commission receipts</h3>
+          <h3 className="text-base font-medium">Commission payments</h3>
           <p className="text-sm text-muted-foreground">
-            Record remittances, allocate to invoices and students, then post. Posted receipts are immutable — void and recreate to correct.
+            Record commission payments received from institutions, allocate to invoices and students, then post. Posted payments are immutable — void and recreate to correct.
           </p>
         </div>
         <div className="flex gap-2">
@@ -152,7 +152,7 @@ export function CommissionReceiptsPanel({
             <RefreshCw className="size-3.5 mr-1" /> Refresh
           </Button>
           <Button size="sm" onClick={openNew}>
-            <Plus className="size-3.5 mr-1" /> New receipt
+            <Plus className="size-3.5 mr-1" /> Record commission payment
           </Button>
         </div>
       </div>
@@ -161,10 +161,10 @@ export function CommissionReceiptsPanel({
         <Card className="p-3 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
           <div className="text-sm font-medium flex items-center gap-2">
             <AlertTriangle className="size-4 text-amber-600" />
-            {inProgress.length} receipt{inProgress.length === 1 ? "" : "s"} in progress
+            {inProgress.length} commission payment{inProgress.length === 1 ? "" : "s"} in progress
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Draft receipts can be saved and resumed. FX review must be approved before ready/post when currencies differ.
+            Draft payments can be saved and resumed. FX review must be approved before ready/post when currencies differ.
           </div>
         </Card>
       )}
@@ -173,7 +173,7 @@ export function CommissionReceiptsPanel({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Receipt</TableHead>
+              <TableHead>Payment</TableHead>
               <TableHead>Payer</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Amount</TableHead>
@@ -192,7 +192,7 @@ export function CommissionReceiptsPanel({
             ) : receipts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                  No receipts yet. Record a payment from Claims or create one here.
+                  No commission payments yet. Record a payment from Claims or create one here.
                 </TableCell>
               </TableRow>
             ) : (
