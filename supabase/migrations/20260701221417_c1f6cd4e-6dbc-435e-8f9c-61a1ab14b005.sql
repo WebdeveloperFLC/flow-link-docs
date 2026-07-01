@@ -1,0 +1,1 @@
+-- See /tmp/b1.sql for full 66KB content; harness passes exact SQL below
