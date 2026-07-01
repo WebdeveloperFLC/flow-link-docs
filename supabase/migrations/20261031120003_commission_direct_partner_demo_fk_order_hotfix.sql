@@ -1,6 +1,5 @@
--- Direct Institution Partner UAT demo seed (Ontario polytechnics/colleges)
--- Tag: metadata.demo_pack = 'crm-direct-uat-v1'
--- Idempotent: fn_seed_commission_direct_partner_demo() cleans and re-applies fixed UUID rows.
+-- Hotfix: FK insert order (students before snapshots/invoices/receipts cross-links)
+-- Re-run: SELECT public.fn_seed_commission_direct_partner_demo();
 
 CREATE OR REPLACE FUNCTION public.fn_seed_commission_direct_partner_demo()
 RETURNS void
