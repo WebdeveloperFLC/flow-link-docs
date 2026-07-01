@@ -15,6 +15,7 @@ import {
   writeViewAsRole,
 } from "@/lib/roleViewAs";
 import type { AppRole } from "@/lib/appRoles";
+import { isLovablePreview } from "@/lib/previewEnv";
 
 export type { AppRole } from "@/lib/appRoles";
 
@@ -142,7 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const finishLoading = () => {
       if (!cancelled) setLoading(false);
     };
-    const timeout = window.setTimeout(finishLoading, 2000);
+    const timeoutMs = isLovablePreview() ? 5000 : 2000;
+    const timeout = window.setTimeout(finishLoading, timeoutMs);
 
     if (!supabaseEnvOk) {
       finishLoading();

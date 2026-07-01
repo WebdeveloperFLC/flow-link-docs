@@ -1,13 +1,8 @@
 import { createRoot } from "react-dom/client";
-import { RootErrorBoundary } from "@/components/RootErrorBoundary";
-import AppBootstrap from "@/AppBootstrap";
 import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
-import { deferModuleStyles } from "@/lib/deferModuleStyles";
-import "./index.css";
+import { bootDebugLog } from "@/lib/bootDebugLog";
 
 function showBootstrapError(message: string, stack?: string) {
-  // Never set root.innerHTML while React is mounted — that races portal teardown and
-  // surfaces a misleading removeChild error (FIN-R-001).
   console.error("[bootstrap]", message, stack ?? "");
   let overlay = document.getElementById("bootstrap-error-overlay");
   if (!overlay) {
@@ -40,14 +35,24 @@ if (!mount) {
 }
 
 resetAppRootLayout();
-deferModuleStyles();
+bootDebugLog("main.tsx:boot", "main module started — deferring heavy imports", {
+  path: window.location.pathname,
+}, "H1");
 
-try {
-  createRoot(mount).render(
-    <RootErrorBoundary>
-      <AppBootstrap />
-    </RootErrorBoundary>,
-  );
-} catch (error) {
-  showBootstrapError(error instanceof Error ? error.message : String(error));
-}
+void Promise.all([import("@/AppBootstrap"), import("@/components/RootErrorBoundary")])
+  .then(([{ default: AppBootstrap }, { RootErrorBoundary }]) => {
+    bootDebugLog("main.tsx:render", "createRoot starting", {
+      path: window.location.pathname,
+    }, "H1");
+    createRoot(mount).render(
+      <RootErrorBoundary>
+        <AppBootstrap />
+      </RootErrorBoundary>,
+    );
+  })
+  .catch((error: unknown) => {
+    showBootstrapError(error instanceof Error ? error.message : String(error));
+    bootDebugLog("main.tsx:boot", "deferred import failed", {
+      error: error instanceof Error ? error.message : String(error),
+    }, "H2");
+  });

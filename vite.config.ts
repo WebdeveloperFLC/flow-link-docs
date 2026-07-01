@@ -29,6 +29,37 @@ function enoentGuardPlugin(): Plugin {
   };
 }
 
+/** Strip eager vendor preload from the tiny boot entry chunk (Lovable preview hang). */
+function stripBootVendorPreloadPlugin(): Plugin {
+  const patchEntry = (code: string) => {
+    if (!code.includes("entry evaluated")) return code;
+    return code
+      .replace(/import"\.\/vendor-[^"]+\.js";/g, "")
+      .replace(/import"\.\/ui-vendor-[^"]+\.js";/g, "")
+      .replace(/import"\.\/react-vendor-[^"]+\.js";/g, "")
+      .replace(/import{_ as \w+}from"\.\/docs-vendor-[^"]+\.js";/g, "")
+      .replace(
+        /\w+\(\(\)=>import\("([^"]+\.js)"\)(?:\.then\([^)]+\))?,\[\]\)/g,
+        'import("$1")',
+      );
+  };
+
+  return {
+    name: "strip-boot-vendor-preload",
+    closeBundle() {
+      const assetsDir = path.join(process.cwd(), "dist/assets");
+      if (!fs.existsSync(assetsDir)) return;
+      for (const file of fs.readdirSync(assetsDir)) {
+        if (!file.startsWith("index-") || !file.endsWith(".js")) continue;
+        const fullPath = path.join(assetsDir, file);
+        const code = fs.readFileSync(fullPath, "utf8");
+        const patched = patchEntry(code);
+        if (patched !== code) fs.writeFileSync(fullPath, patched);
+      }
+    },
+  };
+}
+
 /** Serve public HTML guides without SPA swallowing (dev server). */
 function publicHtmlGuidesPlugin(): Plugin {
   return {
@@ -84,7 +115,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [enoentGuardPlugin(), react(), publicHtmlGuidesPlugin(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [enoentGuardPlugin(), stripBootVendorPreloadPlugin(), react(), publicHtmlGuidesPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

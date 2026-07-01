@@ -92,7 +92,7 @@
         </div>
       </div>
     </div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/entry.ts"></script>
     <script>
       (function () {
         function hasSession() {
@@ -152,6 +152,44 @@
             window.location.replace("/auth" + location.search + location.hash);
           } catch (e) {}
         }, 8000);
+
+        function showPreviewRecovery(reason) {
+          var splash = document.getElementById("flc-boot-splash");
+          if (!splash) return;
+          var wrap = splash.querySelector("div");
+          if (!wrap || document.getElementById("flc-boot-recovery")) return;
+          var box = document.createElement("div");
+          box.id = "flc-boot-recovery";
+          box.style.cssText = "margin-top:20px;text-align:center;max-width:360px";
+          box.innerHTML =
+            '<p style="margin:0 0 12px;font-size:13px;color:#5a6a7a;line-height:1.5">' +
+            reason +
+            "</p>" +
+            '<button type="button" id="flc-boot-reload" style="display:block;width:100%;margin:0 0 8px;padding:10px 16px;border-radius:8px;border:none;background:#005daa;color:#fff;font-weight:600;cursor:pointer">Reload page</button>' +
+            '<button type="button" id="flc-boot-clear" style="display:block;width:100%;padding:10px 16px;border-radius:8px;border:1px solid #d0d7de;background:#fff;color:#1a2332;font-weight:500;cursor:pointer">Clear session &amp; sign in</button>';
+          wrap.appendChild(box);
+          document.getElementById("flc-boot-reload").onclick = function () {
+            window.location.reload();
+          };
+          document.getElementById("flc-boot-clear").onclick = function () {
+            try {
+              Object.keys(localStorage).forEach(function (k) {
+                if (k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0) localStorage.removeItem(k);
+              });
+            } catch (e) {}
+            window.location.replace("/auth" + location.search + location.hash);
+          };
+        }
+
+        setTimeout(function () {
+          try {
+            if (!isPreview()) return;
+            if (!document.getElementById("flc-boot-splash")) return;
+            showPreviewRecovery(
+              "Preview is still loading after 90 seconds. The app shell may be blocked — try reload first.",
+            );
+          } catch (e) {}
+        }, 90000);
       })();
     </script>
   </body>

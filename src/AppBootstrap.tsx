@@ -5,6 +5,7 @@ import { BootstrapProviders } from "@/BootstrapProviders";
 import { useAuth } from "@/contexts/AuthContext";
 import { isLovablePreview } from "@/lib/previewEnv";
 import { bootDebugLog } from "@/lib/bootDebugLog";
+import { deferModuleStyles } from "@/lib/deferModuleStyles";
 
 const Auth = lazy(() => import("@/pages/Auth"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
@@ -137,6 +138,10 @@ function DeferredAppRoutes() {
 const AuthFallback = () => <BootstrapLoading message="Loading sign-in…" />;
 
 export default function AppBootstrap() {
+  useEffect(() => {
+    deferModuleStyles();
+  }, []);
+
   return (
     <BootstrapProviders>
       <Routes>
