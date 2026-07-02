@@ -31688,6 +31688,8 @@ export type Database = {
       }
       v_upi_institution_profile_readiness: {
         Row: {
+          active_contact_count: number | null
+          active_contact_with_email_count: number | null
           completeness_score: number | null
           dli_ok: boolean | null
           has_application_portal: boolean | null
@@ -31707,6 +31709,8 @@ export type Database = {
           profile_source_url: string | null
         }
         Insert: {
+          active_contact_count?: never
+          active_contact_with_email_count?: never
           completeness_score?: number | null
           dli_ok?: never
           has_application_portal?: never
@@ -31726,6 +31730,8 @@ export type Database = {
           profile_source_url?: string | null
         }
         Update: {
+          active_contact_count?: never
+          active_contact_with_email_count?: never
           completeness_score?: number | null
           dli_ok?: never
           has_application_portal?: never
