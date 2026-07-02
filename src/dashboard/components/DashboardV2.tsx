@@ -351,7 +351,7 @@ export function DashboardV2() {
         actions={
           <div className="flex items-center gap-2">
             <Select value={String(windowDays)} onValueChange={(v) => setWindowDays(Number(v))}>
-              <SelectTrigger className="w-[130px] h-8">
+              <SelectTrigger className="w-[130px] h-8" aria-label="Dashboard time window">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -436,7 +436,7 @@ export function DashboardV2() {
                 </CardTitle>
                 {pipelines.length > 0 && !executiveLoading && (
                   <Select value={activePipeline} onValueChange={setSelectedPipeline}>
-                    <SelectTrigger className="w-[220px]">
+                    <SelectTrigger className="w-[220px]" aria-label="Select pipeline">
                       <SelectValue placeholder="Pipeline" />
                     </SelectTrigger>
                     <SelectContent>

@@ -99,9 +99,11 @@ export function LeadsKanbanBoard({ leads, ownerNames = {}, onChanged }: Props) {
                             {...dragProvided.dragHandleProps}
                             className={cn(
                               "p-3 cursor-grab active:cursor-grabbing shadow-elev-sm space-y-2",
+                              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
                               dragSnapshot.isDragging && "ring-2 ring-primary/40",
                               overdue && "border-destructive/40",
                             )}
+                            aria-roledescription="Draggable lead card. Press Space to lift, arrow keys to move, Space to drop."
                             onClick={() => nav(`/leads/${lead.id}`)}
                           >
                             <div className="flex items-start justify-between gap-2">

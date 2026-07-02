@@ -55,7 +55,7 @@ export function LeadFollowupSection({
             value={followupChannel || "__none__"}
             onValueChange={(v) => onFollowupChannelChange(v === "__none__" ? "" : v)}
           >
-            <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+            <SelectTrigger aria-label="Follow-up channel"><SelectValue placeholder="Optional" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">— Not set —</SelectItem>
               {LEAD_FOLLOWUP_CHANNELS.map((c) => (

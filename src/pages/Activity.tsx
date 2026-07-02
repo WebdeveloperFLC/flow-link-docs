@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
-import { ScrollText } from "lucide-react";
+import { ScrollText, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/crm/EmptyState";
 
 interface Log {
   id: string; action: string; entity_type: string | null; entity_id: string | null;
@@ -14,15 +15,21 @@ interface Profile { id: string; full_name: string | null; email: string | null; 
 const Activity = () => {
   const [logs, setLogs] = useState<Log[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(200);
-      setLogs((data ?? []) as unknown as Log[]);
-      const { data: pr } = await supabase.from("profiles").select("id,full_name,email");
-      const map: Record<string, Profile> = {};
-      (pr ?? []).forEach((p) => { map[p.id] = p; });
-      setProfiles(map);
+      setLoading(true);
+      try {
+        const { data } = await supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(200);
+        setLogs((data ?? []) as unknown as Log[]);
+        const { data: pr } = await supabase.from("profiles").select("id,full_name,email");
+        const map: Record<string, Profile> = {};
+        (pr ?? []).forEach((p) => { map[p.id] = p; });
+        setProfiles(map);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -32,11 +39,17 @@ const Activity = () => {
       <div className="p-8">
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="divide-y">
-            {logs.length === 0 && (
-              <div className="px-6 py-12 text-center text-sm text-muted-foreground">
-                <ScrollText className="size-8 mx-auto mb-2 text-muted-foreground" />
-                No activity yet.
+            {loading && (
+              <div className="px-6 py-12 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Loading activity…
               </div>
+            )}
+            {!loading && logs.length === 0 && (
+              <EmptyState
+                icon={ScrollText}
+                title="No activity yet"
+                description="Uploads, edits, downloads, and other actions will appear here as your team works."
+              />
             )}
             {logs.map((l) => {
               const p = l.user_id ? profiles[l.user_id] : null;

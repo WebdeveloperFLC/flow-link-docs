@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Users } from "lucide-react";
+import { EmptyState } from "@/components/crm/EmptyState";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LeadStatusBadge, LeadTemperatureBadge } from "./LeadBadges";
@@ -76,7 +77,13 @@ export function LeadsTable({
   const allSelected = selectable && leads.length > 0 && leads.every((l) => selectedIds.has(l.id));
 
   if (!leads.length) {
-    return <div className="p-12 text-center text-muted-foreground text-sm">No leads match your filters.</div>;
+    return (
+      <EmptyState
+        icon={Users}
+        title="No leads to show"
+        description="No leads match the current search and filters. Try widening or clearing them."
+      />
+    );
   }
 
   return (
