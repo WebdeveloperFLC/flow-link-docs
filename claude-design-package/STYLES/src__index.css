@@ -1,0 +1,377 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Future Link Consultants — logo #005DAA blue · #E31E24 red · white premium */
+    --flc-blue: 205 100% 33%;
+    --flc-blue-light: 205 85% 52%;
+    --flc-blue-pastel: 205 70% 94%;
+    --flc-red: 358 82% 50%;
+    --flc-red-pastel: 358 88% 96%;
+    --flc-ink: 205 35% 12%;
+
+    --background: 205 40% 98%;
+    --foreground: 205 35% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 205 35% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 205 35% 12%;
+
+    --primary: 205 100% 33%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 205 100% 28%;
+    --primary-glow: 205 85% 52%;
+
+    --secondary: 358 82% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 358 82% 42%;
+
+    --muted: 205 35% 96%;
+    --muted-foreground: 205 18% 42%;
+
+    --accent: 205 70% 94%;
+    --accent-foreground: 205 100% 28%;
+
+    --destructive: 358 82% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 55% 38%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 205 25% 91%;
+    --input: 205 25% 91%;
+    --ring: 205 100% 33%;
+
+    --radius: 0.75rem;
+
+    --gradient-brand: linear-gradient(135deg, hsl(205 100% 33%), hsl(205 85% 52%));
+    --gradient-accent: linear-gradient(135deg, hsl(205 100% 33%) 0%, hsl(358 82% 50%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(205 40% 97%));
+
+    --shadow-sm: 0 1px 2px 0 hsl(205 35% 12% / 0.04);
+    --shadow-md: 0 4px 14px -2px hsl(205 100% 33% / 0.1);
+    --shadow-lg: 0 16px 40px -12px hsl(205 100% 33% / 0.18);
+
+    /* Stat tiles — blue / red pastel family (on-brand, not rainbow) */
+    --tone-clients: 205 85% 45%;
+    --tone-clients-soft: 205 80% 96%;
+    --tone-documents: 205 65% 48%;
+    --tone-documents-soft: 205 60% 96%;
+    --tone-binders: 205 50% 40%;
+    --tone-binders-soft: 205 45% 95%;
+    --tone-review: 358 75% 52%;
+    --tone-review-soft: 358 88% 96%;
+    --tone-institutions: 205 55% 38%;
+    --tone-institutions-soft: 205 50% 94%;
+    --tone-ai: 205 70% 46%;
+    --tone-ai-soft: 205 65% 96%;
+
+    --font-display: "Sora", "Inter", system-ui, sans-serif;
+    --font-sans: "Manrope", "Inter", system-ui, sans-serif;
+
+    --sidebar-background: 205 70% 16%;
+    --sidebar-foreground: 205 25% 88%;
+    --sidebar-primary: 205 85% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 205 45% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 205 40% 24%;
+    --sidebar-ring: 205 85% 52%;
+  }
+
+  .dark {
+    --background: 205 45% 7%;
+    --foreground: 205 20% 96%;
+    --card: 205 40% 10%;
+    --card-foreground: 205 20% 96%;
+    --popover: 205 40% 10%;
+    --popover-foreground: 205 20% 96%;
+    --primary: 205 85% 52%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 205 85% 46%;
+    --secondary: 358 78% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 205 35% 16%;
+    --muted-foreground: 205 15% 68%;
+    --accent: 205 35% 18%;
+    --accent-foreground: 205 85% 65%;
+    --destructive: 358 78% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 205 30% 20%;
+    --input: 205 30% 20%;
+    --ring: 205 85% 52%;
+    --gradient-subtle: linear-gradient(180deg, hsl(205 45% 7%), hsl(205 40% 10%));
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  #root {
+    min-height: 100vh;
+    width: 100%;
+    display: block;
+  }
+  body {
+    @apply text-foreground antialiased;
+    font-family: var(--font-sans);
+    background: var(--gradient-subtle);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .gradient-brand { background: var(--gradient-brand); }
+  .gradient-accent { background: var(--gradient-accent); }
+  .gradient-subtle { background: var(--gradient-subtle); }
+  .shadow-elev-sm { box-shadow: var(--shadow-sm); }
+  .shadow-elev-md { box-shadow: var(--shadow-md); }
+  .shadow-elev-lg { box-shadow: var(--shadow-lg); }
+  .bg-flc-pastel { background-color: hsl(var(--flc-blue-pastel)); }
+  .bg-flc-red-pastel { background-color: hsl(var(--flc-red-pastel)); }
+  .text-flc-blue { color: hsl(var(--flc-blue)); }
+  .text-flc-red { color: hsl(var(--flc-red)); }
+  .border-flc { border-color: hsl(var(--flc-blue) / 0.2); }
+
+  /* Premium workspace — New Lead modal parity (white · blue accent · red CTA) */
+  .flc-workspace .flc-premium-card {
+    @apply rounded-xl border border-border/80 bg-card shadow-elev-sm overflow-hidden;
+  }
+  .flc-workspace .flc-section-head {
+    @apply px-5 py-3.5 border-b border-border/70 bg-muted/40 flex items-center gap-2;
+  }
+  .flc-workspace .flc-section-head-title {
+    @apply text-sm font-semibold tracking-tight text-foreground;
+  }
+  .flc-workspace .flc-nested-panel {
+    @apply rounded-xl border border-primary/15 bg-primary/[0.04] p-4 border-l-[3px] border-l-primary;
+  }
+  .flc-workspace .flc-field-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+  .flc-workspace .flc-field-value {
+    @apply text-sm font-semibold text-foreground;
+  }
+  .flc-workspace .flc-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50;
+  }
+  .flc-workspace .flc-chip-selected {
+    @apply border-primary/40 bg-primary/10 text-primary hover:bg-primary/15;
+  }
+  .flc-workspace .flc-dialog-foot {
+    @apply px-6 py-4 border-t border-border/70 bg-muted/30 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3;
+  }
+}
+
+/* Premium dialog (portals to body — not scoped under workspace wrapper) */
+.flc-dialog-premium {
+  @apply rounded-2xl border-border/80 p-0 gap-0 shadow-elev-lg overflow-hidden;
+}
+.flc-dialog-head {
+  @apply px-6 pt-6 pb-4 border-b border-border/70 bg-card;
+}
+.flc-dialog-body {
+  @apply px-6 py-5 bg-card space-y-4;
+}
+.flc-dialog-foot {
+  @apply px-6 py-4 border-t border-border/70 bg-muted/30 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3;
+}
+.flc-form-label {
+  @apply text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+}
+.flc-nested-panel {
+  @apply rounded-xl border border-primary/15 bg-primary/[0.04] p-4 border-l-[3px] border-l-primary;
+}
+
+/* ============ Premium polish: shimmer, scrollbar, transitions ============ */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.6);
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-transition { animation: pageEnter 150ms ease-out; }
+
+/* Card style variants (glass / flat) */
+.card-glass {
+  background: hsl(var(--card) / 0.7) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5) !important;
+}
+.card-flat {
+  background: transparent !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: none !important;
+}
+[data-card-style="glass"] .card,
+[data-card-style="glass"] [class*="Card"] { @apply card-glass; }
+[data-card-style="flat"] .card,
+[data-card-style="flat"] [class*="Card"] { @apply card-flat; }
+
+/* Sidebar active item styles */
+[data-nav-style="border-left"] .nav-item-active {
+  background: hsl(var(--primary) / 0.1) !important;
+  border-left: 3px solid hsl(var(--primary)) !important;
+  border-radius: 0 !important;
+}
+[data-nav-style="glow"] .nav-item-active {
+  background: hsl(var(--primary) / 0.15) !important;
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.4) !important;
+}
+[data-nav-style="underline"] .nav-item-active {
+  background: transparent !important;
+  border-bottom: 2px solid hsl(var(--primary)) !important;
+  border-radius: 0 !important;
+}
+
+/* Focus polish */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+[role="button"]:focus-visible {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
+}
+
+/* ============ Future Link premium assessment shell ============ */
+/* Scoped to the assessment module so the rest of the DMS chrome
+   is untouched. Activated by wrapping a route in `.flc-shell`. */
+.flc-shell {
+  --flc-ivory: 36 33% 97%;
+  --flc-ink: 220 18% 11%;
+  --flc-ink-soft: 220 14% 28%;
+  --flc-coral: 8 75% 60%;
+  --flc-coral-hover: 8 75% 54%;
+  --flc-card: 0 0% 100%;
+  --flc-border: 30 12% 88%;
+  --flc-muted: 36 20% 94%;
+  background: hsl(var(--flc-ivory));
+  color: hsl(var(--flc-ink));
+  font-family: "Inter", system-ui, sans-serif;
+}
+.flc-shell .flc-display {
+  font-family: "Instrument Serif", "Fraunces", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: hsl(var(--flc-ink));
+}
+.flc-shell .flc-card {
+  background: hsl(var(--flc-card));
+  border: 1px solid hsl(var(--flc-border));
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px hsl(220 15% 10% / 0.04), 0 8px 24px -16px hsl(220 15% 10% / 0.08);
+}
+.flc-shell .flc-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.65rem; border-radius: 999px;
+  background: hsl(var(--flc-muted));
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: hsl(var(--flc-ink-soft));
+}
+.flc-shell .flc-cta {
+  background: hsl(var(--flc-coral));
+  color: white;
+  border-radius: 999px;
+  padding: 0.85rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  transition: background .15s ease, transform .15s ease;
+}
+.flc-shell .flc-cta:hover { background: hsl(var(--flc-coral-hover)); }
+.flc-shell .flc-cta:disabled { opacity: 0.55; cursor: not-allowed; }
+.flc-shell .flc-pill {
+  display: inline-flex; padding: 0.25rem; border-radius: 999px;
+  background: hsl(var(--flc-ink)); color: white;
+}
+.flc-shell .flc-pill > button {
+  padding: 0.45rem 0.95rem; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: hsl(36 20% 80%);
+}
+.flc-shell .flc-pill > button[data-active="true"] {
+  background: white; color: hsl(var(--flc-ink));
+}
+.flc-shell .flc-input {
+  width: 100%; height: 2.5rem; border-radius: 0.75rem;
+  border: 1px solid hsl(var(--flc-border));
+  background: hsl(var(--flc-card)); padding: 0 0.85rem;
+  font-size: 0.9rem; color: hsl(var(--flc-ink));
+}
+.flc-shell .flc-input:focus { outline: none; border-color: hsl(var(--flc-ink)); }
+.flc-shell .flc-divider { border-top: 1px solid hsl(var(--flc-border)); }
+.flc-shell .flc-progress {
+  height: 4px; border-radius: 999px; background: hsl(36 15% 90%); overflow: hidden;
+}
+.flc-shell .flc-progress > div {
+  height: 100%; background: hsl(var(--flc-coral)); transition: width .3s ease;
+}
+
+/* ========== FLC print export ========== */
+@media print {
+  body.fl-print-active * { visibility: hidden !important; }
+  body.fl-print-active .fl-print-root,
+  body.fl-print-active .fl-print-root * { visibility: visible !important; }
+  body.fl-print-active .fl-print-root {
+    position: absolute !important;
+    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+    padding: 24px !important;
+    font-size: 11pt;
+  }
+  body.fl-print-active .fl-print-root table { border-collapse: collapse; width: 100%; }
+  body.fl-print-active .fl-print-root th,
+  body.fl-print-active .fl-print-root td {
+    border: 1px solid #555; padding: 4px 6px; text-align: left; vertical-align: top;
+  }
+  body.fl-print-active .fl-print-root thead { background: #f3f3f3; }
+  @page { size: A4; margin: 14mm; }
+}
+.fl-print-root { display: none; }
+body.fl-print-active .fl-print-root { display: block; }
