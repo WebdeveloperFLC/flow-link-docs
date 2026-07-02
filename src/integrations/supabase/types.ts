@@ -34811,9 +34811,11 @@ export type Database = {
       }
       fn_mark_final_and_create_application: {
         Args: {
+          p_allow_duplicate_override?: boolean
           p_campus_name?: string
           p_client_program_id: string
           p_client_service_case_id: string
+          p_duplicate_override_reason?: string
           p_intake_term: string
           p_owner_user_id?: string
           p_set_primary?: boolean
