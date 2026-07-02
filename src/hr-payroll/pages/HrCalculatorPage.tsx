@@ -166,11 +166,23 @@ export default function HrCalculatorPage() {
   return (
     <div className="page-grid">
       <div className="card card-wash">
-        <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-          <strong>Formula sandbox</strong> — manual inputs call <code>fn_compute_payroll</code> for
-          what-if scenarios. Production payroll runs on{" "}
-          <Link to="/hr/payroll/verify">Payroll Verification</Link> (Process → Approve → Lock → Mark
-          paid). This page does not write to the salary register.
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+            <strong>Salary calculator (sandbox)</strong> — a what-if tool for checking figures. It
+            does <strong>not</strong> write to the salary register or affect real payroll. Run actual
+            payroll on Payroll Verification (Process → Approve → Lock → Mark paid).
+          </div>
+          <Link to="/hr/payroll/verify" className="btn btn-sm">
+            Go to live payroll →
+          </Link>
         </div>
       </div>
       <div className="grid g2" style={{ gap: 16, alignItems: "start" }}>

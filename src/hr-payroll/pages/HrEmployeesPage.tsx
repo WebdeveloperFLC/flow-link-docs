@@ -54,7 +54,7 @@ export default function HrEmployeesPage() {
     return (
       <div className="card" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
-          HR database not ready. Apply SQL migrations in order (schema → RLS → functions → seed).
+          HR data is not ready yet. Please contact your administrator.
         </div>
       </div>
     );
@@ -62,6 +62,10 @@ export default function HrEmployeesPage() {
 
   return (
     <div className="page-grid">
+      <div className="muted" style={{ fontSize: 12.5 }}>
+        <strong>Employee Master</strong> — create, edit and manage employee records. For a full
+        profile (attendance, leave, payroll, documents), <Link to="/hr/employee">open Employee 360 →</Link>
+      </div>
       <div className="card-h">
         <div className="row-flex" style={{ gap: 12, flex: 1 }}>
           <input

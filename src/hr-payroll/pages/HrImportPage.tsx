@@ -6,37 +6,16 @@ import { useHrEmployees } from "../hooks/useHrEmployees";
 import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit } from "../lib/hrApi";
 import { StatusBadge } from "../components/ui/StatusBadge";
-
-type ParsedRow = {
-  emp_code: string;
-  work_date: string;
-  check_in: string | null;
-  check_out: string | null;
-  status: string;
-  employee_id?: string;
-  error?: string;
-};
-
-function parseCsv(text: string): Record<string, string>[] {
-  const lines = text.trim().split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"));
-  return lines.slice(1).map((line) => {
-    const cols = line.split(",").map((c) => c.trim());
-    const row: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      row[h] = cols[i] ?? "";
-    });
-    return row;
-  });
-}
+import {
+  buildAttendanceImportRows,
+  summarizeAttendanceImport,
+} from "../lib/attendanceImport";
 
 export default function HrImportPage() {
   const { can, fire } = useHrAccess();
   const qc = useQueryClient();
   const { data: employees = [] } = useHrEmployees();
   const [raw, setRaw] = useState("");
-  const [preview, setPreview] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
 
   const empByCode = useMemo(() => {
@@ -45,28 +24,11 @@ export default function HrImportPage() {
     return m;
   }, [employees]);
 
-  const buildPreview = () => {
-    const rows = parseCsv(raw);
-    const out: ParsedRow[] = rows.map((r) => {
-      const code = (r.emp_code ?? r.employee_code ?? r.id ?? "").trim();
-      const empId = empByCode.get(code.toLowerCase());
-      const workDate = r.work_date ?? r.date ?? "";
-      const status = r.status || "Present";
-      if (!code) return { emp_code: "", work_date: workDate, check_in: null, check_out: null, status, error: "Missing emp_code" };
-      if (!empId) return { emp_code: code, work_date: workDate, check_in: null, check_out: null, status, error: "Unknown employee" };
-      if (!workDate) return { emp_code: code, work_date: "", check_in: null, check_out: null, status, error: "Missing date" };
-      return {
-        emp_code: code,
-        work_date: workDate,
-        check_in: r.check_in || r.in || null,
-        check_out: r.check_out || r.out || null,
-        status,
-        employee_id: empId,
-      };
-    });
-    setPreview(out);
-    fire(`Parsed ${out.length} rows`);
-  };
+  // HR-22 — validate live as the user types (no separate "Preview" step).
+  const preview = useMemo(
+    () => buildAttendanceImportRows(raw, empByCode),
+    [raw, empByCode],
+  );
 
   const importRows = async () => {
     const valid = preview.filter((r) => r.employee_id && !r.error);
@@ -98,30 +60,30 @@ export default function HrImportPage() {
     fire(`Imported ${ok} rows${fail ? `, ${fail} failed` : ""}`);
     await qc.invalidateQueries({ queryKey: ["hr-attendance"] });
     setRaw("");
-    setPreview([]);
   };
 
-  const validCount = preview.filter((r) => r.employee_id && !r.error).length;
-  const errCount = preview.filter((r) => r.error).length;
+  const { valid: validCount, errors: errCount } = summarizeAttendanceImport(preview);
 
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card" style={{ background: "#eef5ff", borderColor: "#cfe1f7" }}>
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
-          <strong>Phase 6 — CSV attendance import.</strong> Expected columns:{" "}
-          <span className="mono">emp_code, work_date, check_in, check_out, status</span>. Rows upsert
-          into attendance with source = import.
+          <strong>CSV attendance import.</strong> Expected columns:{" "}
+          <span className="mono">emp_code, work_date, check_in, check_out, status</span>. Existing
+          entries for the same employee and date are updated. Rows are validated as you type.
         </div>
       </div>
 
       <div className="card">
         <div className="card-h">
           <h3>Paste CSV</h3>
-          {can("manageEmp") && (
-            <div className="row-flex">
-              <button type="button" className="btn btn-sm" onClick={buildPreview} disabled={!raw.trim()}>
-                Preview
-              </button>
+          <div className="row-flex" style={{ gap: 8 }}>
+            {raw.trim() && (
+              <span className="tag">
+                {validCount} valid · {errCount} error{errCount === 1 ? "" : "s"}
+              </span>
+            )}
+            {can("manageEmp") && (
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
@@ -130,8 +92,8 @@ export default function HrImportPage() {
               >
                 {importing ? "Importing…" : `Import ${validCount} rows`}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <textarea
           className="input mono"
@@ -164,7 +126,10 @@ export default function HrImportPage() {
             </thead>
             <tbody>
               {preview.map((r, i) => (
-                <tr key={`${r.emp_code}-${r.work_date}-${i}`}>
+                <tr
+                  key={`${r.emp_code}-${r.work_date}-${i}`}
+                  style={r.error ? { background: "#fff1f2" } : undefined}
+                >
                   <td className="mono">{r.emp_code || "—"}</td>
                   <td>{r.work_date || "—"}</td>
                   <td className="mono">{r.check_in ?? "—"}</td>

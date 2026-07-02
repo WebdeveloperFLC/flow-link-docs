@@ -646,9 +646,12 @@ export default function HrLeavePage() {
   const [open, setOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
+  const [filterName, setFilterName] = useState(""); // HR-11 — search
   const [rejectRow, setRejectRow] = useState<LeaveRequestRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [detailRow, setDetailRow] = useState<LeaveRequestRow | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set()); // HR-11 — bulk select
+  const [bulkReject, setBulkReject] = useState(false);
 
   const [showLegacy, setShowLegacy] = useState(false);
   const [summaryYear, setSummaryYear] = useState(() => new Date().getFullYear());
@@ -666,6 +669,12 @@ export default function HrLeavePage() {
     if (filterFrom && l.from_date < filterFrom) return false;
     if (filterTo && l.from_date > filterTo) return false;
     if (!showLegacy && isLegacyLeaveType(l.type)) return false;
+    if (filterName.trim()) {
+      const q = filterName.trim().toLowerCase();
+      const name = (l.employees?.full_name ?? "").toLowerCase();
+      const code = (l.employees?.emp_code ?? "").toLowerCase();
+      if (!name.includes(q) && !code.includes(q)) return false;
+    }
     return true;
   });
 
@@ -698,6 +707,29 @@ export default function HrLeavePage() {
     } catch (e) {
       fire(e instanceof Error ? e.message : "Update failed");
     }
+  };
+
+  // HR-11 — bulk approve/reject over selected pending rows (reuses setStatus).
+  const selectedPending = () =>
+    filteredLeaves.filter((l) => selected.has(l.id) && l.status === "Pending");
+  const toggleSelected = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const bulkApprove = async () => {
+    for (const row of selectedPending()) await setStatus(row, "Approved");
+    setSelected(new Set());
+  };
+  const bulkRejectApply = async () => {
+    const reason = rejectReason.trim();
+    if (!reason) return;
+    for (const row of selectedPending()) await setStatus(row, "Rejected", reason);
+    setSelected(new Set());
+    setBulkReject(false);
+    setRejectReason("");
   };
 
   const cancelLeave = async (row: LeaveRequestRow) => {
@@ -757,6 +789,13 @@ export default function HrLeavePage() {
           12 Casual + 6 Sick/yr · {MONTHLY_PAID_LEAVE_CAP}/mo cap · 7d / 1mo notice
         </span>
         <div className="row-flex">
+          <input
+            className="input"
+            style={{ maxWidth: 200 }}
+            placeholder="Search employee or code…"
+            value={filterName}
+            onChange={(e) => setFilterName(e.target.value)}
+          />
           <label className="row-flex" style={{ fontSize: 12, cursor: "pointer" }}>
             <input type="checkbox" checked={showLegacy} onChange={(e) => setShowLegacy(e.target.checked)} />
             Show legacy
@@ -782,6 +821,30 @@ export default function HrLeavePage() {
           )}
         </div>
       </div>
+      {can("approve") && selected.size > 0 && (
+        <div
+          className="card"
+          style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px" }}
+        >
+          <span className="tag">{selectedPending().length} selected</span>
+          <button type="button" className="btn btn-sm btn-good" onClick={() => void bulkApprove()}>
+            Approve selected
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-bad"
+            onClick={() => {
+              setRejectReason("");
+              setBulkReject(true);
+            }}
+          >
+            Reject selected
+          </button>
+          <button type="button" className="btn btn-sm" onClick={() => setSelected(new Set())}>
+            Clear
+          </button>
+        </div>
+      )}
       <div className="card" style={{ padding: 0, overflow: "auto" }}>
         {isLoading ? (
           <div className="empty">Loading…</div>
@@ -794,6 +857,30 @@ export default function HrLeavePage() {
           <table style={{ minWidth: 800 }}>
             <thead>
               <tr>
+                {can("approve") && (
+                  <th style={{ width: 32 }}>
+                    <input
+                      type="checkbox"
+                      aria-label="Select all pending"
+                      checked={
+                        selectedPending().length > 0 &&
+                        selectedPending().length ===
+                          filteredLeaves.filter((l) => l.status === "Pending").length
+                      }
+                      onChange={(e) => {
+                        if (e.target.checked)
+                          setSelected(
+                            new Set(
+                              filteredLeaves
+                                .filter((l) => l.status === "Pending")
+                                .map((l) => l.id),
+                            ),
+                          );
+                        else setSelected(new Set());
+                      }}
+                    />
+                  </th>
+                )}
                 <th>Ref</th>
                 <th>Employee</th>
                 <th>Type</th>
@@ -812,6 +899,18 @@ export default function HrLeavePage() {
                   style={{ cursor: "pointer" }}
                   title="Click to view details"
                 >
+                  {can("approve") && (
+                    <td onClick={(e) => e.stopPropagation()} style={{ width: 32 }}>
+                      {l.status === "Pending" && (
+                        <input
+                          type="checkbox"
+                          aria-label="Select row"
+                          checked={selected.has(l.id)}
+                          onChange={() => toggleSelected(l.id)}
+                        />
+                      )}
+                    </td>
+                  )}
                   <td className="mono strong" style={{ fontSize: 12, color: "var(--sky)" }}>
                     {l.id.slice(0, 8)}
                   </td>
@@ -974,6 +1073,38 @@ export default function HrLeavePage() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Reason shown to employee"
+            />
+          </label>
+        </ModalShell>
+      )}
+      {bulkReject && (
+        <ModalShell
+          title={`Reject ${selectedPending().length} leave request(s)`}
+          onClose={() => setBulkReject(false)}
+          footer={
+            <>
+              <button type="button" className="btn" onClick={() => setBulkReject(false)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-bad"
+                disabled={!rejectReason.trim()}
+                onClick={() => void bulkRejectApply()}
+              >
+                Reject selected
+              </button>
+            </>
+          }
+        >
+          <label className="fld">
+            <span className="l">Rejection reason (required, applied to all selected)</span>
+            <textarea
+              className="input"
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Reason shown to employees"
             />
           </label>
         </ModalShell>

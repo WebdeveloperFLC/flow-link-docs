@@ -28,7 +28,7 @@ import { WtmWorkforceTimeWidget } from "../components/wtm/WtmWorkforceTimeWidget
 import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
 import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
-import { employeeCurrency, formatMoney } from "../lib/format";
+import { employeeCurrency, employeeStatusLabel, formatMoney, isEmployeeInactive } from "../lib/format";
 import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { buildStatutoryBreakdown } from "../lib/payrollBreakdown";
 import { PayrollBreakdownPanel } from "../components/payroll/PayrollBreakdownPanel";
@@ -236,6 +236,21 @@ export default function HrEssPage() {
         </div>
       </div>
 
+      {emp.status && emp.status.toLowerCase() !== "active" && (
+        <div
+          className="card"
+          style={{
+            background: isEmployeeInactive(emp.status) ? "#fff1f2" : "#fff7ed",
+            borderColor: "#fed7aa",
+          }}
+        >
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>
+            Employment status: <strong>{employeeStatusLabel(emp.status)}</strong>. Some actions may be
+            limited — please contact HR with any questions.
+          </div>
+        </div>
+      )}
+
       <EssPersonalContactPanel emp={emp} onSaved={fire} />
 
       <div className="ess-quick-grid">
@@ -247,6 +262,16 @@ export default function HrEssPage() {
               <div className="ess-quick-hint">
                 {pendingLeaveCount > 0 ? `${pendingLeaveCount} pending` : "Casual, sick & more"}
               </div>
+            </span>
+          </Link>
+        )}
+        {/* HR-23 — managers get team context from their own portal. */}
+        {can("approve") && canSee("approvals") && (
+          <Link to="/hr/approvals" className="ess-quick-card ess-quick-attendance">
+            <span className="ess-quick-icon"><ClipboardCheck size={18} strokeWidth={2.25} /></span>
+            <span>
+              <div className="ess-quick-label">Team approvals</div>
+              <div className="ess-quick-hint">Review your team's requests</div>
             </span>
           </Link>
         )}

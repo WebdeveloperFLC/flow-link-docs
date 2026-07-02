@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
 import { EmployeeCard } from "../components/ui/EmployeeCard";
 import { Emp360FilterBar } from "../components/emp360/Emp360FilterBar";
@@ -76,6 +76,10 @@ export default function HrEmp360ListPage() {
 
   return (
     <div className="page-grid">
+      <div className="muted" style={{ fontSize: 12.5 }}>
+        <strong>Employee 360</strong> — browse full employee profiles (attendance, leave, payroll,
+        documents). To create or edit records, <Link to="/hr/employees">open Employee Master →</Link>
+      </div>
       <Emp360FilterBar
         filters={filters}
         onChange={updateFilters}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
@@ -21,6 +21,12 @@ import {
 } from "../lib/bankTransferExport";
 import { PayrollBreakdownModal } from "../components/payroll/PayrollBreakdownModal";
 import { PayrollWorkflowStepper } from "../components/payroll/PayrollBreakdownPanel";
+import { validatePayrollLines, summarizePayrollValidation } from "../lib/payrollValidation";
+import { canProceedWithConfirm } from "../lib/payrollConfirm";
+import { buildPayrollReadiness, type ReadinessState } from "../lib/payrollReadiness";
+import { payrollWorkflowGuide } from "../lib/payrollWorkflowGuide";
+import { filterCyclePayrollAudit } from "../lib/payrollAuditTrail";
+import { useHrAuditLogs } from "../hooks/useHrRequests";
 import {
   branchesForPayrollCountry,
   companiesForPayrollCountryFilter,
@@ -35,7 +41,7 @@ import {
   type PayrollCountryFilter,
   type PayrollStatusFilter,
 } from "../lib/payrollVerifyFilters";
-import type { PayrollCycleRow, PayrollLineRow } from "../lib/types";
+import type { AuditLogRow, PayrollCycleRow, PayrollLineRow } from "../lib/types";
 
 type OverrideFields = {
   late: number;
@@ -46,6 +52,18 @@ type OverrideFields = {
   ul: number;
   sandwich: number;
   unpaid_training: number;
+};
+
+/** HR-16 — client-side page size for the (wide, high-volume) salary register table. */
+const REG_PAGE_SIZE = 25;
+
+/** HR-14 — a pending payroll transition awaiting structured confirmation. */
+type PendingConfirm = {
+  label: string;
+  toStatus: string;
+  /** Irreversible steps (Lock, Mark paid) require typing the cycle label. */
+  requireTyped: boolean;
+  run: () => Promise<void>;
 };
 
 function OverrideModal({
@@ -61,6 +79,9 @@ function OverrideModal({
 }) {
   const qc = useQueryClient();
   const [auto, setAuto] = useState<OverrideFields | null>(null);
+  const [reason, setReason] = useState(
+    typeof line.override_json?._reason === "string" ? (line.override_json._reason as string) : "",
+  );
   const [f, setF] = useState<OverrideFields>({
     late: line.late_count,
     mispunch: line.mispunch_count,
@@ -91,7 +112,8 @@ function OverrideModal({
   };
 
   const apply = async () => {
-    const overrideJson = { ...f };
+    if (!reason.trim()) return;
+    const overrideJson = { ...f, _reason: reason.trim() };
     const { error: updErr } = await supabase
       .from("payroll_lines" as never)
       .update({ is_overridden: true, override_json: overrideJson } as never)
@@ -161,7 +183,12 @@ function OverrideModal({
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn btn-primary" onClick={() => void apply()}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!reason.trim()}
+            onClick={() => void apply()}
+          >
             Apply Override
           </button>
         </>
@@ -169,6 +196,19 @@ function OverrideModal({
     >
       <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 10 }}>
         Auto = attendance roll-up + approvals. Override any field (gold = changed).
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ fontSize: 12.5, fontWeight: 500, display: "block", marginBottom: 4 }}>
+          Reason for override <span style={{ color: "var(--rose)" }}>*</span>
+        </label>
+        <textarea
+          className="input"
+          rows={2}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="e.g. Adjusted for approved late exemption on 2026-06-15"
+          style={{ width: "100%" }}
+        />
       </div>
       {Row("late", "Late Comings")}
       {Row("mispunch", "Mispunch + Absent")}
@@ -184,9 +224,10 @@ function OverrideModal({
 
 export default function HrVerifyPage() {
   const { cycleId } = useParams<{ cycleId?: string }>();
-  const { cycle: ctxCycle, can, actualCan, assignedRole, fire } = useHrAccess();
+  const { cycle: ctxCycle, can, actualCan, assignedRole, fire, pendingCounts } = useHrAccess();
   const { data: ref } = useHrReferenceData();
   const { data: allCycles = [] } = useHrCycles();
+  const { data: auditLogs = [] } = useHrAuditLogs();
   const qc = useQueryClient();
   const [countryFilter, setCountryFilter] = useState<PayrollCountryFilter>("All");
   const [branchId, setBranchId] = useState("All");
@@ -199,6 +240,15 @@ export default function HrVerifyPage() {
   const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
   const [breakdownLine, setBreakdownLine] = useState<PayrollLineRow | null>(null);
   const [uatResetOpen, setUatResetOpen] = useState(false);
+  const [regPage, setRegPage] = useState(1); // HR-16 — register pagination
+  const [sortKey, setSortKey] = useState<"" | "employee" | "payable_days" | "gross_earned" | "net_salary">("");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  // HR-15 — payroll validation gate. `action` present = a blocked action awaiting
+  // resolution/override; absent = read-only "review issues" view.
+  const [gate, setGate] = useState<{ label: string; action?: () => void | Promise<void> } | null>(null);
+  // HR-14 — structured confirmation for payroll state transitions (replaces confirm()).
+  const [confirmAction, setConfirmAction] = useState<PendingConfirm | null>(null);
+  const [confirmText, setConfirmText] = useState("");
 
   useEffect(() => {
     if (!ctxCycle || filtersInitialized) return;
@@ -262,6 +312,39 @@ export default function HrVerifyPage() {
     [lines, countryFilter, branchId, companyId],
   );
 
+  // HR-16 — optional sort, then paginate (footer totals still reflect all filtered rows).
+  const sortedFiltered = useMemo(() => {
+    if (!sortKey) return filtered;
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "employee") {
+        cmp = (a.employees?.full_name ?? "").localeCompare(b.employees?.full_name ?? "");
+      } else {
+        cmp = a[sortKey] - b[sortKey];
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
+  const regTotalPages = Math.max(1, Math.ceil(sortedFiltered.length / REG_PAGE_SIZE));
+  const safeRegPage = Math.min(regPage, regTotalPages);
+  const pageRows = useMemo(
+    () => sortedFiltered.slice((safeRegPage - 1) * REG_PAGE_SIZE, safeRegPage * REG_PAGE_SIZE),
+    [sortedFiltered, safeRegPage],
+  );
+  const toggleSort = (key: "employee" | "payable_days" | "gross_earned" | "net_salary") => {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+  const sortArrow = (key: string) => (sortKey === key ? (sortDir === "asc" ? " ▲" : " ▼") : "");
+  useEffect(() => {
+    setRegPage(1);
+  }, [countryFilter, branchId, companyId, cycleFilter, statusFilter, fromDate, toDate]);
+
   const registerRows = useMemo(
     () =>
       filtered.flatMap((line) => {
@@ -284,6 +367,40 @@ export default function HrVerifyPage() {
   const canRunCycleWorkflow = cycleFilter !== "All" && !!cyclesById[cycleFilter];
   const exportLabel = verifyDateRangeLabel(fromDate, toDate);
   const exportFileStem = verifyExportFileStem(fromDate, toDate);
+
+  // HR-15 — validate the whole selected cycle for workflow actions (attendance/branch
+  // filters must not hide errored lines from a cycle-level Process/Lock/Pay), and the
+  // visible rows for the bank-file export.
+  const workflowLines = useMemo(
+    () => (workflowCycleId ? lines.filter((l) => l.cycle_id === workflowCycleId) : []),
+    [lines, workflowCycleId],
+  );
+  const cycleValidation = useMemo(() => validatePayrollLines(workflowLines), [workflowLines]);
+  const exportValidation = useMemo(() => validatePayrollLines(filtered), [filtered]);
+
+  // HR-14 — impact figures shown in the confirmation dialog.
+  const workflowOverriddenCount = useMemo(
+    () => workflowLines.filter((l) => l.is_overridden).length,
+    [workflowLines],
+  );
+  const workflowTotals = useMemo(() => {
+    const acc: Record<string, number> = {};
+    for (const r of workflowLines) {
+      const cur = employeeCurrency(r.employees);
+      acc[cur] = (acc[cur] ?? 0) + r.net_salary;
+    }
+    return Object.entries(acc);
+  }, [workflowLines]);
+  const workflowBank = useMemo(() => {
+    const rows = buildBankTransferRows(workflowLines);
+    const { missingBank } = bankTransferValidation(rows);
+    return { total: rows.length, missing: missingBank.length };
+  }, [workflowLines]);
+  // HR-19 — payroll lifecycle audit trail for the selected cycle (from audit_log).
+  const cycleAuditTrail = useMemo(
+    () => filterCyclePayrollAudit(auditLogs as AuditLogRow[], workflowCycle?.label ?? ""),
+    [auditLogs, workflowCycle?.label],
+  );
 
   const currencyTotals = useMemo(() => {
     const acc: Record<string, { gross: number; net: number }> = {};
@@ -334,61 +451,55 @@ export default function HrVerifyPage() {
       fire(`Register rebuilt (${count} employees)`);
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Rebuild failed — apply migration 19");
+      fire(e instanceof Error ? e.message : "Rebuild failed — please try again or contact support");
     }
   };
 
   const processCycle = async () => {
     if (!workflowCycleId || !workflowCycle) return;
-    if (!confirm("Process payroll? Lines rebuild + processed snapshots (attendance, leave, policies) are captured.")) return;
     try {
       await processPayrollCycle(workflowCycleId);
       await hrAudit("Payroll Processed", workflowCycle.label, "Draft", "Processed");
       fire("Payroll processed — review register before approval");
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Process failed — apply migration 19");
+      fire(e instanceof Error ? e.message : "Process failed — please try again or contact support");
     }
   };
 
   const approveCycle = async () => {
     if (!workflowCycleId || !workflowCycle) return;
-    if (!confirm("Approve payroll register for locking?")) return;
     try {
       await approvePayrollCycle(workflowCycleId);
       await hrAudit("Payroll Approved", workflowCycle.label, "Processed", "Approved");
       fire("Payroll approved — ready to lock");
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Approve failed — apply migration 19");
+      fire(e instanceof Error ? e.message : "Approve failed — please try again or contact support");
     }
   };
 
   const lockCycle = async () => {
     if (!workflowCycleId || !workflowCycle) return;
-    if (!confirm("Lock payroll? All lines will be snapshotted and attendance frozen for this cycle.")) {
-      return;
-    }
     try {
       await lockPayrollCycle(workflowCycleId);
       await hrAudit("Payroll Locked", workflowCycle.label, cycleStatus, "Locked");
       fire("Payroll locked — register frozen");
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Lock failed — apply migration 13/19");
+      fire(e instanceof Error ? e.message : "Lock failed — please try again or contact support");
     }
   };
 
   const markPaid = async () => {
     if (!workflowCycleId || !workflowCycle) return;
-    if (!confirm("Mark this payroll cycle as paid?")) return;
     try {
       await markPayrollPaid(workflowCycleId);
       await hrAudit("Payroll Paid", workflowCycle.label, "Locked", "Paid");
       fire("Payroll marked as paid");
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Mark paid failed — apply migration 19");
+      fire(e instanceof Error ? e.message : "Mark paid failed — please try again or contact support");
     }
   };
 
@@ -400,7 +511,7 @@ export default function HrVerifyPage() {
       setUatResetOpen(false);
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "UAT reset failed — apply migration 20260738120000");
+      fire(e instanceof Error ? e.message : "UAT reset failed — please try again or contact support");
     }
   };
 
@@ -443,16 +554,74 @@ export default function HrVerifyPage() {
     printBatchSalarySlips(items, exportLabel);
   };
 
-  const exportBankTransfer = () => {
-    if (!filtered.length) {
-      fire("No payroll records match the current filters");
-      return;
-    }
+  const doBankExport = () => {
     const rows = buildBankTransferRows(filtered);
     const { totalNet } = bankTransferValidation(rows);
     if (!confirmBankTransferExport(rows)) return;
     downloadBankTransferCsv(rows, exportFileStem);
     fire(`Bank file exported · ${formatBankTransferSummary(totalNet)}`);
+  };
+
+  const exportBankTransfer = () => {
+    if (!filtered.length) {
+      fire("No payroll records match the current filters");
+      return;
+    }
+    // HR-15 — never let hard errors reach the bank file.
+    if (exportValidation.hasErrors) {
+      setGate({ label: "Export bank transfer", action: doBankExport });
+      return;
+    }
+    doBankExport();
+  };
+
+  // HR-15 — run a forward workflow action only if the cycle has no hard errors;
+  // otherwise open the gate (which offers an audited admin override).
+  const guard = (label: string, action: () => void | Promise<void>) => {
+    if (cycleValidation.hasErrors) {
+      setGate({ label, action });
+      return;
+    }
+    void action();
+  };
+
+  const overrideAndRun = async () => {
+    const pending = gate?.action;
+    const usedValidation = gate?.label === "Export bank transfer" ? exportValidation : cycleValidation;
+    setGate(null);
+    if (!pending) return;
+    if (workflowCycle) {
+      await hrAudit(
+        "Payroll Validation Overridden",
+        `${workflowCycle.label} · ${gate?.label ?? "action"} · ${usedValidation.errorCount} error(s), ${usedValidation.warningCount} warning(s)`,
+        cycleStatus,
+        cycleStatus,
+      );
+    }
+    await pending();
+  };
+
+  // HR-14 — open the structured confirmation dialog for a transition.
+  const openConfirm = (cfg: PendingConfirm) => {
+    setConfirmText("");
+    setConfirmAction(cfg);
+  };
+  const requestProcess = () =>
+    openConfirm({ label: "Process salary", toStatus: "Processed", requireTyped: false, run: processCycle });
+  const requestApprove = () =>
+    openConfirm({ label: "Approve payroll", toStatus: "Approved", requireTyped: false, run: approveCycle });
+  const requestLock = () =>
+    openConfirm({ label: "Lock payroll", toStatus: "Locked", requireTyped: true, run: lockCycle });
+  const requestMarkPaid = () =>
+    openConfirm({ label: "Mark paid", toStatus: "Paid", requireTyped: true, run: markPaid });
+
+  const confirmProceed = async () => {
+    const act = confirmAction;
+    if (!act) return;
+    if (!canProceedWithConfirm(act.requireTyped, confirmText, workflowCycle?.label ?? "")) return;
+    setConfirmAction(null);
+    setConfirmText("");
+    await act.run();
   };
 
   if (!ctxCycle) return <div className="empty">No payroll cycle loaded.</div>;
@@ -520,22 +689,22 @@ export default function HrVerifyPage() {
           {can("approve") && canRunCycleWorkflow && (
             <>
               {cycleStatus === "Draft" && (
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => void processCycle()}>
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => guard("Process salary", requestProcess)}>
                   Process salary
                 </button>
               )}
               {cycleStatus === "Processed" && (
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => void approveCycle()}>
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => guard("Approve payroll", requestApprove)}>
                   Approve
                 </button>
               )}
               {cycleStatus === "Approved" && (
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => void lockCycle()}>
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => guard("Lock payroll", requestLock)}>
                   Lock payroll
                 </button>
               )}
               {cycleStatus === "Locked" && (
-                <button type="button" className="btn btn-good btn-sm" onClick={() => void markPaid()}>
+                <button type="button" className="btn btn-good btn-sm" onClick={() => guard("Mark paid", requestMarkPaid)}>
                   Mark paid
                 </button>
               )}
@@ -571,11 +740,142 @@ export default function HrVerifyPage() {
             Salary is computed from <strong>monthly gross × payable days</strong>, never from CTC.
           </div>
           <PayrollWorkflowStepper status={cycleStatus} />
+          {(() => {
+            const g = payrollWorkflowGuide(cycleStatus);
+            return (
+              <div
+                style={{
+                  marginTop: 10,
+                  fontSize: 12.5,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span className="muted">Current step:</span>
+                <strong>{g.currentLabel}</strong>
+                {g.nextActionLabel ? (
+                  <>
+                    <span className="muted">· Next:</span>
+                    <strong>{g.nextActionLabel}</strong>
+                    {g.nextHint && <span className="muted">— {g.nextHint}</span>}
+                    {g.nextIrreversible && (
+                      <span className="tag" style={{ color: "var(--rose)" }}>
+                        irreversible
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="muted">— {g.nextHint}</span>
+                )}
+              </div>
+            );
+          })()}
+          <div
+            style={{
+              fontSize: 12.5,
+              marginTop: 10,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            <span className="muted">Validation:</span>
+            <span className="mono">{summarizePayrollValidation(cycleValidation)}</span>
+            {cycleValidation.hasErrors ? (
+              <>
+                <span className="tag" style={{ color: "var(--rose)" }}>
+                  Blocks processing
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  onClick={() => setGate({ label: "Review validation" })}
+                >
+                  Review issues
+                </button>
+              </>
+            ) : cycleValidation.hasWarnings ? (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => setGate({ label: "Review validation" })}
+              >
+                Review warnings
+              </button>
+            ) : (
+              <span className="tag" style={{ color: "var(--good)" }}>
+                Ready
+              </span>
+            )}
+          </div>
+          {(() => {
+            // HR-18 (informational only) — surface pending approvals to review before locking.
+            // Read-only; does not block any transition.
+            const pend = {
+              leave: pendingCounts.leave ?? 0,
+              compoff: pendingCounts.compoff ?? 0,
+              late: pendingCounts.late ?? 0,
+              mispunch: pendingCounts.mispunch ?? 0,
+            };
+            const total = pend.leave + pend.compoff + pend.late + pend.mispunch;
+            if (total === 0) return null;
+            return (
+              <div style={{ marginTop: 10, fontSize: 12, color: "var(--clay)" }}>
+                {total} pending approval{total === 1 ? "" : "s"} to review before locking —{" "}
+                {pend.leave} leave · {pend.compoff} comp-off · {pend.late} late · {pend.mispunch}{" "}
+                mispunch.{" "}
+                <Link to="/hr/approvals">Open Approval Center →</Link>
+              </div>
+            );
+          })()}
+          {cycleAuditTrail.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-soft)", marginBottom: 6 }}>
+                Cycle history
+              </div>
+              <div style={{ display: "grid", gap: 4 }}>
+                {cycleAuditTrail.map((a) => (
+                  <div key={a.id} style={{ fontSize: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <span className="mono muted" style={{ minWidth: 118 }}>
+                      {new Date(a.created_at).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    <span style={{ minWidth: 150 }}>
+                      {a.action.replace(/^Payroll /, "")}
+                    </span>
+                    <span className="muted">by {a.actor_label ?? "—"}</span>
+                    {a.prev_value && a.new_value && a.prev_value !== "—" && (
+                      <span className="mono muted">
+                        {a.prev_value} → {a.new_value}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {showUatResetNote && (
             <p style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 12, marginBottom: 0 }}>
               Reset Payroll Cycle (UAT) is available only for non-production payroll cycles.
             </p>
           )}
+        </div>
+      )}
+
+      {!canRunCycleWorkflow && validDateRange && (
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 10 }}>
+            Payroll runs as a pipeline: <strong>Process → Approve → Lock → Paid</strong>. Select a
+            single payroll cycle above to run it step by step.
+          </div>
+          <PayrollWorkflowStepper status="" />
         </div>
       )}
 
@@ -672,11 +972,14 @@ export default function HrVerifyPage() {
         ) : filtered.length === 0 ? (
           <div className="empty">No payroll records match the selected filters.</div>
         ) : (
+          <>
           <table style={{ minWidth: 1500 }}>
             <thead>
               <tr>
                 {showCycleColumn && <th>Cycle</th>}
-                <th>Employee</th>
+                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("employee")}>
+                  Employee{sortArrow("employee")}
+                </th>
                 <th>PF No.</th>
                 <th>Branch</th>
                 <th>Mis+Abs</th>
@@ -689,21 +992,27 @@ export default function HrVerifyPage() {
                 <th>Train</th>
                 <th>L-Ded</th>
                 <th>M-Ded</th>
-                <th>Payable</th>
+                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("payable_days")}>
+                  Payable{sortArrow("payable_days")}
+                </th>
                 <th>Daily</th>
-                <th>Gross</th>
+                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("gross_earned")}>
+                  Gross{sortArrow("gross_earned")}
+                </th>
                 <th>Inc</th>
                 <th>Bonus</th>
                 <th>{dedLabels.pf}</th>
                 <th>{dedLabels.esic}</th>
                 <th>{dedLabels.pt}</th>
                 <th>Other Ded.</th>
-                <th>Net Salary</th>
+                <th style={{ cursor: "pointer" }} onClick={() => toggleSort("net_salary")}>
+                  Net Salary{sortArrow("net_salary")}
+                </th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id}>
                   {showCycleColumn && (
                     <td style={{ fontSize: 11.5 }}>
@@ -838,6 +1147,44 @@ export default function HrVerifyPage() {
               ))}
             </tfoot>
           </table>
+          {regTotalPages > 1 && (
+            <div
+              className="row-flex"
+              style={{
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                borderTop: "1px solid var(--line)",
+                fontSize: 12.5,
+              }}
+            >
+              <span className="muted">
+                Showing {(safeRegPage - 1) * REG_PAGE_SIZE + 1}–
+                {Math.min(safeRegPage * REG_PAGE_SIZE, filtered.length)} of {filtered.length}
+              </span>
+              <div className="row-flex" style={{ gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={safeRegPage <= 1}
+                  onClick={() => setRegPage(safeRegPage - 1)}
+                >
+                  ← Prev
+                </button>
+                <span className="muted mono">
+                  Page {safeRegPage} / {regTotalPages}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={safeRegPage >= regTotalPages}
+                  onClick={() => setRegPage(safeRegPage + 1)}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
 
@@ -906,6 +1253,187 @@ export default function HrVerifyPage() {
           </p>
         </ModalShell>
       )}
+
+      {gate && (() => {
+        const v = gate.label === "Export bank transfer" ? exportValidation : cycleValidation;
+        const isReview = !gate.action;
+        const canOverride = actualCan("configure");
+        return (
+          <ModalShell
+            title={isReview ? "Payroll validation" : `Validation blocks: ${gate.label}`}
+            onClose={() => setGate(null)}
+            footer={
+              <>
+                <button type="button" className="btn" onClick={() => setGate(null)}>
+                  Close
+                </button>
+                {!isReview && v.hasErrors && canOverride && (
+                  <button type="button" className="btn btn-bad" onClick={() => void overrideAndRun()}>
+                    Override &amp; continue
+                  </button>
+                )}
+              </>
+            }
+          >
+            <div style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 10 }}>
+              {isReview
+                ? `Cycle validation summary: ${summarizePayrollValidation(v)}.`
+                : `${v.errorCount} hard error(s) across ${v.employeesWithErrors} employee(s) must be resolved before you can ${gate.label.toLowerCase()}.`}
+            </div>
+            {v.errors.length > 0 && (
+              <>
+                <div className="strong" style={{ fontSize: 12.5, marginBottom: 4 }}>
+                  Errors ({v.errorCount})
+                </div>
+                <ul style={{ margin: "0 0 12px", paddingLeft: 18, fontSize: 12.5 }}>
+                  {v.errors.slice(0, 50).map((i, idx) => (
+                    <li key={`e-${idx}`}>
+                      <span className="mono">{i.empCode}</span> {i.employeeName} — {i.message}
+                    </li>
+                  ))}
+                  {v.errors.length > 50 && <li className="muted">…and {v.errors.length - 50} more</li>}
+                </ul>
+              </>
+            )}
+            {v.warnings.length > 0 && (
+              <>
+                <div className="strong" style={{ fontSize: 12.5, marginBottom: 4 }}>
+                  Warnings ({v.warningCount})
+                </div>
+                <ul style={{ margin: "0 0 12px", paddingLeft: 18, fontSize: 12.5, color: "var(--ink-soft)" }}>
+                  {v.warnings.slice(0, 50).map((i, idx) => (
+                    <li key={`w-${idx}`}>
+                      <span className="mono">{i.empCode}</span> {i.employeeName} — {i.message}
+                    </li>
+                  ))}
+                  {v.warnings.length > 50 && <li className="muted">…and {v.warnings.length - 50} more</li>}
+                </ul>
+              </>
+            )}
+            {!isReview && v.hasErrors && !canOverride && (
+              <div style={{ fontSize: 12, color: "var(--rose)" }}>
+                Resolve these in the register (fix attendance / overrides, then Rebuild register), or
+                ask a finance admin to review.
+              </div>
+            )}
+          </ModalShell>
+        );
+      })()}
+
+      {confirmAction && workflowCycle && (() => {
+        const irreversible = confirmAction.requireTyped;
+        const typedOk = canProceedWithConfirm(irreversible, confirmText, workflowCycle.label);
+        const readiness = buildPayrollReadiness({
+          lineCount: workflowLines.length,
+          overriddenCount: workflowOverriddenCount,
+          errorCount: cycleValidation.errorCount,
+          warningCount: cycleValidation.warningCount,
+          bankTotal: workflowBank.total,
+          bankMissing: workflowBank.missing,
+          pendingAttendance: (pendingCounts.late ?? 0) + (pendingCounts.mispunch ?? 0),
+          pendingLeave: (pendingCounts.leave ?? 0) + (pendingCounts.compoff ?? 0),
+        });
+        const stateIcon = (s: ReadinessState) =>
+          s === "ok" ? "✓" : s === "error" ? "✕" : s === "warn" ? "!" : "•";
+        const stateColor = (s: ReadinessState) =>
+          s === "ok"
+            ? "var(--good)"
+            : s === "error"
+              ? "var(--rose)"
+              : s === "warn"
+                ? "var(--clay)"
+                : "var(--mut)";
+        return (
+          <ModalShell
+            title={confirmAction.label}
+            onClose={() => {
+              setConfirmAction(null);
+              setConfirmText("");
+            }}
+            footer={
+              <>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    setConfirmAction(null);
+                    setConfirmText("");
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${confirmAction.toStatus === "Paid" ? "btn-good" : "btn-primary"}`}
+                  disabled={!typedOk}
+                  onClick={() => void confirmProceed()}
+                >
+                  {confirmAction.label}
+                </button>
+              </>
+            }
+          >
+            <div style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 4 }}>
+              <strong>{workflowCycle.label}</strong>: status{" "}
+              <span className="mono">{cycleStatus}</span> →{" "}
+              <span className="mono strong">{confirmAction.toStatus}</span>
+            </div>
+            <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 12 }}>
+              <span className="muted">Employees affected: </span>
+              <strong>{workflowLines.length}</strong>
+              <span className="muted"> · Net total: </span>
+              <strong>
+                {workflowTotals.length
+                  ? workflowTotals.map(([cur, n]) => formatMoney(n, cur)).join(" · ")
+                  : "—"}
+              </strong>
+            </div>
+
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-soft)", marginBottom: 6 }}>
+              Payroll readiness
+            </div>
+            <div style={{ display: "grid", gap: 6, marginBottom: 14 }}>
+              {readiness.map((item) => (
+                <div
+                  key={item.key}
+                  style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 12.5 }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      color: stateColor(item.state),
+                      fontWeight: 700,
+                      width: 14,
+                      textAlign: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {stateIcon(item.state)}
+                  </span>
+                  <span style={{ minWidth: 170 }}>{item.label}</span>
+                  <span className="muted">{item.detail}</span>
+                </div>
+              ))}
+            </div>
+
+            {irreversible && (
+              <>
+                <div style={{ fontSize: 12.5, color: "var(--rose)", marginBottom: 8 }}>
+                  This action cannot be undone. Type the cycle name{" "}
+                  <span className="mono">{workflowCycle.label}</span> to confirm.
+                </div>
+                <input
+                  className="input"
+                  placeholder={workflowCycle.label}
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  style={{ width: "100%" }}
+                />
+              </>
+            )}
+          </ModalShell>
+        );
+      })()}
     </div>
   );
 }
