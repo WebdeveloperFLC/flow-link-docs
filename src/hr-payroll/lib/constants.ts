@@ -130,7 +130,7 @@ export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
   audit: "Audit Logs",
   admin: "Administration",
   masterData: "Master Data",
-  wpms: "WPMS",
+  wpms: "Workforce Policies (WPMS)",
   attendanceExceptions: "Attendance Exceptions",
   incidentRegister: "Workforce Incident Register",
 };

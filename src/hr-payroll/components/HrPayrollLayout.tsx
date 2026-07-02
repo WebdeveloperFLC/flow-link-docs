@@ -173,7 +173,7 @@ function HrPayrollLayout() {
             {!dbReady && (
               <>
                 <br />
-                <span className="status-clay">Apply HR SQL migrations</span>
+                <span className="status-clay">HR data setup incomplete — contact your administrator</span>
               </>
             )}
           </div>

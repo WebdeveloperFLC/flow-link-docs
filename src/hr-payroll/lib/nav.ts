@@ -59,7 +59,7 @@ export const HR_NAV: NavGroup[] = [
     items: [
       { k: "admin", ic: "⚙", t: "Administration" },
       { k: "masterData", ic: "▦", t: "Master Data" },
-      { k: "wpms", ic: "◈", t: "WPMS" },
+      { k: "wpms", ic: "◈", t: "Workforce Policies (WPMS)" },
     ],
   },
   {
