@@ -1,18 +1,19 @@
 # Module Readiness Matrix
 
 **Document type:** ERP deployment dashboard  
-**Version:** 1.0  
+**Version:** 1.1  
 **Last updated:** 2026-07-01  
 **Owner:** Platform governance  
-**Baseline reference:** [`PLATFORM_BASELINE_v1.0.md`](./PLATFORM_BASELINE_v1.0.md)
+**Baseline reference:** [`PLATFORM_BASELINE_v1.0.md`](./PLATFORM_BASELINE_v1.0.md)  
+**Recovery status:** Platform Baseline Recovery **CLOSED** — see [`PLATFORM_BASELINE_RECOVERY.md`](./PLATFORM_BASELINE_RECOVERY.md#platform-baseline-closure-july-2026)
 
 ---
 
 ## Purpose
 
-Single dashboard for **where each ERP module stands** across the delivery lifecycle. Update this document when a module completes Platform Baseline, passes Business UAT, or is cleared for Production.
+Single dashboard for **where each ERP module stands** across the delivery lifecycle. Update when a module completes Platform Baseline, passes Business UAT, or is cleared for production.
 
-> **Deployment rule:** A feature is not deployed until **both** the live database and GitHub are synchronized. See [`PLATFORM_BASELINE_RECOVERY.md`](./PLATFORM_BASELINE_RECOVERY.md).
+> **Deployment rule:** A feature is not deployed until **both** the live database and GitHub are synchronized.
 
 ---
 
@@ -20,9 +21,10 @@ Single dashboard for **where each ERP module stands** across the delivery lifecy
 
 | Symbol | Meaning |
 |--------|---------|
-| ✅ | Complete / passed for this column |
+| ✅ | Complete |
 | 🟡 | In progress — partial coverage or pending sign-off |
 | ❌ | Not started or blocked |
+| ⏳ | Pending prerequisite (typically full Business UAT sign-off) |
 
 ---
 
@@ -31,44 +33,55 @@ Single dashboard for **where each ERP module stands** across the delivery lifecy
 | Column | Question it answers | Exit criteria |
 |--------|---------------------|---------------|
 | **Development** | Is the module implemented in GitHub to frozen spec? | Core flows coded; migrations shipped; demo runnable |
-| **Platform** | Does live Supabase match repo for this module's schema/RPCs? | Platform Baseline schema-effect gates PASS for module objects |
+| **Platform** | Does live Supabase match repo for this module's schema/RPCs? | Platform Baseline v1.0 schema-effect gates PASS |
 | **Business UAT** | Has the business signed off on frozen scenarios? | UAT checklist PASS with named test cases |
-| **Production** | Is the module live for real business operations? | Sponsor approval; production data; support runbook |
+| **Production Ready** | Cleared for real business operations? | Full module UAT sign-off + sponsor approval + runbook |
 
 ---
 
 ## Module readiness (current)
 
-| Module | Development | Platform | Business UAT | Production | Notes |
-|--------|:-----------:|:--------:|:------------:|:----------:|-------|
-| **Commission & Revenue** | ✅ | ✅ | ✅ | ❌ | Round 1 UAT PASS — Post receipt CR-2026-45343 / FLC-2025-SEN-001 (CA$10,860). Broader commission scenarios still open. |
-| **CRM / Clients** | 🟡 | ✅ | ❌ | ❌ | Schema on baseline; ~470 pre-existing TS errors; pipeline/service-library parity work ongoing |
-| **HR / Payroll** | 🟡 | ✅ | ❌ | ❌ | WPMS, WTM, AEMS, WRE, payroll engine on baseline; module UAT not started |
-| **Accounting / Finance** | 🟡 | ✅ | ❌ | ❌ | Journal contract, collection categories, A1 hardening on baseline; module UAT not started |
-| **Performance Hub** | 🟡 | ✅ | ❌ | ❌ | Architecture frozen; UI/components in repo; module UAT not started |
-| **Portal** | 🟡 | ✅ | ❌ | ❌ | Client-facing surfaces partial; baseline schema present |
-| **Admissions / Application** | 🟡 | ✅ | ❌ | ❌ | Qual Q1, Step 0, CF↔UPI linkage on baseline |
-| **Institutions / UPI** | 🟡 | ✅ | ❌ | ❌ | Institution masters, commission config on baseline |
-| **Service Library / Fee Master** | 🟡 | ✅ | ❌ | ❌ | `service_catalogue` retired; `service_library` is SSOT |
+| Module | Development | Platform | Business UAT | Production Ready | Notes |
+|--------|:-----------:|:--------:|:------------:|:----------------:|-------|
+| **Commission & Revenue** | ✅ Feature Complete | ✅ Complete | 🟡 In Progress | ⏳ Pending complete business sign-off | First critical workflow validated — Post receipt CR-2026-45343 / FLC-2025-SEN-001 (CA$10,860). **Engineering frozen** except UAT defects. |
+| **CRM / Clients** | 🟡 | ✅ Complete | ❌ | ❌ | Schema on baseline; pipeline/service-library parity ongoing |
+| **HR / Payroll** | 🟡 | ✅ Complete | ❌ | ❌ | WPMS, WTM, AEMS, WRE, payroll engine on baseline |
+| **Accounting / Finance** | 🟡 | ✅ Complete | ❌ | ❌ | Journal contract, collection categories, A1 hardening on baseline |
+| **Performance Hub** | 🟡 | ✅ Complete | ❌ | ❌ | Architecture frozen; UI/components in repo |
+| **Portal** | 🟡 | ✅ Complete | ❌ | ❌ | Client-facing surfaces partial |
+| **Admissions / Application** | 🟡 | ✅ Complete | ❌ | ❌ | Qual Q1, Step 0, CF↔UPI linkage on baseline |
+| **Institutions / UPI** | 🟡 | ✅ Complete | ❌ | ❌ | Institution masters, commission config on baseline |
+| **Service Library / Fee Master** | 🟡 | ✅ Complete | ❌ | ❌ | `service_catalogue` retired; `service_library` is SSOT |
 
-**Platform column ✅** reflects **Platform Baseline v1.0** (July 2026 recovery through migration head `20261102120100` + post-baseline hotfixes). It does **not** mean every module has passed Business UAT.
+**Platform ✅ Complete** = Platform Baseline v1.0 (migration head `20261102120100` + post-baseline hotfixes). Does not imply module Business UAT is complete.
+
+---
+
+## Commission — engineering freeze (active)
+
+From **2026-07-01**, Commission work is limited to:
+
+1. **Business UAT defect fixes** — required to pass frozen scenarios  
+2. **Business-requested changes** — sponsor-approved only  
+
+No new features, refactoring, or unrelated UI/TS work unless Business UAT or sponsor explicitly requests it.
 
 ---
 
 ## How to update
 
-1. **Development → ✅** — Architecture freeze + Implementation Bible complete; feature loop demos approved by domain expert.
-2. **Platform → ✅** — Module-specific schema-effect gates documented and verified on live Supabase (after any required publish).
-3. **Business UAT → ✅** — Link UAT certificate or checklist; record test IDs and date.
-4. **Production → ✅** — Sponsor sign-off only after Development + Platform + Business UAT are ✅.
+1. **Development → ✅ Feature Complete** — frozen architecture implemented; domain expert demo approved.  
+2. **Platform → ✅ Complete** — module objects verified on live Supabase after publish.  
+3. **Business UAT → ✅** — full UAT checklist signed; link certificate and test IDs.  
+4. **Production Ready → ✅** — sponsor sign-off; production runbook; all prior columns green.
 
-When updating a row, add the date and evidence link in the **Notes** column.
+When updating a row, add date and evidence in **Notes**.
 
 ---
 
 ## Related docs
 
-- [`PLATFORM_BASELINE_v1.0.md`](./PLATFORM_BASELINE_v1.0.md) — Golden master for July 2026 baseline  
-- [`PLATFORM_BASELINE_RECOVERY.md`](./PLATFORM_BASELINE_RECOVERY.md) — Recovery process and gates  
-- [`GITHUB_SYNC_REPORT_2026-07.md`](./GITHUB_SYNC_REPORT_2026-07.md) — Repository sync after baseline  
-- [`DELIVERY_STANDARDS.md`](./DELIVERY_STANDARDS.md) — Module delivery lifecycle and DoD
+- [`PLATFORM_BASELINE_v1.0.md`](./PLATFORM_BASELINE_v1.0.md) — Golden master  
+- [`PLATFORM_BASELINE_RECOVERY.md`](./PLATFORM_BASELINE_RECOVERY.md) — Recovery process + closure  
+- [`GITHUB_SYNC_REPORT_2026-07.md`](./GITHUB_SYNC_REPORT_2026-07.md) — Repository sync  
+- [`DELIVERY_STANDARDS.md`](./DELIVERY_STANDARDS.md) — Module delivery lifecycle
