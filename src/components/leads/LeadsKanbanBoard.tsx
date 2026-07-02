@@ -25,6 +25,7 @@ type Props = {
 };
 
 export function LeadsKanbanBoard({ leads, ownerNames = {}, onChanged }: Props) {
+  const navigate = useNavigate();
   const [dragging, setDragging] = useState(false);
 
   const columns = useMemo(() => {
@@ -104,7 +105,7 @@ export function LeadsKanbanBoard({ leads, ownerNames = {}, onChanged }: Props) {
                               overdue && "border-destructive/40",
                             )}
                             aria-roledescription="Draggable lead card. Press Space to lift, arrow keys to move, Space to drop."
-                            onClick={() => nav(`/leads/${lead.id}`)}
+                            onClick={() => navigate(`/leads/${lead.id}`)}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">

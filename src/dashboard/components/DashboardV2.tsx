@@ -100,6 +100,10 @@ function fmtDue(iso: string | null) {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function formatStatusLabel(status: string): string {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function KpiSkeleton() {
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-elev-sm animate-pulse">
@@ -419,8 +423,14 @@ export function DashboardV2() {
                   <ResponsiveContainer>
                     <BarChart data={statusChartData} layout="vertical" margin={{ left: 8, right: 16 }}>
                       <XAxis type="number" fontSize={11} allowDecimals={false} />
-                      <YAxis type="category" dataKey="status" fontSize={11} width={100} />
-                      <RechartsTooltip />
+                      <YAxis
+                        type="category"
+                        dataKey="status"
+                        fontSize={11}
+                        width={100}
+                        tickFormatter={formatStatusLabel}
+                      />
+                      <RechartsTooltip labelFormatter={formatStatusLabel} />
                       <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} name="Applications" />
                     </BarChart>
                   </ResponsiveContainer>
