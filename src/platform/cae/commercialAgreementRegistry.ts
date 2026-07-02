@@ -30,6 +30,7 @@ function mapAgreement(row: Record<string, unknown>): CommercialAgreement {
     validTo: (row.valid_to as string) ?? null,
     adapterSourceModule: (row.adapter_source_module as string) ?? null,
     adapterSourceRecordId: (row.adapter_source_record_id as string) ?? null,
+    relationshipId: (row.relationship_id as string) ?? null,
     workflowInstanceId: (row.workflow_instance_id as string) ?? null,
     createdBy: (row.created_by as string) ?? null,
   };

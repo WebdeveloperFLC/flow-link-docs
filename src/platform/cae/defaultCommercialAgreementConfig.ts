@@ -6,7 +6,9 @@ import type {
   CustomerOwnershipBlockReason,
   ExistingCustomerRuleConfig,
   FraudCheckConfig,
+  OverlayStackLayer,
   PriorityLayer,
+  RelationshipPartyRoleCode,
 } from "./types";
 
 export const DEFAULT_PROTECTED_SETTLEMENT_TYPES = [
@@ -130,6 +132,42 @@ export const DEFAULT_PRIORITY_STACK: PriorityLayer[] = [
   "accounting",
 ];
 
+export const DEFAULT_RELATIONSHIP_CLASSIFICATIONS = [
+  "standard",
+  "strategic_partner",
+  "university_partnership",
+  "aggregator",
+  "referral_channel",
+  "vendor",
+  "internal",
+  "trial",
+] as const;
+
+export const DEFAULT_RELATIONSHIP_ROLE_CODES: RelationshipPartyRoleCode[] = [
+  "principal",
+  "counterparty",
+  "referrer",
+  "beneficiary",
+  "subject_client",
+  "relationship_owner",
+  "guarantor",
+  "introducer",
+  "payee",
+  "payer",
+];
+
+export const DEFAULT_OVERLAY_STACK_LAYERS: OverlayStackLayer[] = [
+  "constitution",
+  "customer_ownership",
+  "commercial_agreement",
+  "overlay",
+  "promotion",
+  "incentive",
+  "settlement_rules",
+  "workflow",
+  "accounting",
+];
+
 export const DEFAULT_COMMERCIAL_AGREEMENT_CONFIG: CommercialAgreementConfig = {
   overrideAuthority: {
     roles: ["super_admin"],
@@ -144,6 +182,10 @@ export const DEFAULT_COMMERCIAL_AGREEMENT_CONFIG: CommercialAgreementConfig = {
   existingCustomerRules: DEFAULT_EXISTING_CUSTOMER_RULES,
   fraudChecks: DEFAULT_FRAUD_CHECKS,
   priorityStack: DEFAULT_PRIORITY_STACK,
+  relationshipClassifications: [...DEFAULT_RELATIONSHIP_CLASSIFICATIONS],
+  relationshipRoleCodes: DEFAULT_RELATIONSHIP_ROLE_CODES,
+  overlayStackLayers: DEFAULT_OVERLAY_STACK_LAYERS,
+  overlayPrecedenceDefault: 100,
 };
 
 export const COMMERCIAL_AGREEMENT_CONFIG_KEY = "commercial_agreement_config";
