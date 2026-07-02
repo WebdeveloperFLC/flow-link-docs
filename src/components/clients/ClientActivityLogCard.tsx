@@ -246,8 +246,15 @@ export function ClientActivityLogCard({ clientId }: { clientId: string }) {
         </div>
       </div>
       <div className="divide-y max-h-[560px] overflow-y-auto">
+        {loading && filtered.length === 0 && (
+          <div className="p-6 text-sm text-muted-foreground text-center">Loading activity…</div>
+        )}
         {filtered.length === 0 && !loading && (
-          <div className="p-6 text-sm text-muted-foreground text-center">No activity matches your filters.</div>
+          <div className="p-6 text-sm text-muted-foreground text-center">
+            {filter === "all" && !search.trim()
+              ? "No activity recorded for this client yet."
+              : "No activity matches your filters."}
+          </div>
         )}
         {filtered.map((row) => {
           const actorName = row.actor_id ? (names[row.actor_id] ?? "…") : "System";
@@ -291,7 +298,7 @@ export function ClientActivityLogCard({ clientId }: { clientId: string }) {
         {hasMore && (
           <div className="p-3 text-center">
             <Button size="sm" variant="outline" onClick={() => setLimit((l) => l + PAGE_SIZE)} disabled={loading}>
-              <ChevronDown className="size-3.5 mr-1" /> Load more
+              <ChevronDown className="size-3.5 mr-1" aria-hidden="true" /> Load more
             </Button>
           </div>
         )}

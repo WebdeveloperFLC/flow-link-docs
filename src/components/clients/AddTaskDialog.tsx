@@ -136,7 +136,7 @@ export function AddTaskDialog({
             <div>
               <Label>Type</Label>
               <Select value={kind} onValueChange={(v) => setKind(v as TaskKind)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Task type"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="task">Task</SelectItem>
                   <SelectItem value="callback">Callback</SelectItem>
@@ -147,7 +147,7 @@ export function AddTaskDialog({
             <div>
               <Label>Priority</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Priority"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
@@ -166,7 +166,7 @@ export function AddTaskDialog({
                 setAssignedTo("");
               }}
             >
-              <SelectTrigger><SelectValue placeholder="All departments" /></SelectTrigger>
+              <SelectTrigger aria-label="Department"><SelectValue placeholder="All departments" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL_DEPARTMENTS}>All departments</SelectItem>
                 {departments.map((d) => (
@@ -197,7 +197,7 @@ export function AddTaskDialog({
           <div>
             <Label>Assign to {applicationMode ? "*" : ""}</Label>
             <Select value={assignedTo} onValueChange={setAssignedTo}>
-              <SelectTrigger><SelectValue placeholder="Select team member" /></SelectTrigger>
+              <SelectTrigger aria-label="Assign to team member"><SelectValue placeholder="Select team member" /></SelectTrigger>
               <SelectContent>
                 {assignableStaff.map((u) => (
                   <SelectItem key={u.id} value={u.id}>

@@ -45,14 +45,14 @@ export function LeadRowActionsMenu({ lead, onChanged, onScheduleFollowup }: Prop
           size="icon"
           className="size-8"
           disabled={busy}
-          aria-label="Lead actions"
+          aria-label={`Actions for lead ${lead.lead_number}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreHorizontal className="size-4" />
+          <MoreHorizontal className="size-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-        <DropdownMenuItem onClick={() => nav(`/leads/${lead.id}`)}>Open detail</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => nav(`/leads/${lead.id}`)}>View details</DropdownMenuItem>
         <DropdownMenuItem onClick={() => nav(`/leads/new?id=${lead.id}`)}>Edit</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

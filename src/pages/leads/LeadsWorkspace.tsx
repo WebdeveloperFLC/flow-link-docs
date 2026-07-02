@@ -322,11 +322,11 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setParam("page", String(page - 1))}>
-                <ChevronLeft className="size-4" /> Prev
+                <ChevronLeft className="size-4" aria-hidden="true" /> Previous
               </Button>
               <span className="text-xs tabular-nums">Page {page} / {totalPages}</span>
               <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => setParam("page", String(page + 1))}>
-                Next <ChevronRight className="size-4" />
+                Next <ChevronRight className="size-4" aria-hidden="true" />
               </Button>
             </div>
           </div>

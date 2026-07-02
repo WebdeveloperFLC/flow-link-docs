@@ -52,7 +52,9 @@ export function LeadsKanbanBoard({ leads, ownerNames = {}, onChanged }: Props) {
     if (!lead || lead.status === nextStatus) return;
 
     if (nextStatus === "converted") {
-      toast.message("Use Register as Client to convert a lead");
+      toast.message("To convert a lead, open it and use Register as Client", {
+        description: "Leads can't be converted by dragging into this column.",
+      });
       return;
     }
 

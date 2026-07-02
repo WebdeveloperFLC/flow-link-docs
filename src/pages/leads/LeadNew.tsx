@@ -1085,7 +1085,7 @@ const LeadNew = () => {
                 onChange={(e) => setNotes(e.target.value)}
                 onBlur={scheduleAutosave}
                 rows={6}
-                placeholder="Counsellor notes, follow-up plan, special considerations…"
+                placeholder="Counselor notes, follow-up plan, special considerations…"
               />
             </Card>
 
