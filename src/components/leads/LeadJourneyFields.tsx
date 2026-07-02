@@ -80,7 +80,7 @@ export function LeadJourneyFieldsBlock({
             value={value.sponsor ?? ""}
             onValueChange={(v) => set({ sponsor: v, sponsor_other: v === "other" ? value.sponsor_other : null })}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label="Who is sponsoring you">
               <SelectValue placeholder="Select sponsor" />
             </SelectTrigger>
             <SelectContent>
@@ -105,7 +105,7 @@ export function LeadJourneyFieldsBlock({
         <div className="space-y-1.5">
           <Label>How soon you wish to register?</Label>
           <Select value={value.start_timeline ?? ""} onValueChange={(v) => set({ start_timeline: v })}>
-            <SelectTrigger>
+            <SelectTrigger aria-label="How soon you wish to register">
               <SelectValue placeholder="Select timeline" />
             </SelectTrigger>
             <SelectContent>
@@ -130,7 +130,7 @@ export function LeadJourneyFieldsBlock({
               })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label="Do you have a budget">
               <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
@@ -153,7 +153,7 @@ export function LeadJourneyFieldsBlock({
                 value={budgetCurrency}
                 onValueChange={(v) => set({ budget_currency: v })}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Budget currency">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

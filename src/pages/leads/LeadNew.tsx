@@ -724,7 +724,7 @@ const LeadNew = () => {
           <div className="space-y-1.5">
             <Label>Gender *</Label>
             <Select value={(f.gender as string) || ""} onValueChange={(v) => { setField("gender", v); setTimeout(scheduleAutosave, 0); }}>
-              <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger aria-label="Gender"><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 {GENDERS.map((g) => <SelectItem key={g} value={g} className="capitalize">{g.replace(/_/g, " ")}</SelectItem>)}
               </SelectContent>
@@ -733,7 +733,7 @@ const LeadNew = () => {
           <div className="space-y-1.5">
             <Label>Marital Status</Label>
             <Select value={(f.marital_status as string) || ""} onValueChange={(v) => { setField("marital_status", v); setTimeout(scheduleAutosave, 0); }}>
-              <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+              <SelectTrigger aria-label="Marital status"><SelectValue placeholder="Optional" /></SelectTrigger>
               <SelectContent>
                 {MARITAL_STATUSES.map((m) => <SelectItem key={m} value={m} className="capitalize">{m}</SelectItem>)}
               </SelectContent>
@@ -907,7 +907,7 @@ const LeadNew = () => {
                           setTimeout(scheduleAutosave, 0);
                         }}
                       >
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger aria-label="Last education"><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
@@ -965,14 +965,14 @@ const LeadNew = () => {
                     <div className="space-y-1.5">
                       <Label>Branch</Label>
                       <Select value={(f.branch as string) || ""} onValueChange={onBranchChange}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger aria-label="Branch"><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Department {suggestedDept && f.department !== suggestedDept && <span className="text-xs text-muted-foreground">(suggested: {suggestedDept})</span>}</Label>
                       <Select value={(f.department as string) || ""} onValueChange={onDepartmentChange}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger aria-label="Department"><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{departments.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
@@ -983,7 +983,7 @@ const LeadNew = () => {
                         onValueChange={onPrimaryUserChange}
                         disabled={loadingPrimaryUsers && !primaryUserOptions.length}
                       >
-                        <SelectTrigger><SelectValue placeholder={loadingPrimaryUsers ? "Loading…" : "Select"} /></SelectTrigger>
+                        <SelectTrigger aria-label="Primary user"><SelectValue placeholder={loadingPrimaryUsers ? "Loading…" : "Select"} /></SelectTrigger>
                         <SelectContent>
                           {primaryUserOptions.map((p) => (
                             <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -997,14 +997,14 @@ const LeadNew = () => {
                     <div className="space-y-1.5">
                       <Label>Lead Source</Label>
                       <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(scheduleAutosave, 0); }}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger aria-label="Lead source"><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Temperature</Label>
                       <Select value={(f.lead_temperature as string) || "warm"} onValueChange={(v) => { setField("lead_temperature", v); setTimeout(scheduleAutosave, 0); }}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger aria-label="Temperature"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="warm">Warm</SelectItem>
                           <SelectItem value="hot">Hot</SelectItem>
@@ -1045,7 +1045,7 @@ const LeadNew = () => {
                   <div className="space-y-1.5">
                     <Label>Lead Source</Label>
                     <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(scheduleAutosave, 0); }}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger aria-label="Lead source"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>

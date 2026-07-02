@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -17,6 +17,9 @@ import {
   Download,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterChip } from "@/components/crm/FilterChip";
+import { SavedViewsBar } from "@/components/crm/SavedViewsBar";
+import { useFocusSearchHotkey } from "@/lib/crm/useFocusSearchHotkey";
 import { CLIENT_FILE_NUMBER_LABEL } from "@/lib/clientIdentifiers";
 import { useMasterItems } from "@/lib/masters";
 import { resolveClientStatusLabel } from "@/lib/clientStatus";
@@ -94,6 +97,8 @@ const Clients = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(q);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useFocusSearchHotkey(searchRef);
   const [serviceNames, setServiceNames] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("");
@@ -188,6 +193,34 @@ const Clients = () => {
     setParams(next, { replace: true });
   };
 
+  const filtersActive = !!q || statusFilter !== ALL || countryFilter !== ALL;
+  const activeStatusLabel = statusOptions.find((s) => s.code === statusFilter)?.label ?? statusFilter;
+
+  const clearAllFilters = () => {
+    setSearchInput("");
+    const next = new URLSearchParams(params);
+    next.delete("q");
+    next.delete("status");
+    next.delete("country");
+    next.set("page", "1");
+    setParams(next, { replace: true });
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    const next = new URLSearchParams(params);
+    next.delete("q");
+    next.set("page", "1");
+    setParams(next, { replace: true });
+  };
+
+  const applySavedView = (query: string) => {
+    const next = new URLSearchParams(query);
+    next.set("page", "1");
+    setSearchInput(next.get("q") ?? "");
+    setParams(next, { replace: true });
+  };
+
   const pageIds = useMemo(() => clients.map((c) => c.id), [clients]);
   const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
 
@@ -250,9 +283,11 @@ const Clients = () => {
           <div className="relative flex-1 min-w-[260px] max-w-md">
             <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
+              ref={searchRef}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder={`Search by name, email, phone, ${CLIENT_FILE_NUMBER_LABEL}…`}
+              placeholder={`Search by name, email, phone, ${CLIENT_FILE_NUMBER_LABEL}…  ( / )`}
+              aria-keyshortcuts="/"
               className="pl-9"
             />
           </div>
@@ -283,7 +318,7 @@ const Clients = () => {
             </SelectContent>
           </Select>
           <Select value={sort} onValueChange={(v) => setParam("sort", v)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" aria-label="Sort by">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -293,7 +328,7 @@ const Clients = () => {
             </SelectContent>
           </Select>
           <Select value={dir} onValueChange={(v) => setParam("dir", v)}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px]" aria-label="Sort direction">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -302,6 +337,24 @@ const Clients = () => {
             </SelectContent>
           </Select>
         </div>
+
+        <SavedViewsBar namespace="clients" currentQuery={params.toString()} onApply={applySavedView} />
+
+        {filtersActive && (
+          <div className="flex flex-wrap items-center gap-2" aria-label="Active filters">
+            <span className="text-xs text-muted-foreground">Filters:</span>
+            {q && <FilterChip label="Search" value={q} onRemove={clearSearch} />}
+            {statusFilter !== ALL && (
+              <FilterChip label="Status" value={activeStatusLabel} onRemove={() => setParam("status", ALL)} />
+            )}
+            {countryFilter !== ALL && (
+              <FilterChip label="Country" value={countryFilter} onRemove={() => setParam("country", ALL)} />
+            )}
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearAllFilters}>
+              Clear all
+            </Button>
+          </div>
+        )}
 
         {selected.size > 0 && (
           <Card className="px-4 py-3 flex flex-wrap items-center gap-3 border-primary/30 bg-primary/5">
@@ -365,10 +418,17 @@ const Clients = () => {
               </div>
             )}
             {!loading && clients.length === 0 && (
-              <div className="px-6 py-16 text-center text-sm text-muted-foreground">
-                {q || statusFilter !== ALL || countryFilter !== ALL
-                  ? "No matches for your filters."
-                  : "No clients yet. Register clients from Warm, Hot, or Cold leads."}
+              <div className="px-6 py-16 text-center text-sm text-muted-foreground space-y-3">
+                {filtersActive ? (
+                  <>
+                    <p>No clients match your filters.</p>
+                    <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                      Clear all filters
+                    </Button>
+                  </>
+                ) : (
+                  <p>No clients yet. Register clients from Warm, Hot, or Cold leads.</p>
+                )}
               </div>
             )}
             {clients.map((c) => (

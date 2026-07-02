@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -15,10 +15,14 @@ import {
   LayoutList,
   Upload,
   Loader2,
+  X,
 } from "lucide-react";
 import { LeadsTable } from "@/components/leads/LeadsTable";
 import { LeadsKanbanBoard } from "@/components/leads/LeadsKanbanBoard";
 import { CrmSegmentControl } from "@/components/crm/CrmSegmentControl";
+import { FilterChip } from "@/components/crm/FilterChip";
+import { SavedViewsBar } from "@/components/crm/SavedViewsBar";
+import { useFocusSearchHotkey } from "@/lib/crm/useFocusSearchHotkey";
 import { ImportColdLeadsDialog } from "@/components/leads/ImportColdLeadsDialog";
 import {
   bulkUpdateLeads,
@@ -59,6 +63,8 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
   const unassigned = params.get("unassigned") === "1";
 
   const [searchInput, setSearchInput] = useState(q);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useFocusSearchHotkey(searchRef);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -126,6 +132,31 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const showCampaign = segment === "cold" || segment === "all";
+
+  const followupLabels: Record<string, string> = {
+    overdue: "Overdue",
+    today: "Due today",
+    week: "Due this week",
+    none: "No follow-up",
+  };
+  const ownerLabel = owners.find((o) => o.id === ownerFilter)?.name ?? ownerFilter;
+  const filtersActive =
+    !!q || !!statusFilter || !!branchFilter || followupFilter !== "any" || !!ownerFilter || unassigned;
+
+  const clearAllFilters = () => {
+    setSearchInput("");
+    const next = new URLSearchParams(params);
+    ["q", "status", "branch", "followup", "owner", "unassigned"].forEach((k) => next.delete(k));
+    next.set("page", "1");
+    setParams(next, { replace: true });
+  };
+
+  const applySavedView = (query: string) => {
+    const next = new URLSearchParams(query);
+    next.set("page", "1");
+    setSearchInput(next.get("q") ?? "");
+    setParams(next, { replace: true });
+  };
 
   const title = useMemo(() => {
     if (segment === "cold") return "Leads — Cold Pool";
@@ -213,28 +244,30 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
           <div className="relative flex-1 min-w-[220px] max-w-md">
             <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
+              ref={searchRef}
               className="pl-9"
-              placeholder="Search name, email, phone, lead #…"
+              placeholder="Search name, email, phone, lead #…  ( / )"
+              aria-keyshortcuts="/"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
           <Select value={statusFilter || "__all__"} onValueChange={(v) => setParam("status", v === "__all__" ? null : v)}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-[140px]" aria-label="Filter by status"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All statuses</SelectItem>
               {STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={branchFilter || "__all__"} onValueChange={(v) => setParam("branch", v === "__all__" ? null : v)}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Branch" /></SelectTrigger>
+            <SelectTrigger className="w-[140px]" aria-label="Filter by branch"><SelectValue placeholder="Branch" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All branches</SelectItem>
               {branches.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={followupFilter} onValueChange={(v) => setParam("followup", v === "any" ? null : v)}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Follow-up" /></SelectTrigger>
+            <SelectTrigger className="w-[160px]" aria-label="Filter by follow-up"><SelectValue placeholder="Follow-up" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any follow-up</SelectItem>
               <SelectItem value="overdue">Overdue</SelectItem>
@@ -255,7 +288,7 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
               }
             }}
           >
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Owner" /></SelectTrigger>
+            <SelectTrigger className="w-[180px]" aria-label="Filter by owner"><SelectValue placeholder="Owner" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All owners</SelectItem>
               <SelectItem value="__unassigned__">Unassigned</SelectItem>
@@ -263,6 +296,35 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
             </SelectContent>
           </Select>
         </div>
+
+        <SavedViewsBar namespace="leads" currentQuery={params.toString()} onApply={applySavedView} />
+
+        {filtersActive && (
+          <div className="flex flex-wrap items-center gap-2" aria-label="Active filters">
+            <span className="text-xs text-muted-foreground">Filters:</span>
+            {q && (
+              <FilterChip label="Search" value={q} onRemove={() => { setSearchInput(""); setParam("q", null); }} />
+            )}
+            {statusFilter && (
+              <FilterChip label="Status" value={statusFilter} onRemove={() => setParam("status", null)} />
+            )}
+            {branchFilter && (
+              <FilterChip label="Branch" value={branchFilter} onRemove={() => setParam("branch", null)} />
+            )}
+            {followupFilter !== "any" && (
+              <FilterChip label="Follow-up" value={followupLabels[followupFilter] ?? followupFilter} onRemove={() => setParam("followup", null)} />
+            )}
+            {unassigned && (
+              <FilterChip label="Owner" value="Unassigned" onRemove={() => setParam("unassigned", null)} />
+            )}
+            {!unassigned && ownerFilter && (
+              <FilterChip label="Owner" value={ownerLabel} onRemove={() => setParam("owner", null)} />
+            )}
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearAllFilters}>
+              Clear all
+            </Button>
+          </div>
+        )}
 
         {selected.size > 0 && (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-sm">
@@ -279,7 +341,7 @@ export default function LeadsWorkspace({ defaultSegment = "active" }: LeadsWorks
                 void bulkPatch({ assigned_counselor_id: v }, "Reassigned");
               }}
             >
-              <SelectTrigger className="w-[180px] h-8" disabled={bulkBusy}>
+              <SelectTrigger className="w-[180px] h-8" disabled={bulkBusy} aria-label="Reassign selected leads to owner">
                 <SelectValue placeholder="Reassign to…" />
               </SelectTrigger>
               <SelectContent>

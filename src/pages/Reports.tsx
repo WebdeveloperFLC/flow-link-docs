@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Phone, PhoneOff, Flame, Users as UsersIcon, Workflow } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { EmptyState } from "@/components/crm/EmptyState";
 
 type CallDaily = { day: string; answered: number; unanswered: number; total_calls: number; avg_duration: number };
 type Funnel = { temperature: string | null; stage: string | null; leads: number };
@@ -109,7 +110,7 @@ export default function Reports() {
           description={`Operational and conversion metrics — last ${windowDays} days`}
           actions={
             <Select value={String(windowDays)} onValueChange={(v) => setWindowDays(Number(v))}>
-              <SelectTrigger className="w-[130px] h-8">
+              <SelectTrigger className="w-[130px] h-8" aria-label="Reporting time window">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -179,7 +180,7 @@ export default function Reports() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Telecaller productivity</CardTitle>
             <Button variant="outline" size="sm" onClick={() => downloadCSV("telecaller_productivity", tcs)}>
-              <Download className="size-4 mr-1" /> CSV
+              <Download className="size-4 mr-1" aria-hidden="true" /> CSV
             </Button>
           </CardHeader>
           <CardContent>
@@ -211,7 +212,7 @@ export default function Reports() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Counselor productivity</CardTitle>
             <Button variant="outline" size="sm" onClick={() => downloadCSV("counselor_productivity", cns)}>
-              <Download className="size-4 mr-1" /> CSV
+              <Download className="size-4 mr-1" aria-hidden="true" /> CSV
             </Button>
           </CardHeader>
           <CardContent>
@@ -241,7 +242,7 @@ export default function Reports() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Campaign performance</CardTitle>
             <Button variant="outline" size="sm" onClick={() => downloadCSV("campaign_performance", camps)}>
-              <Download className="size-4 mr-1" /> CSV
+              <Download className="size-4 mr-1" aria-hidden="true" /> CSV
             </Button>
           </CardHeader>
           <CardContent>
@@ -275,7 +276,7 @@ export default function Reports() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Country / intake demand</CardTitle>
             <Button variant="outline" size="sm" onClick={() => downloadCSV("country_intake", countries)}>
-              <Download className="size-4 mr-1" /> CSV
+              <Download className="size-4 mr-1" aria-hidden="true" /> CSV
             </Button>
           </CardHeader>
           <CardContent>
@@ -305,7 +306,7 @@ export default function Reports() {
             <div className="flex items-center gap-2">
               {stageDist.length > 0 && (
                 <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
-                  <SelectTrigger className="w-[280px]"><SelectValue placeholder="Pipeline" /></SelectTrigger>
+                  <SelectTrigger className="w-[280px]" aria-label="Select pipeline"><SelectValue placeholder="Pipeline" /></SelectTrigger>
                   <SelectContent>
                     {Array.from(new Map(stageDist.map((r) => [r.pipeline_id, r])).values()).map((p) => (
                       <SelectItem key={p.pipeline_id} value={p.pipeline_id}>
@@ -316,7 +317,7 @@ export default function Reports() {
                 </Select>
               )}
               <Button variant="outline" size="sm" onClick={() => downloadCSV("stage_distribution", stageDist)}>
-                <Download className="size-4 mr-1" /> CSV
+                <Download className="size-4 mr-1" aria-hidden="true" /> CSV
               </Button>
             </div>
           </CardHeader>
@@ -324,7 +325,13 @@ export default function Reports() {
             {(() => {
               const filtered = stageDist.filter((r) => r.pipeline_id === selectedPipeline);
               if (!filtered.length) {
-                return <div className="text-sm text-muted-foreground text-center py-12">No pipeline data yet.</div>;
+                return (
+                  <EmptyState
+                    icon={Workflow}
+                    title={loading ? "Loading pipeline data…" : "No pipeline data yet"}
+                    description={loading ? undefined : "Stage distribution appears once clients are active in this pipeline."}
+                  />
+                );
               }
               return (
                 <>

@@ -117,7 +117,7 @@ export const LeadOwnerCard = ({
         {canChange ? (
           <div className="flex items-center gap-2">
             <Select value={value} onValueChange={setValue} disabled={loading && !options.length}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9" aria-label="Lead owner">
                 <SelectValue placeholder={loading ? "Loading…" : currentName ?? "Unassigned"} />
               </SelectTrigger>
               <SelectContent>
@@ -158,7 +158,7 @@ export const LeadOwnerCard = ({
       {canChange ? (
         <div className="flex items-center gap-2">
           <Select value={value} onValueChange={setValue} disabled={loading && !options.length}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="flex-1" aria-label="Primary user">
               <SelectValue placeholder={loading ? "Loading…" : "Select primary user"} />
             </SelectTrigger>
             <SelectContent>
