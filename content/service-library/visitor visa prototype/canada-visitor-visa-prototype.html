@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Canada – Visitor Visa (TRV) · FLC Knowledge Centre prototype</title>
+<style>
+  :root{
+    --ink:#13212e; --ink-soft:#42566a; --line:#dfe6ee; --bg:#f5f7fa; --card:#fff;
+    --maple:#c8102e; --maple-dk:#9c0a23; --slate:#1f3a52; --slate-dk:#152838;
+    --gold:#b5872a; --violet:#5b4b8a; --good:#1f7a4d; --warn:#9a6700;
+    --shadow:0 1px 2px rgba(18,33,46,.06),0 6px 22px rgba(18,33,46,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Iowan Old Style",Cambria,Georgia,serif;line-height:1.5;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+  /* header */
+  .top{background:linear-gradient(135deg,var(--slate-dk),var(--slate));color:#eaf1f7;
+    padding:26px 0 30px;border-bottom:4px solid var(--maple);}
+  .top .wrap{padding-bottom:0}
+  .crumb{font:600 12px/1.4 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+    text-transform:uppercase;color:#a9c2d6;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .crumb .leaf{color:var(--maple);font-size:14px}
+  h1{font-size:34px;line-height:1.12;margin:12px 0 6px;letter-spacing:-.01em}
+  .sub{color:#cbdae7;font-size:16px;margin:0;max-width:62ch}
+  .tagrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .tag{font:600 12px/1 ui-sans-serif,system-ui,sans-serif;padding:6px 10px;border-radius:999px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#eaf1f7}
+  .tag.success{background:rgba(31,122,77,.22);border-color:rgba(31,122,77,.5)}
+  .tag.warning{background:rgba(181,135,42,.22);border-color:rgba(181,135,42,.55)}
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:-22px 0 0;
+    position:relative;z-index:2}
+  @media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;
+    box-shadow:var(--shadow)}
+  .kpi .lab{font:600 11px/1.3 ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-soft)}
+  .kpi .val{font-size:21px;font-weight:700;margin:6px 0 2px;letter-spacing:-.01em}
+  .kpi .vsub{font:500 12px/1.35 ui-sans-serif,system-ui,sans-serif;color:var(--ink-soft)}
+  .kpi.primary{border-top:3px solid var(--maple)}
+  .kpi.violet{border-top:3px solid var(--violet)}
+  .kpi.success{border-top:3px solid var(--good)}
+  .kpi.warning{border-top:3px solid var(--gold)}
+  .src{display:inline-block;margin-top:8px;font:600 10px/1 ui-sans-serif,system-ui,sans-serif;
+    color:var(--maple-dk);text-decoration:none;border-bottom:1px dotted var(--maple)}
+  /* alert */
+  .alert{margin-top:20px;background:#fff8ec;border:1px solid #efd9a8;border-left:4px solid var(--gold);
+    border-radius:12px;padding:14px 16px}
+  .alert h3{margin:0 0 4px;font-size:14px;color:#6f4e08;
+    font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.02em}
+  .alert p{margin:0;font-size:14.5px;color:#5d4a1f}
+  /* nav */
+  nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);
+    border-bottom:1px solid var(--line);margin-top:24px;display:flex;gap:4px;
+    overflow-x:auto;padding:8px 0}
+  nav.tabs button{font:600 13px/1 ui-sans-serif,system-ui,sans-serif;white-space:nowrap;
+    border:1px solid transparent;background:transparent;color:var(--ink-soft);
+    padding:8px 12px;border-radius:9px;cursor:pointer}
+  nav.tabs button:hover{background:#eaeff4;color:var(--ink)}
+  nav.tabs button.on{background:var(--slate);color:#fff}
+  /* panels */
+  .panel{display:none;margin-top:22px}
+  .panel.on{display:block;animation:f .25s ease}
+  @keyframes f{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px}
+  h2.sec{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--maple-dk);
+    font-family:ui-sans-serif,system-ui,sans-serif;margin:0 0 4px}
+  .secsub{color:var(--ink-soft);font-size:14px;margin:0 0 14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .about .lab{font-weight:700;display:block;margin-bottom:2px}
+  .about .val{color:var(--ink-soft);font-size:15px}
+  ul.tick{list-style:none;padding:0;margin:0}
+  ul.tick li{padding:7px 0 7px 26px;position:relative;border-bottom:1px solid var(--line);font-size:15px}
+  ul.tick li:last-child{border-bottom:0}
+  ul.tick li::before{content:"✓";position:absolute;left:0;top:7px;color:var(--good);font-weight:700}
+  ul.tick li.no::before{content:"✕";color:var(--maple)}
+  ul.circ li::before{content:"○";color:var(--ink-soft);font-weight:700}
+  .note{font-size:13.5px;color:var(--ink-soft);font-style:italic;margin:0 0 10px}
+  /* cost table */
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{font:600 11px/1.3 ui-sans-serif,system-ui,sans-serif;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--ink-soft)}
+  td.amt{font-weight:700;white-space:nowrap}
+  .ownertag{display:inline-block;font:600 11px/1 ui-sans-serif,system-ui,sans-serif;
+    padding:4px 8px;border-radius:999px;background:#eef2f6;color:var(--slate);margin-left:8px}
+  .badge-off{font:600 10px/1 ui-sans-serif,system-ui,sans-serif;color:var(--good);
+    border:1px solid #bfe3cd;background:#eef8f1;padding:3px 6px;border-radius:6px}
+  .badge-est{font:600 10px/1 ui-sans-serif,system-ui,sans-serif;color:var(--ink-soft);
+    border:1px solid var(--line);background:#f4f6f8;padding:3px 6px;border-radius:6px}
+  /* flag panel */
+  .flag{background:#fef0f1;border:1px solid #f3c2c8;border-left:4px solid var(--maple);
+    border-radius:12px;padding:16px 18px}
+  .flag .st{display:inline-block;font:700 12px/1 ui-sans-serif,system-ui,sans-serif;
+    letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--maple);
+    padding:6px 10px;border-radius:999px;margin-bottom:8px}
+  .flag p{margin:0;font-size:15px;color:#7a2630}
+  /* forms / chips / faq */
+  .pill{display:inline-block;font:600 11px/1 ui-sans-serif,system-ui,sans-serif;
+    padding:4px 8px;border-radius:6px;background:#eef2f6;color:var(--slate)}
+  details{border-bottom:1px solid var(--line);padding:10px 0}
+  details summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"+";color:var(--maple);font-weight:700;margin-right:10px}
+  details[open] summary::before{content:"–"}
+  details p{margin:8px 0 2px 24px;color:var(--ink-soft);font-size:14.5px}
+  .sev{font:600 10px/1 ui-sans-serif,system-ui,sans-serif;padding:3px 7px;border-radius:6px;
+    text-transform:uppercase;letter-spacing:.04em}
+  .sev.high{background:#fdecee;color:var(--maple-dk);border:1px solid #f3c2c8}
+  .sev.medium{background:#fff5e6;color:var(--warn);border:1px solid #efd9a8}
+  .rf{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+  .rf h4{margin:0 0 4px;font-size:15px;display:flex;gap:8px;align-items:center}
+  .rf .body{color:var(--ink-soft);font-size:14px;margin:2px 0}
+  .rf .fix{font-size:14px;margin-top:6px}.rf .fix b{color:var(--good)}
+  .timeline{list-style:none;padding:0;margin:0}
+  .timeline li{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .timeline .wk{flex:0 0 90px;font:600 12px/1.3 ui-sans-serif,system-ui,sans-serif;color:var(--maple-dk)}
+  .qz{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+  .qz .lv{font:600 10px/1 ui-sans-serif,system-ui,sans-serif;color:#fff;background:var(--slate);
+    padding:3px 7px;border-radius:6px;margin-right:8px}
+  .src-tbl td{font-size:13.5px}
+  .src-tbl a{color:var(--maple-dk)}
+  /* downloads — collapsible cards */
+  .dlgrid{display:flex;flex-direction:column;gap:10px}
+  .dldet{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+  .dldet[open]{box-shadow:var(--shadow)}
+  summary.dlcard{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
+    padding:14px 16px;flex-wrap:wrap}
+  summary.dlcard::-webkit-details-marker{display:none}
+  summary.dlcard:hover{background:#f7f9fb}
+  summary.dlcard b{font-size:15.5px;flex:1 1 240px}
+  .dluse{font:500 13px/1 ui-sans-serif,system-ui,sans-serif;color:var(--ink-soft)}
+  .dlstage{font:600 11px/1 ui-sans-serif,system-ui,sans-serif;font-style:normal;
+    padding:4px 8px;border-radius:999px;background:#eef2f6;color:var(--slate)}
+  .dlget{font:600 12px/1 ui-sans-serif,system-ui,sans-serif;color:var(--maple-dk);margin-left:auto}
+  .dldet[open] .dlget{color:var(--ink-soft)}
+  .dlbody{padding:4px 18px 16px;border-top:1px solid var(--line)}
+  .tintro{font-size:14.5px;color:var(--ink-soft);margin:12px 0 10px}
+  .tsec{margin:10px 0}
+  .tsec>b{font-size:14px;display:block;margin-bottom:4px}
+  ul.tcheck{list-style:none;padding:0;margin:0}
+  ul.tcheck li{padding:6px 0 6px 24px;position:relative;border-bottom:1px solid var(--line);font-size:14.5px}
+  ul.tcheck li:last-child{border-bottom:0}
+  ul.tcheck li::before{content:"○";position:absolute;left:0;top:6px;color:var(--ink-soft);font-weight:700}
+  .tmeta{margin-top:12px;font:500 12px/1.3 ui-sans-serif,system-ui,sans-serif;color:var(--ink-soft)}
+  a.dldownload{display:inline-block;margin-left:4px;font:700 12px/1 ui-sans-serif,system-ui,sans-serif;
+    color:#fff;background:var(--maple);padding:7px 12px;border-radius:999px;text-decoration:none}
+  a.dldownload:hover{background:var(--maple-dk)}
+  /* component-level collapse inside the FLC checklist */
+  details.comp{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fbfcfd}
+  details.comp[open]{background:#fff}
+  summary.comphd{list-style:none;cursor:pointer;font-weight:700;font-size:14px;
+    padding:10px 12px;display:flex;align-items:center;gap:8px}
+  summary.comphd::-webkit-details-marker{display:none}
+  summary.comphd:hover{background:#f2f5f8}
+  .compget{margin-left:auto;color:var(--maple-dk);font-weight:700;transition:transform .15s}
+  details.comp[open] .compget{transform:rotate(180deg)}
+  details.comp .tcheck{padding:0 12px 10px}
+  a.gov{color:var(--maple-dk);font-weight:600;text-decoration:none;border-bottom:1px solid var(--maple)}
+  .foot{margin-top:30px;color:var(--ink-soft);font-size:13px;text-align:center}
+  .proto{position:fixed;right:12px;bottom:12px;background:var(--slate-dk);color:#fff;
+    font:600 11px/1 ui-sans-serif,system-ui,sans-serif;padding:8px 12px;border-radius:999px;
+    box-shadow:var(--shadow);z-index:20}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="crumb" id="crumb"></div>
+  <h1 id="title"></h1>
+  <p class="sub" id="sub"></p>
+  <div class="tagrow" id="tags"></div>
+</div></header>
+
+<div class="wrap">
+  <section class="kpis" id="kpis"></section>
+  <div class="alert" id="alert"></div>
+  <nav class="tabs" id="tabs"></nav>
+  <div id="panels"></div>
+  <div class="foot" id="foot"></div>
+</div>
+<div class="proto">PROTOTYPE · visual review</div>
+
+<script>
+const EMBEDDED_DATA = {"schemaVersion": "1.0", "schemaRef": "flc-knowledge-guide-schema-v1.0", "slug": "canada-visitor-visa", "displayName": "Canada \u2013 Visitor Visa (Temporary Resident Visa)", "shortDescription": "Apply for a Canada TRV for tourism, family visits, or business.", "country": "Canada", "service": "Visitor Visa (TRV)", "navBucket": "visa", "structure": "merged-operational-v3", "version": "v3.0", "versionStatus": "Live", "reviewStatus": "active", "updatedLabel": "Updated 29 Jun 2026", "learningLevel": "Intermediate", "learningMinutes": 18, "builtToStandard": "Knowledge Writing Standard v1.0", "sourcePolicy": "Every official fact carries an inline source link (S-id) resolving to the Sources tab. Confirm current figures on canada.ca before quoting. Future Link owns counselling content; official facts are linked, never copied.", "policyAlert": {"active": true, "date": "29 Jun 2026", "summary": "Confirm on canada.ca before quoting: TRV fee CAD $100/person (family of 5+ CAD $500) and biometrics CAD $85/person (family max CAD $170). Processing times are dynamic \u2014 pull the client's country estimate from the IRCC tool on build day. As of 26 May 2026, citizens of Indonesia and Malaysia meeting certain conditions may apply for an eTA by air instead of a TRV.", "sourceRefs": [{"id": "S6", "url": "https://ircc.canada.ca/english/information/fees/fees.asp"}, {"id": "S7", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"}, {"id": "S8", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html"}, {"id": "S2", "url": "https://ircc.canada.ca/english/visit/visas.asp"}]}, "alert": {"title": "TRV vs eTA \u2014 check first", "body": "Not every visitor needs a TRV. Visa-exempt nationals (and most dual citizens travelling on an eligible passport) use an eTA for air travel instead. Run the IRCC 'Find out if you need a visa' tool for the client's citizenship and travel mode before starting a TRV application."}, "tags": [{"label": "Active service", "variant": "success"}, {"label": "TRV vs eTA check required", "variant": "warning"}, {"label": "Biometrics required", "variant": "neutral"}, {"label": "Online \u2013 IRCC Portal", "variant": "neutral"}], "chips": [{"label": "Tourism / family / business", "variant": "neutral"}, {"label": "Biometrics required", "variant": "neutral"}, {"label": "Up to 6 months per entry", "variant": "success"}, {"label": "No work or study", "variant": "warning"}], "kpis": [{"label": "Application fee", "value": "CAD $100", "sub": "per person (family of 5+ CAD $500)", "tone": "primary", "sourceRefs": [{"id": "S6", "url": "https://ircc.canada.ca/english/information/fees/fees.asp"}]}, {"label": "Biometrics", "value": "CAD $85", "sub": "per person \u00b7 family max CAD $170 \u00b7 valid 10 yrs", "tone": "violet", "sourceRefs": [{"id": "S7", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"}]}, {"label": "Stay per entry", "value": "Up to 6 months", "sub": "officer's discretion at the port of entry", "tone": "success", "sourceRefs": [{"id": "S1", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa.html"}]}, {"label": "Visa validity", "value": "Up to 10 yrs", "sub": "or passport expiry, whichever is first", "tone": "primary", "sourceRefs": [{"id": "S14", "url": "https://ircc.canada.ca/english/helpcentre/answer.asp?qnum=417&top=16"}]}, {"label": "Processing time", "value": "Check IRCC tool", "sub": "dynamic by country \u2014 verify on build day", "tone": "warning", "sourceRefs": [{"id": "S8", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html"}]}, {"label": "Consultancy fee", "value": "\u20b97,080 / CAD $105", "sub": "TRV 1 person \u00b7 see Consultancy Fee tab for tiers", "tone": "primary"}], "approvalRatePlaceholder": "Approval-rate KPI omitted \u2014 IRCC does not publish a per-service approval rate and no verified internal data is available.", "about": [{"label": "What it is", "value": "A Temporary Resident Visa (TRV) is a counterfoil placed in the passport showing the holder meets the requirements to travel to Canada as a temporary visitor. It does not guarantee entry \u2014 a border officer makes the final decision."}, {"label": "Who it's for", "value": "Citizens of visa-required countries travelling to Canada for tourism, visiting family or friends, or business meetings and conferences."}, {"label": "Single vs multiple entry", "value": "IRCC decides which to issue based on the application; the same fee applies to both. Multiple-entry visas can be valid up to 10 years or passport expiry, whichever comes first."}, {"label": "Important limit", "value": "A visitor may not work or study (beyond short courses under 6 months) in Canada. Work or study needs the appropriate permit."}, {"label": "TRV vs eTA", "value": "Visa-exempt travellers use an Electronic Travel Authorization (eTA, CAD $7) for air travel instead of a TRV. U.S. citizens need neither. Always confirm with the IRCC eligibility tool."}], "eligibility": [{"criterion": "Hold a valid passport / travel document", "met": true, "note": "Validity should comfortably cover the intended stay."}, {"criterion": "Citizen of a visa-required country", "met": true, "note": "If visa-exempt, apply for an eTA instead, not a TRV (S2)."}, {"criterion": "Convince an officer of ties to home country", "met": true, "note": "Employment, property, family and financial ties showing you will leave at the end of the authorized stay (S3)."}, {"criterion": "Sufficient funds for the visit and return travel", "met": true, "note": "Bank statements and, where relevant, host support / invitation (S9)."}, {"criterion": "Admissible to Canada", "met": true, "note": "No criminal, security or misrepresentation inadmissibility; medical exam only if required."}, {"criterion": "Genuine, credible purpose of visit", "met": true, "note": "Tourism, family visit, or business \u2014 supported by itinerary and documents."}, {"criterion": "Biometrics (most applicants 14\u201379)", "met": true, "note": "Give fingerprints + photo once every 10 years for repeat trips (S7)."}, {"criterion": "Not seeking to work or study long-term", "met": false, "note": "A visitor cannot work, and may only study in courses under 6 months. Use a work/study permit otherwise (S12, S13)."}], "fullCostBreakdown": {"title": "Estimated cost planning \u2014 Canada Visitor Visa (TRV)", "currency": "CAD (with INR guide)", "lastVerified": "29 Jun 2026", "disclaimer": "Indicative figures for counselling discussions. Government fees are confirm-current on canada.ca. The Future Link professional fee is the base consultancy charge only (taxes excluded). Third-party/living figures are planning estimates, not government figures.", "verifyTotalUrl": "https://ircc.canada.ca/english/information/fees/fees.asp", "fxNote": "INR is auto-computed from Currency Master (CAD effective rate). No hardcoded FX.", "sections": [{"id": "govt", "label": "Government fees (IRCC)", "owner": "IRCC", "sourceRefs": [{"id": "S6", "url": "https://ircc.canada.ca/english/information/fees/fees.asp"}, {"id": "S7", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"}], "items": [{"label": "TRV application fee \u2014 per person", "amount": "CAD $100", "inr": "auto", "unit": "per applicant", "official": true, "cadAmount": 100.0}, {"label": "TRV application fee \u2014 per family of 5+", "amount": "CAD $500", "inr": "auto", "unit": "family applying together", "official": true, "cadAmount": 500.0}, {"label": "Biometrics \u2014 per person", "amount": "CAD $85", "inr": "auto", "unit": "per applicant", "official": true, "cadAmount": 85.0}, {"label": "Biometrics \u2014 per family", "amount": "CAD $170", "inr": "auto", "unit": "family max", "official": true, "cadAmount": 170.0}, {"label": "Government total \u2014 single applicant", "amount": "CAD $185", "inr": "auto", "unit": "fee + biometrics", "official": true, "cadAmount": 185.0}]}, {"id": "flc", "label": "Future Link professional fee (consultancy)", "owner": "Future Link Consultants", "sourceRefs": [], "items": [{"label": "FLC professional fee \u2014 TRV (1 person)", "amount": "CAD $105", "inr": "auto", "unit": "base professional fee (taxes excl.)", "official": false, "cadAmount": 105.0}, {"label": "FLC professional fee \u2014 TRV (2 persons)", "amount": "CAD $150", "inr": "auto", "unit": "base professional fee (taxes excl.)", "official": false, "cadAmount": 150.0}, {"label": "FLC professional fee \u2014 TRV (3 persons)", "amount": "CAD $250", "inr": "auto", "unit": "base professional fee (taxes excl.)", "official": false, "cadAmount": 250.0}]}, {"id": "third", "label": "Third-party / supporting", "owner": "Mixed", "sourceRefs": [], "items": [{"label": "VAC service charge", "amount": "CAD $30\u201375", "inr": "auto", "unit": "varies by country", "official": false, "cadAmount": [30.0, 75.0]}, {"label": "Document translation (if needed)", "amount": "CAD $20\u2013120", "inr": "auto", "unit": "per document set", "official": false, "cadAmount": [20.0, 120.0]}, {"label": "Photographs / courier / notarization", "amount": "CAD $20\u201360", "inr": "auto", "unit": "as required", "official": false, "cadAmount": [20.0, 60.0]}]}]}, "checklistItems": {"note": "Counsellor checklist for a complete TRV application. Confirm each item against the official guide before submission.", "items": ["Run the IRCC 'need a visa or eTA' tool for the client's citizenship + travel mode", "Valid passport with adequate remaining validity", "Completed application (IMM 5257) plus family/representative forms as applicable", "Two photos meeting IRCC specifications", "Proof of funds (bank statements, typically 4\u20136 months)", "Proof of ties to home country (employment letter, property, family)", "Purpose-of-visit documents (itinerary, invitation/host letter if family visit)", "Pay the TRV fee and biometrics fee; keep receipts", "Book and attend biometrics at a VAC (most applicants 14\u201379)", "Cover letter explaining the trip in plain language"], "sourceRefs": [{"id": "S4", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"}, {"id": "S5", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}]}, "documentBinder": {"note": "Suggested documents grouped by purpose. The exact set depends on the local visa office instructions for the client's country.", "howItWorks": "Use these categories to assemble the client's binder. Required items must be present; supporting items strengthen ties and purpose.", "sourceRefs": [{"id": "S4", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"}, {"id": "S9", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"}], "categories": [{"category": "Identity & travel", "required": "Required", "sourceRefs": [{"id": "S4", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"}], "items": ["Valid passport (bio page + any prior visas/stamps)", "Two IRCC-spec photographs", "Previous travel history (if any)"]}, {"category": "Forms", "required": "Required", "sourceRefs": [{"id": "S5", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}], "items": ["IMM 5257 (Application for a Visitor Visa)", "IMM 5645 (Family Information) where applicable", "IMM 5476 (Use of a Representative) if using a consultant"]}, {"category": "Funds", "required": "Required", "sourceRefs": [{"id": "S9", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"}], "items": ["Bank statements (typically 4\u20136 months)", "Income proof / pay slips", "Sponsor or host financial documents (if applicable)"]}, {"category": "Purpose & ties", "required": "Supporting", "sourceRefs": [{"id": "S3", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/eligibility.html"}], "items": ["Cover letter explaining the trip", "Invitation letter from host in Canada (family visit)", "Employment letter / leave approval", "Property or business documents showing ties"]}]}, "visaForms": {"note": "Official IRCC forms for the TRV application package. Always download the current version from canada.ca.", "sourceRefs": [{"id": "S5", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}], "forms": [{"code": "IMM 5257", "name": "Application for a Temporary Resident Visa", "when": "Every TRV applicant", "stage": "Apply", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}, {"code": "IMM 5645", "name": "Family Information", "when": "Where required by the guide", "stage": "Apply", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}, {"code": "IMM 5476", "name": "Use of a Representative", "when": "If a consultant/representative submits on the client's behalf", "stage": "Apply", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}, {"code": "IMM 5256", "name": "Visitor Visa \u2014 Instruction Guide", "when": "Read before applying", "stage": "Prepare", "url": "https://ircc.canada.ca/english/information/applications/visa.asp"}]}, "timeline": [{"weeks": "Week 0", "title": "Eligibility check \u2014 confirm TRV vs eTA, gather documents"}, {"weeks": "Week 1", "title": "Complete forms, pay fees, submit online via IRCC Portal"}, {"weeks": "Week 1\u20132", "title": "Give biometrics at a VAC (processing starts after biometrics)"}, {"weeks": "Varies", "title": "IRCC review \u2014 pull the live country estimate from the IRCC tool (S8)"}, {"weeks": "On approval", "title": "Passport request, visa counterfoil issued, plan travel"}], "workingRights": {"flagStatus": "Not Allowed", "flagReason": "A visitor visa (TRV) does not permit work in Canada. To work, the client needs a work permit; to study in courses of 6 months or longer, a study permit. Short courses under 6 months may be taken without a study permit.", "sourceRefs": [{"id": "S12", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/work-without-permit.html"}, {"id": "S13", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/study-without-permit.html"}]}, "donts": {"dos": ["Run the IRCC visa/eTA tool before anything else", "Show strong ties to the home country", "Submit a complete, well-organized application the first time", "Apply at least 2\u20133 months before the travel date", "Keep fee and biometrics receipts with the application"], "donts": ["Don't imply intent to work or study long-term on a visitor visa", "Don't submit incomplete forms or unsigned documents", "Don't book non-refundable travel before approval", "Don't overstate funds or provide inconsistent documents", "Don't quote a fixed processing time \u2014 it is dynamic by country"], "mistakes": ["Applying for a TRV when the client is actually eTA-eligible", "Assuming the visa expiry equals the authorized length of stay (the port-of-entry stamp governs)", "Forgetting biometrics \u2014 processing only begins once they are given"]}, "redFlagsBanner": "These are the issues most likely to cause a TRV refusal or delay. Address each before submission.", "redFlags": [{"title": "Weak ties to home country", "description": "Officer is not satisfied the applicant will leave at the end of the stay.", "fix": "Provide employment, property, family and financial evidence; a clear return plan.", "severity": "high"}, {"title": "Insufficient or unexplained funds", "description": "Bank balance does not support the trip, or sudden large deposits.", "fix": "Provide 4\u20136 months of consistent statements and explain the source of funds.", "severity": "high"}, {"title": "Purpose of visit not credible", "description": "Itinerary, invitation or business documents are thin or inconsistent.", "fix": "Attach a plain-language cover letter, itinerary, and host/invitation documents.", "severity": "medium"}, {"title": "Missing biometrics", "description": "Processing does not start until biometrics are given.", "fix": "Book and attend the VAC appointment promptly after submitting.", "severity": "medium"}, {"title": "Prior refusal not addressed", "description": "A previous refusal's concerns are repeated in the new application.", "fix": "Obtain officer notes (ATIP) and directly address each concern.", "severity": "high"}, {"title": "Wrong product (TRV vs eTA)", "description": "Applying for a TRV when the client is eTA-eligible (or vice versa).", "fix": "Confirm with the IRCC eligibility tool for the citizenship + travel mode.", "severity": "medium"}], "faqs": [{"q": "What is a Canada visitor visa (TRV)?", "a": "A Temporary Resident Visa is a document placed in the passport showing the holder meets the requirements to travel to Canada as a visitor. A border officer still makes the final decision on entry."}, {"q": "How much does a TRV cost?", "a": "The IRCC application fee is CAD $100 per person, or CAD $500 maximum for a family of five or more applying together. Biometrics are an additional CAD $85 per person (family max CAD $170). Confirm on canada.ca before paying."}, {"q": "How long can I stay on a visitor visa?", "a": "Usually up to six months per entry, but the border officer decides the exact period at the port of entry. The date stamped in the passport \u2014 not the visa expiry \u2014 is the date by which you must leave."}, {"q": "How long does processing take?", "a": "Processing times are dynamic and vary widely by country. Always check the official IRCC processing-times tool for the client's country at the time of application; the clock starts after biometrics are given."}, {"q": "Do I need biometrics?", "a": "Most applicants aged 14\u201379 must give fingerprints and a photo. They are valid for 10 years, so repeat trips within that window don't require giving them again."}, {"q": "Can I work or study on a visitor visa?", "a": "No. A visitor cannot work. You may only take short courses under six months; anything longer needs a study permit, and work needs a work permit."}, {"q": "What's the difference between a TRV and an eTA?", "a": "Citizens of visa-required countries need a TRV. Visa-exempt travellers use an eTA (CAD $7) for air travel instead. U.S. citizens need neither. Use the IRCC eligibility tool to confirm."}, {"q": "Can I extend my stay once in Canada?", "a": "Yes \u2014 apply for a visitor record to extend your stay before your authorized period ends. That is a separate in-Canada service (see Related)."}, {"q": "Is a visitor visa single or multiple entry?", "a": "IRCC decides based on the application; the fee is the same. Multiple-entry visas can be valid up to 10 years or passport expiry, whichever is earlier."}, {"q": "Does the visa guarantee entry to Canada?", "a": "No. The visa allows you to travel to a port of entry; a border services officer makes the final admissibility decision on arrival."}], "compliance": ["Confirm TRV vs eTA with the official IRCC tool before quoting timelines or fees", "Use of a Representative (IMM 5476) must be on file if a consultant submits the application", "Quote only the base professional fee in counselling; taxes are handled separately by accounts", "Never copy government text into client documents \u2014 link to canada.ca sources instead"], "downloads": {"note": "Future Link templates only \u2014 no government forms (official forms are in the Visa Forms tab). Click a card to open the full template content inline. The Document Checklist (FLC) breaks the application into 8 document components, each collapsible on click. The Free Guide (8th) is the client-facing version to share with enquiries.", "templates": [{"template": "TRV Counsellor Guide", "use": "Session companion", "stage": "All", "fileUrl": "#download-trv-counsellor-guide", "fileType": "PDF/DOCX (to be uploaded)", "content": {"intro": "One-page companion to run a Canada visitor-visa counselling session end to end.", "sections": [{"heading": "Before the session", "items": ["Confirm citizenship + travel mode; run the IRCC visa/eTA tool", "Pull the live processing time for the client's country", "Have official links ready (visitor visa, fees, biometrics)"]}, {"heading": "During the session", "items": ["Clarify purpose of visit and ties to home country", "Review funds and supporting documents", "Set expectations on dynamic timelines and the no-work/no-study limit"]}]}}, {"template": "TRV Meeting Checklist", "use": "Counsellor intake", "stage": "Prepare", "fileUrl": "#download-trv-meeting-checklist", "fileType": "PDF (to be uploaded)", "content": {"intro": "Quick intake checklist to capture everything needed before starting a TRV file.", "sections": [{"heading": "Profile", "items": ["Citizenship & passport validity", "Purpose of visit & travel dates", "Who is travelling (1 / 2 / 3+ persons)"]}, {"heading": "Decisions", "items": ["TRV vs eTA confirmed", "Host/invitation needed?", "Prior refusals? (ATIP if yes)"]}]}}, {"template": "TRV Budget Planner", "use": "Cost planning handout", "stage": "Prepare", "fileUrl": "#download-trv-budget-planner", "fileType": "PDF/XLSX (to be uploaded)", "content": {"intro": "Helps the client budget the full cost: government fees, FLC professional fee, and third-party costs.", "sections": [{"heading": "Government (IRCC)", "items": ["TRV fee CAD $100/person ($500 family of 5+)", "Biometrics CAD $85/person ($170 family)"]}, {"heading": "FLC professional fee", "items": ["1 person CAD $105", "2 persons CAD $150", "3 persons CAD $250 (base fee, taxes excluded)"]}, {"heading": "Third-party", "items": ["VAC service charge", "Translation / photos / courier (as needed)"]}]}}, {"template": "TRV Document Checklist (FLC)", "use": "Client document handout", "stage": "Prepare", "fileUrl": "#download-trv-document-checklist", "fileType": "PDF (to be uploaded)", "content": {"intro": "The 8 document components of a complete Canada visitor-visa application. For each: what to provide, why it matters, and the common mistake to avoid. The exact set depends on the local visa-office instructions for the client's country.", "sections": [{"heading": "1. Passport & travel document", "items": ["What: Valid passport (bio page) with adequate validity beyond the intended stay; copies of any prior visas/stamps.", "Why: Establishes identity and travel history; the visa is affixed to this passport.", "Mistake: Passport expiring soon, or missing pages showing past travel."]}, {"heading": "2. Photographs", "items": ["What: Two photographs meeting IRCC photo specifications.", "Why: Required for the application and identity matching.", "Mistake: Wrong size, old photo, or glare/background that fails the spec."]}, {"heading": "3. Application forms", "items": ["What: IMM 5257 (Application for a Visitor Visa); IMM 5645 (Family Information) and IMM 5476 (Use of a Representative) where applicable.", "Why: The core application package IRCC adjudicates.", "Mistake: Unsigned forms, blank mandatory fields, or an outdated form version."]}, {"heading": "4. Proof of funds", "items": ["What: Bank statements (typically 4\u20136 months), income proof; sponsor/host financials if someone is supporting the trip.", "Why: Shows the client can cover the visit and return travel (S9).", "Mistake: A single large recent deposit with no explanation ('unseasoned' funds)."]}, {"heading": "5. Purpose of visit & itinerary", "items": ["What: Cover letter explaining the trip in plain language; travel itinerary (flights/hotels/day plan).", "Why: Demonstrates a genuine, credible temporary visit.", "Mistake: Vague or generic cover letter; booking non-refundable travel before approval."]}, {"heading": "6. Invitation / host documents (family visit)", "items": ["What: Invitation letter from the host in Canada, host's status proof, relationship evidence, accommodation details.", "Why: Supports a family-visit purpose and where the client will stay.", "Mistake: No proof of the host's status (citizen/PR) or relationship."]}, {"heading": "7. Ties to home country", "items": ["What: Employment letter / leave approval, property or business documents, family responsibilities.", "Why: Convinces the officer the client will leave at the end of the stay (S3) \u2014 the #1 refusal factor.", "Mistake: Thin ties evidence; nothing showing a reason to return."]}, {"heading": "8. Biometrics & fee receipts", "items": ["What: Pay the TRV fee and biometrics fee; keep receipts; attend the VAC for biometrics (most applicants 14\u201379).", "Why: Processing only begins once biometrics are given (S7).", "Mistake: Forgetting biometrics, or not including fee receipts with the application."]}]}}, {"template": "TRV Cover Letter Template", "use": "Client drafting aid", "stage": "Prepare", "fileUrl": "#download-trv-cover-letter", "fileType": "DOCX (to be uploaded)", "content": {"intro": "A structure for the client's cover letter \u2014 plain language, addresses what the officer needs to see.", "sections": [{"heading": "Include", "items": ["Where, why, and how long the trip is", "Who is funding it and proof", "Ties showing intent to return"]}, {"heading": "Avoid", "items": ["Generic boilerplate", "Contradictions with the forms", "Anything implying work or long-term study"]}]}}, {"template": "TRV Submission Readiness Check", "use": "Final pre-submit review", "stage": "Submit", "fileUrl": "#download-trv-readiness", "fileType": "PDF (to be uploaded)", "content": {"intro": "Last review before submitting the online application through the IRCC Portal.", "sections": [{"heading": "Forms & docs", "items": ["All 8 document components present", "Forms signed; photos compliant", "Fees paid; receipts attached"]}, {"heading": "Consistency", "items": ["Dates match across forms and itinerary", "Funds explained", "Cover letter aligns with documents"]}]}}, {"template": "TRV After-Submission Guide", "use": "Post-submit client guide", "stage": "After", "fileUrl": "#download-trv-after-submission", "fileType": "PDF (to be uploaded)", "content": {"intro": "What happens after submitting \u2014 biometrics, tracking, and decision.", "sections": [{"heading": "Next steps", "items": ["Attend biometrics at the VAC promptly", "Track status in the IRCC account", "Wait for passport request on approval"]}, {"heading": "If refused", "items": ["Request officer notes via ATIP", "Address each concern before reapplying", "No permanent bar \u2014 reapply with a stronger file"]}]}}, {"template": "Free Guide \u2014 Visiting Canada (Client-facing)", "use": "Share with enquiries \u2014 convert leads", "stage": "All", "fileUrl": "canada-visitor-visa-free-guide.html", "fileType": "Branded HTML (downloadable / shareable link)", "content": {"intro": "A client-facing starter guide on the Canada visitor visa \u2014 branded, credible, and ready to download or share. Opens as a standalone page with Future Link branding, the essentials, eligibility, documents, the step-by-step journey, and contact details.", "sections": [{"heading": "The basics", "items": ["TRV vs eTA \u2014 which you need", "Fees and biometrics at a glance", "How long you can stay (up to 6 months per entry)"]}, {"heading": "Good to know", "items": ["You cannot work; study only short courses under 6 months", "Processing time varies by country \u2014 check the IRCC tool", "The border officer makes the final entry decision"]}]}, "downloadable": true}]}, "sampleDocs": {"note": "Anonymised samples for counsellor reference only \u2014 not for client distribution.", "items": [{"title": "Sample cover letter (mock)", "description": "Purpose: explain the trip plainly. Best practice: state where, why, how long, and what you'll do; reaffirm intent to return. Mistake: vague or generic letters.", "mimeType": "application/pdf", "docKind": "letter"}, {"title": "Sample invitation letter (mock)", "description": "Purpose: family-visit support. Best practice: host status in Canada, relationship, dates, and support offered. Mistake: missing host status proof.", "mimeType": "application/pdf", "docKind": "letter"}, {"title": "Sample bank statement layout (mock)", "description": "Purpose: show stable funds. Best practice: 4\u20136 months, consistent balance, no unexplained spikes. Mistake: single recent large deposit.", "mimeType": "image/jpeg", "docKind": "financial"}]}, "quiz": [{"level": 1, "question": "What does a Canada visitor visa (TRV) authorize?", "options": ["Temporary travel to Canada as a visitor, subject to a border officer's final decision", "Automatic entry to Canada regardless of the border officer", "The right to work in Canada", "Permanent residence in Canada"], "correctIndex": 0, "explanation": "A TRV shows the holder meets requirements to travel as a visitor; entry is decided at the port of entry."}, {"level": 1, "question": "What is the IRCC TRV application fee per person?", "options": ["CAD $100", "CAD $7", "CAD $150", "CAD $500"], "correctIndex": 0, "explanation": "The fee is CAD $100 per person; CAD $500 is the maximum for a family of five or more."}, {"level": 2, "question": "A visa-exempt client wants to fly to Canada for tourism. What do they usually need?", "options": ["An eTA, not a TRV", "A TRV only", "A work permit", "Nothing at all unless they are American"], "correctIndex": 0, "explanation": "Visa-exempt air travellers use an eTA (CAD $7). U.S. citizens need neither."}, {"level": 2, "question": "When does TRV processing time start?", "options": ["After biometrics are given", "The day the client books a consultation", "On passport request", "At the port of entry"], "correctIndex": 0, "explanation": "Processing begins once biometrics are provided, not at online submission."}, {"level": 3, "question": "A client on a TRV wants to take a 9-month diploma in Canada. What's correct?", "options": ["They need a study permit \u2014 courses of 6 months or more require one", "They can study on the visitor visa with no permit", "They can work to fund the diploma", "A TRV converts to a study permit automatically"], "correctIndex": 0, "explanation": "Only courses under 6 months can be taken without a study permit; 9 months needs a study permit."}], "relatedServices": [{"label": "Canada \u2013 Visitor Record (In-Canada Extension)", "libraryId": ""}, {"label": "Canada \u2013 Super Visa (Parents & Grandparents)", "libraryId": ""}, {"label": "Canada \u2013 Spouse / Dependent Visitor Visa", "libraryId": ""}], "changelog": [{"version": "v3.0", "date": "29 Jun 2026", "author": "Knowledge Team", "summary": "Rebuilt to v1.0 ZIP schema (schemaRef flc-knowledge-guide-schema-v1.0) matching the locked Canada Student Visa reference. Official facts linked & verified on canada.ca: TRV fee CAD $100/family $500, biometrics CAD $85/family $170, stay up to 6 months, validity up to 10 yrs. Working Rights kept with flagStatus 'Not Allowed'. FLC base professional fee added (3 tiers: 1/2/3 persons), taxes excluded. Approval-rate KPI omitted; processing time set to the live IRCC tool."}], "staffNotes": ["Always confirm TRV vs eTA first \u2014 a wrong product is the most common avoidable error.", "Processing times are dynamic; never promise a fixed number \u2014 link the IRCC tool."], "resources": [{"url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa.html", "title": "Visitor visa \u2014 canada.ca"}, {"url": "https://ircc.canada.ca/english/visit/visas.asp", "title": "Need a visa or eTA? (tool)"}, {"url": "https://ircc.canada.ca/english/information/fees/fees.asp", "title": "Fee list \u2014 IRCC"}, {"url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html", "title": "Biometrics \u2014 canada.ca"}, {"url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html", "title": "Check processing times \u2014 IRCC"}, {"url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html", "title": "Extend your stay (visitor record)"}], "versionControl": {"version": "v3.0", "lastReviewed": "29 Jun 2026", "nextReview": "31 Dec 2026", "reviewedBy": "Future Link Knowledge Team", "governmentSource": "canada.ca / IRCC (see Sources tab)", "confidence": "High \u2014 official facts linked & verified current on 29 Jun 2026; approval-rate KPI omitted; processing time deferred to live IRCC tool."}, "sources": [{"id": "S1", "authority": "IRCC", "page": "Visitor visa (temporary resident visa)", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa.html", "reason": "Core authority & scope for the TRV"}, {"id": "S2", "authority": "IRCC", "page": "Find out if you need a visa or eTA", "category": "Immigration", "url": "https://ircc.canada.ca/english/visit/visas.asp", "reason": "Determines whether the client needs a TRV or an eTA"}, {"id": "S3", "authority": "IRCC", "page": "Visitor visa: Who can apply", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/eligibility.html", "reason": "Eligibility requirements"}, {"id": "S4", "authority": "IRCC", "page": "Visitor visa: How to apply", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html", "reason": "Application process & document upload"}, {"id": "S5", "authority": "IRCC", "page": "Application for a Visitor Visa (TRV) \u2014 Guide [IMM 5256]", "category": "Immigration", "url": "https://ircc.canada.ca/english/information/applications/visa.asp", "reason": "Official application guide and forms package"}, {"id": "S6", "authority": "IRCC", "page": "Citizenship and immigration application fees: Fee list", "category": "Fees", "url": "https://ircc.canada.ca/english/information/fees/fees.asp", "reason": "Official TRV application fee (CAD 100 / family CAD 500)"}, {"id": "S7", "authority": "IRCC", "page": "Biometrics", "category": "Fees", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html", "reason": "Biometrics requirement & fee (CAD 85 / family CAD 170)"}, {"id": "S8", "authority": "IRCC", "page": "Check current processing times", "category": "Processing", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html", "reason": "Live, country-specific processing-time estimate"}, {"id": "S9", "authority": "IRCC", "page": "Proof of means of financial support", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html", "reason": "Funds & supporting documents expectations"}, {"id": "S10", "authority": "IRCC", "page": "Extend your stay as a visitor / Visitor record", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html", "reason": "In-Canada extension pathway (related service)"}, {"id": "S11", "authority": "IRCC", "page": "Dual citizens visiting Canada \u2014 travel document rules", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizens/dual-citizenship-document.html", "reason": "Canadian dual-citizen travel-document rule"}, {"id": "S12", "authority": "IRCC", "page": "Work without a work permit / visitors", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/work-without-permit.html", "reason": "Confirms a visitor may not work in Canada (working-rights flag)"}, {"id": "S13", "authority": "IRCC", "page": "Study without a study permit / visitors", "category": "Immigration", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/study-without-permit.html", "reason": "Visitor study limits (short courses <6 months)"}, {"id": "S14", "authority": "IRCC", "page": "Help Centre: Single vs multiple entry visa", "category": "Immigration", "url": "https://ircc.canada.ca/english/helpcentre/answer.asp?qnum=417&top=16", "reason": "Single vs multiple entry, validity up to passport expiry / 10 yrs"}], "currencyConfig": {"baseCurrency": "CAD", "displayCurrency": "INR", "source": "Currency Master", "autoFetch": true, "rateField": "effectiveRate", "fallbackRate": 69.59, "fallbackAsOf": "29 Jun 2026", "note": "INR values are computed at render time from Currency Master (CAD effective rate). Do not hardcode INR; fetch the live rate so cost planning always matches the CRM."}, "navigation": [{"key": "overview", "label": "Overview", "sectionType": "overview", "dataKey": "about", "applicable": true}, {"key": "eligibility", "label": "Eligibility", "sectionType": "criteria-list", "dataKey": "eligibility", "applicable": true}, {"key": "cost", "label": "Cost Planning", "sectionType": "cost-breakdown", "dataKey": "fullCostBreakdown", "applicable": true}, {"key": "checklist", "label": "Checklist", "sectionType": "checklist", "dataKey": "checklistItems", "applicable": true}, {"key": "binder", "label": "Document Binder", "sectionType": "document-binder", "dataKey": "documentBinder", "applicable": true}, {"key": "visaforms", "label": "Visa Forms", "sectionType": "forms-table", "dataKey": "visaForms", "applicable": true}, {"key": "process", "label": "Process", "sectionType": "timeline", "dataKey": "timeline", "applicable": true}, {"key": "working", "label": "Working Rights", "sectionType": "working-rights", "dataKey": "workingRights", "applicable": true}, {"key": "dos", "label": "Do's & Don'ts", "sectionType": "dos-donts", "dataKey": "donts", "applicable": true}, {"key": "redflags", "label": "Red Flags", "sectionType": "red-flags", "dataKey": "redFlags", "applicable": true}, {"key": "faqs", "label": "FAQs", "sectionType": "faqs", "dataKey": "faqs", "applicable": true}, {"key": "compliance", "label": "Compliance", "sectionType": "list", "dataKey": "compliance", "applicable": true}, {"key": "downloads", "label": "Downloads", "sectionType": "downloads", "dataKey": "downloads", "applicable": true}, {"key": "sampledocs", "label": "Sample Docs", "sectionType": "sample-docs", "dataKey": "sampleDocs", "applicable": true}, {"key": "quiz", "label": "Quiz", "sectionType": "quiz", "dataKey": "quiz", "applicable": true}, {"key": "related", "label": "Related", "sectionType": "related", "dataKey": "relatedServices", "applicable": true}, {"key": "sources", "label": "Sources", "sectionType": "sources", "dataKey": "sources", "applicable": true}], "navigationModel": {"model": "data-driven", "states": ["applicable (render)", "omitted (not present \u2014 leave the entry out of navigation)"], "flagConvention": "Where a section's ABSENCE could mislead (legal/counselling risk), keep the section and set its body to a status flag \u2014 flagStatus: 'Not Allowed' | 'Not Eligible' | 'Not Applicable' with a reason. Otherwise omit the section entirely.", "example": "Visitor Visa \u2192 Working Rights stays with flagStatus 'Not Allowed' (important); admission-style sections are omitted (irrelevant)."}, "consultancyFee": {"title": "Future Link professional fee \u2014 Canada Visitor Visa (TRV)", "currency": "CAD (with INR guide)", "lastVerified": "29 Jun 2026", "disclaimer": "Base professional (consultancy) fee only. Government fees and taxes are separate; see Cost Planning for the full picture.", "verifyTotalUrl": "", "fxNote": "INR is auto-computed from Currency Master (CAD effective rate). No hardcoded FX.", "sections": [{"id": "flc-fee", "label": "Professional fee by applicants", "owner": "Future Link Consultants", "sourceRefs": [], "items": [{"label": "TRV (1 person)", "amount": "CAD $105", "inr": "auto", "unit": "base professional fee", "official": false, "cadAmount": 105.0}, {"label": "TRV (2 persons)", "amount": "CAD $150", "inr": "auto", "unit": "base professional fee", "official": false, "cadAmount": 150.0}, {"label": "TRV (3 persons)", "amount": "CAD $250", "inr": "auto", "unit": "base professional fee", "official": false, "cadAmount": 250.0}]}]}};
+const $ = (s,r=document)=>r.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc=s=>String(s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+function srcChips(refs){if(!refs||!refs.length)return"";return" "+refs.map(r=>`<a class="src" href="${r.url}" target="_blank" rel="noopener">${r.id}↗</a>`).join(" ");}
+
+try { render(EMBEDDED_DATA); } catch(e){
+  document.body.innerHTML='<div class="wrap" style="padding-top:40px"><h1>Render error</h1><pre>'+esc(e&&e.stack||e)+'</pre></div>';
+}
+
+function render(d){
+  $("#crumb").innerHTML = `${esc(d.country)} <span class="leaf">🍁</span> ${esc(d.service)} <span class="leaf">›</span> <span style="color:#a9c2d6">${esc(d.version)} · ${esc(d.versionStatus)}</span>`;
+  $("#title").textContent = d.displayName;
+  $("#sub").textContent = d.shortDescription;
+  (d.tags||[]).forEach(t=>$("#tags").append(el("span","tag "+(t.variant||""),esc(t.label))));
+
+  const k=$("#kpis");
+  (d.kpis||[]).forEach(x=>{
+    k.append(el("div","kpi "+(x.tone||""),
+      `<div class="lab">${esc(x.label)}</div><div class="val">${esc(x.value)}</div>
+       <div class="vsub">${esc(x.sub||"")}</div>${srcChips(x.sourceRefs)}`));
+  });
+
+  const a=d.alert||{};
+  $("#alert").innerHTML=`<h3>${esc(a.title||"Note")}</h3><p>${esc(a.body||"")}</p>`;
+
+  const nav=d.navigation||[], tabs=$("#tabs"), panels=$("#panels");
+  nav.forEach((n,i)=>{
+    const b=el("button",i===0?"on":"",esc(n.label));
+    b.onclick=()=>{[...tabs.children].forEach(c=>c.classList.remove("on"));
+      [...panels.children].forEach(p=>p.classList.remove("on"));
+      b.classList.add("on");$("#p-"+n.key).classList.add("on");};
+    tabs.append(b);
+    const p=el("div","panel"+(i===0?" on":""));p.id="p-"+n.key;
+    p.append(renderPanel(n,d));panels.append(p);
+  });
+
+  const vc=d.versionControl||{};
+  $("#foot").innerHTML=`Built to ${esc(d.builtToStandard)} · ${esc(d.updatedLabel)} · reviewed by ${esc(vc.reviewedBy||"")} · next review ${esc(vc.nextReview||"")}<br>${esc(d.sourcePolicy||"")}`;
+}
+
+function card(inner){const c=el("div","card");c.innerHTML=inner;return c;}
+function head(n){return `<h2 class="sec">${esc(n.label)}</h2>`;}
+
+function renderPanel(n,d){
+  const wrap=el("div"); const v=d[n.dataKey];
+  const t=n.sectionType;
+  if(t==="overview"){
+    const c=card(head(n)+`<p class="secsub">Service overview</p><div class="grid2 about">`+
+      (v||[]).map(o=>`<div class="card" style="box-shadow:none;margin:0"><span class="lab">${esc(o.label)}</span><span class="val">${esc(o.value)}</span></div>`).join("")+`</div>`);
+    wrap.append(c);
+  }
+  else if(t==="criteria-list"){
+    wrap.append(card(head(n)+`<ul class="tick">`+(v||[]).map(e=>
+      `<li class="${e.met?'':'no'}"><b>${esc(e.criterion)}</b>${e.note?` — <span style="color:var(--ink-soft)">${esc(e.note)}</span>`:''}</li>`).join("")+`</ul>`));
+  }
+  else if(t==="cost-breakdown"){
+    let html=head(n)+`<p class="secsub">${esc(v.title)} · verified ${esc(v.lastVerified)}</p>`;
+    html+=`<p class="note">${esc(v.disclaimer)}</p>`;
+    (v.sections||[]).forEach(sec=>{
+      html+=`<div style="margin:14px 0 6px;font-weight:700">${esc(sec.label)}<span class="ownertag">${esc(sec.owner)}</span>${srcChips(sec.sourceRefs)}</div>`;
+      html+=`<table><thead><tr><th>Item</th><th>Amount (CAD)</th><th>INR</th><th>Unit</th><th></th></tr></thead><tbody>`;
+      sec.items.forEach(it=>{
+        html+=`<tr><td>${esc(it.label)}</td><td class="amt">${esc(it.amount)}</td>
+          <td style="color:var(--ink-soft)">auto ₹</td><td style="color:var(--ink-soft)">${esc(it.unit||"")}</td>
+          <td>${it.official?'<span class="badge-off">official</span>':'<span class="badge-est">estimate</span>'}</td></tr>`;
+      });
+      html+=`</tbody></table>`;
+    });
+    html+=`<p class="note" style="margin-top:12px">${esc(v.fxNote)} · <a class="gov" href="${v.verifyTotalUrl}" target="_blank" rel="noopener">Verify fees on canada.ca ↗</a></p>`;
+    wrap.append(card(html));
+  }
+  else if(t==="checklist"){
+    wrap.append(card(head(n)+`<p class="note">${esc(v.note)}</p><ul class="tick">`+
+      (v.items||[]).map(i=>`<li>${esc(i)}</li>`).join("")+`</ul>`+srcChips(v.sourceRefs)));
+  }
+  else if(t==="document-binder"){
+    let html=head(n)+`<p class="note">${esc(v.note)}</p>`;
+    (v.categories||[]).forEach(cat=>{
+      html+=`<div style="margin:12px 0 4px;font-weight:700">${esc(cat.category)} <span class="pill">${esc(cat.required)}</span>${srcChips(cat.sourceRefs)}</div>`;
+      html+=`<ul class="tick circ">`+cat.items.map(i=>`<li>${esc(i)}</li>`).join("")+`</ul>`;
+    });
+    wrap.append(card(html));
+  }
+  else if(t==="forms-table"){
+    let html=head(n)+`<p class="note">${esc(v.note)}</p>`+srcChips(v.sourceRefs);
+    html+=`<table><thead><tr><th>Code</th><th>Form</th><th>When</th><th>Stage</th><th></th></tr></thead><tbody>`+
+      v.forms.map(f=>`<tr><td><span class="pill">${esc(f.code)}</span></td><td>${esc(f.name)}</td>
+      <td style="color:var(--ink-soft)">${esc(f.when)}</td><td>${esc(f.stage)}</td>
+      <td><a class="gov" href="${f.url}" target="_blank" rel="noopener">Open ↗</a></td></tr>`).join("")+`</tbody></table>`;
+    wrap.append(card(html));
+  }
+  else if(t==="timeline"){
+    wrap.append(card(head(n)+`<ul class="timeline">`+(v||[]).map(s=>
+      `<li><span class="wk">${esc(s.weeks)}</span><span>${esc(s.title)}</span></li>`).join("")+`</ul>`));
+  }
+  else if(t==="working-rights"){
+    if(v && v.flagStatus){
+      wrap.append(card(head(n)+`<div class="flag"><span class="st">${esc(v.flagStatus)}</span>
+        <p>${esc(v.flagReason)}</p>${srcChips(v.sourceRefs)}</div>`));
+    } else {
+      wrap.append(card(head(n)+`<pre>${esc(JSON.stringify(v,null,2))}</pre>`));
+    }
+  }
+  else if(t==="dos-donts"){
+    wrap.append(card(head(n)+`<div class="grid2">
+      <div><div style="font-weight:700;color:var(--good);margin-bottom:6px">Do</div><ul class="tick">${v.dos.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>
+      <div><div style="font-weight:700;color:var(--maple-dk);margin-bottom:6px">Don't</div><ul class="tick">${v.donts.map(i=>`<li class="no">${esc(i)}</li>`).join("")}</ul></div>
+      </div><div style="margin-top:10px"><div style="font-weight:700;color:var(--warn);margin-bottom:6px">Common mistakes</div><ul class="tick">${v.mistakes.map(i=>`<li class="no">${esc(i)}</li>`).join("")}</ul></div>`));
+  }
+  else if(t==="red-flags"){
+    let html=head(n)+(d.redFlagsBanner?`<p class="note">${esc(d.redFlagsBanner)}</p>`:"");
+    html+=(v||[]).map(r=>`<div class="rf"><h4>${esc(r.title)} <span class="sev ${esc(r.severity)}">${esc(r.severity)}</span></h4>
+      <div class="body">${esc(r.description||"")}</div><div class="fix"><b>Fix:</b> ${esc(r.fix||"")}</div></div>`).join("");
+    wrap.append(card(html));
+  }
+  else if(t==="faqs"){
+    wrap.append(card(head(n)+(v||[]).map(f=>
+      `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("")));
+  }
+  else if(t==="list"){
+    wrap.append(card(head(n)+`<ul class="tick">`+(v||[]).map(i=>`<li>${esc(i)}</li>`).join("")+`</ul>`));
+  }
+  else if(t==="downloads"){
+    let html=head(n)+`<p class="note">${esc(v.note)}</p><div class="dlgrid">`;
+    (v.templates||[]).forEach(tp=>{
+      const isChecklist = /document checklist/i.test(tp.template||"");
+      html+=`<details class="dldet${isChecklist?' wide':''}"><summary class="dlcard">
+        <b>${esc(tp.template)}</b><span class="dluse">${esc(tp.use||"")}</span>
+        <em class="dlstage">${esc(tp.stage||"")}</em><span class="dlget">Open / view ▾</span></summary>
+        <div class="dlbody">`;
+      if(tp.content){
+        html+=`<p class="tintro">${esc(tp.content.intro||"")}</p>`;
+        (tp.content.sections||[]).forEach(s=>{
+          // Each component is itself collapsible when it's the detailed checklist
+          if(isChecklist){
+            html+=`<details class="comp"><summary class="comphd">${esc(s.heading)} <span class="compget">▾</span></summary>
+              <ul class="tcheck">${(s.items||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ul></details>`;
+          } else {
+            html+=`<div class="tsec"><b>${esc(s.heading)}</b>
+              <ul class="tcheck">${(s.items||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`;
+          }
+        });
+      }
+      html+=`<div class="tmeta">${esc(tp.fileType||"")}`;
+      if(tp.downloadable && tp.fileUrl){
+        html+=` · <a class="dldownload" href="${esc(tp.fileUrl)}" target="_blank" rel="noopener" download>⬇ Download / open the guide</a>`;
+      }
+      html+=`</div></div></details>`;
+    });
+    html+=`</div>`;
+    wrap.append(card(html));
+  }
+  else if(t==="sample-docs"){
+    let html=head(n)+`<p class="note">${esc(v.note)}</p><div class="grid2">`;
+    html+=(v.items||[]).map(s=>`<div class="card" style="box-shadow:none;margin:0"><div style="font-weight:700">${esc(s.title)} <span class="pill">${esc(s.docKind)}</span></div><div class="val" style="color:var(--ink-soft);font-size:14px">${esc(s.description)}</div></div>`).join("");
+    html+=`</div>`;
+    wrap.append(card(html));
+  }
+  else if(t==="quiz"){
+    wrap.append(card(head(n)+(v||[]).map(q=>
+      `<div class="qz"><div><span class="lv">L${esc(q.level)}</span><b>${esc(q.question)}</b></div>
+       <ul class="tick" style="margin-top:6px">${q.options.map((o,i)=>`<li class="${i===q.correctIndex?'':'no'}" style="${i===q.correctIndex?'':'opacity:.6'}">${esc(o)}</li>`).join("")}</ul>
+       <div class="note" style="margin-top:4px"><b>Why:</b> ${esc(q.explanation||"")}</div></div>`).join("")));
+  }
+  else if(t==="related"){
+    wrap.append(card(head(n)+`<p class="note">Right-rail navigation (renders in UI per spec §4)</p><ul class="tick">`+
+      (v||[]).map(r=>`<li>${esc(r.label)}</li>`).join("")+`</ul>`));
+  }
+  else if(t==="sources"){
+    let html=head(n)+`<p class="note">Source registry — shown inside Downloads in production (spec §4). All URLs on official government domains.</p>`;
+    html+=`<table class="src-tbl"><thead><tr><th>ID</th><th>Authority</th><th>Page</th><th>Link</th></tr></thead><tbody>`+
+      (v||[]).map(s=>`<tr><td><span class="pill">${esc(s.id)}</span></td><td>${esc(s.authority)}</td>
+      <td>${esc(s.page)}</td><td><a href="${s.url}" target="_blank" rel="noopener">canada.ca ↗</a></td></tr>`).join("")+`</tbody></table>`;
+    wrap.append(card(html));
+  }
+  else { wrap.append(card(head(n)+`<pre>${esc(JSON.stringify(v,null,2))}</pre>`)); }
+  return wrap;
+}
+</script>
+</body>
+</html>
