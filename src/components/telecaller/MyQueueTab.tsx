@@ -95,8 +95,8 @@ export function MyQueueTab({ mask }: { mask: boolean }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setActive(it); setOpen(true); }}><Forward className="size-4" /></Button>
-                  <ChevronRight className="size-4 text-muted-foreground" />
+                  <Button size="sm" variant="ghost" aria-label="Open call panel" onClick={(e) => { e.stopPropagation(); setActive(it); setOpen(true); }}><Forward className="size-4" aria-hidden="true" /></Button>
+                  <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
                 </div>
               </div>
             );
