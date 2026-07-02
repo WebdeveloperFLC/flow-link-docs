@@ -47,13 +47,68 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_account_roles: {
+        Row: {
+          account_code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entity_id: string | null
+          id: string
+          is_system: boolean
+          role_key: string
+          updated_at: string
+        }
+        Insert: {
+          account_code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string | null
+          id?: string
+          is_system?: boolean
+          role_key: string
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string | null
+          id?: string
+          is_system?: boolean
+          role_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_account_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_account_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_ap_bills: {
         Row: {
+          approval_status: string
+          approved_at: string | null
           approved_by: string | null
+          attachment_path: string | null
           bill_date: string
           bill_number: string
           branch: string | null
           branch_country: string | null
+          branch_id: string | null
           created_at: string
           created_by: string | null
           currency: string | null
@@ -61,6 +116,8 @@ export type Database = {
           description: string | null
           due_date: string | null
           entity: string | null
+          entity_id: string | null
+          expense_role_key: string | null
           id: string
           journal_id: string | null
           linked_bank_account_id: string | null
@@ -79,6 +136,7 @@ export type Database = {
           tags: string[] | null
           tax_amount: number | null
           tax_code: string | null
+          tds_code: string | null
           total_amount: number | null
           updated_at: string
           vendor_category: string | null
@@ -88,11 +146,15 @@ export type Database = {
           vendor_phone: string | null
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
           approved_by?: string | null
+          attachment_path?: string | null
           bill_date: string
           bill_number: string
           branch?: string | null
           branch_country?: string | null
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
@@ -100,6 +162,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           entity?: string | null
+          entity_id?: string | null
+          expense_role_key?: string | null
           id?: string
           journal_id?: string | null
           linked_bank_account_id?: string | null
@@ -118,6 +182,7 @@ export type Database = {
           tags?: string[] | null
           tax_amount?: number | null
           tax_code?: string | null
+          tds_code?: string | null
           total_amount?: number | null
           updated_at?: string
           vendor_category?: string | null
@@ -127,11 +192,15 @@ export type Database = {
           vendor_phone?: string | null
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
           approved_by?: string | null
+          attachment_path?: string | null
           bill_date?: string
           bill_number?: string
           branch?: string | null
           branch_country?: string | null
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
@@ -139,6 +208,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           entity?: string | null
+          entity_id?: string | null
+          expense_role_key?: string | null
           id?: string
           journal_id?: string | null
           linked_bank_account_id?: string | null
@@ -157,6 +228,7 @@ export type Database = {
           tags?: string[] | null
           tax_amount?: number | null
           tax_code?: string | null
+          tds_code?: string | null
           total_amount?: number | null
           updated_at?: string
           vendor_category?: string | null
@@ -196,6 +268,170 @@ export type Database = {
           },
           {
             foreignKeyName: "accounting_ap_bills_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_ap_payment_allocations: {
+        Row: {
+          amount: number
+          bill_id: string
+          created_at: string
+          id: string
+          payment_id: string
+        }
+        Insert: {
+          amount: number
+          bill_id: string
+          created_at?: string
+          id?: string
+          payment_id: string
+        }
+        Update: {
+          amount?: number
+          bill_id?: string
+          created_at?: string
+          id?: string
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_ap_payment_allocations_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_ap_bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_ap_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_ap_payments: {
+        Row: {
+          amount: number
+          attachment_path: string | null
+          bank_role_key: string
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          entity_id: string
+          id: string
+          journal_id: string | null
+          payment_method: string | null
+          payment_number: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string
+          reference: string | null
+          status: string
+          tds_amount: number
+          tds_role_key: string | null
+          updated_at: string
+          vendor_id: string | null
+          vendor_name: string
+        }
+        Insert: {
+          amount: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id: string
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          payment_number?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          tds_amount?: number
+          tds_role_key?: string | null
+          updated_at?: string
+          vendor_id?: string | null
+          vendor_name: string
+        }
+        Update: {
+          amount?: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id?: string
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          payment_number?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          tds_amount?: number
+          tds_role_key?: string | null
+          updated_at?: string
+          vendor_id?: string | null
+          vendor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_ap_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "accounting_vendors_safe"
@@ -536,6 +772,65 @@ export type Database = {
           },
         ]
       }
+      accounting_category_audit_log: {
+        Row: {
+          action: string
+          category_id: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+        }
+        Insert: {
+          action: string
+          category_id: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Update: {
+          action?: string
+          category_id?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_category_audit_log_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_category_audit_log_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "accounting_category_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_category_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_clients: {
         Row: {
           account_manager: string | null
@@ -756,6 +1051,270 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_collection_categories: {
+        Row: {
+          accounting_treatment: string
+          code: string
+          commission_eligible: boolean
+          created_at: string
+          created_by: string | null
+          default_aggregator_id: string | null
+          default_collection_currency: string | null
+          default_institution_id: string | null
+          default_payee_type: string | null
+          default_payment_currency: string | null
+          default_recoverable_role_key: string | null
+          default_reimbursement_role_key: string | null
+          default_revenue_role_key: string | null
+          default_tax_code: string | null
+          default_tax_mode: string
+          default_trust_role_key: string | null
+          default_vendor_id: string | null
+          depth: number
+          description: string | null
+          display_order: number
+          entity_id: string | null
+          expected_payee_name: string | null
+          id: string
+          is_posting_group: boolean
+          is_system: boolean
+          lifecycle_status: string
+          name: string
+          parent_id: string | null
+          path: string
+          requires_disbursement: boolean
+          requires_trust: boolean
+          updated_at: string
+        }
+        Insert: {
+          accounting_treatment?: string
+          code: string
+          commission_eligible?: boolean
+          created_at?: string
+          created_by?: string | null
+          default_aggregator_id?: string | null
+          default_collection_currency?: string | null
+          default_institution_id?: string | null
+          default_payee_type?: string | null
+          default_payment_currency?: string | null
+          default_recoverable_role_key?: string | null
+          default_reimbursement_role_key?: string | null
+          default_revenue_role_key?: string | null
+          default_tax_code?: string | null
+          default_tax_mode?: string
+          default_trust_role_key?: string | null
+          default_vendor_id?: string | null
+          depth?: number
+          description?: string | null
+          display_order?: number
+          entity_id?: string | null
+          expected_payee_name?: string | null
+          id?: string
+          is_posting_group?: boolean
+          is_system?: boolean
+          lifecycle_status?: string
+          name: string
+          parent_id?: string | null
+          path?: string
+          requires_disbursement?: boolean
+          requires_trust?: boolean
+          updated_at?: string
+        }
+        Update: {
+          accounting_treatment?: string
+          code?: string
+          commission_eligible?: boolean
+          created_at?: string
+          created_by?: string | null
+          default_aggregator_id?: string | null
+          default_collection_currency?: string | null
+          default_institution_id?: string | null
+          default_payee_type?: string | null
+          default_payment_currency?: string | null
+          default_recoverable_role_key?: string | null
+          default_reimbursement_role_key?: string | null
+          default_revenue_role_key?: string | null
+          default_tax_code?: string | null
+          default_tax_mode?: string
+          default_trust_role_key?: string | null
+          default_vendor_id?: string | null
+          depth?: number
+          description?: string | null
+          display_order?: number
+          entity_id?: string | null
+          expected_payee_name?: string | null
+          id?: string
+          is_posting_group?: boolean
+          is_system?: boolean
+          lifecycle_status?: string
+          name?: string
+          parent_id?: string | null
+          path?: string
+          requires_disbursement?: boolean
+          requires_trust?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_collection_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_default_vendor_id_fkey"
+            columns: ["default_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_default_vendor_id_fkey"
+            columns: ["default_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      accounting_collection_category_coa: {
+        Row: {
+          category_id: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          institution_clearing_account_code: string | null
+          liability_account_code: string | null
+          recoverable_account_code: string | null
+          reimbursement_payable_account_code: string | null
+          revenue_account_code: string | null
+          role_key: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          institution_clearing_account_code?: string | null
+          liability_account_code?: string | null
+          recoverable_account_code?: string | null
+          reimbursement_payable_account_code?: string | null
+          revenue_account_code?: string | null
+          role_key: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          institution_clearing_account_code?: string | null
+          liability_account_code?: string | null
+          recoverable_account_code?: string | null
+          reimbursement_payable_account_code?: string | null
+          revenue_account_code?: string | null
+          role_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_collection_category_coa_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_coa_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      accounting_collection_category_vendors: {
+        Row: {
+          category_id: string
+          country: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          notes: string | null
+          vendor_id: string
+        }
+        Insert: {
+          category_id: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          vendor_id: string
+        }
+        Update: {
+          category_id?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_collection_category_vendors_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_vendors_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_vendors_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_vendors_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -981,6 +1540,137 @@ export type Database = {
           },
         ]
       }
+      accounting_entity_tax_config: {
+        Row: {
+          commission_tax_code: string | null
+          commission_tax_mode: string | null
+          country: string
+          created_at: string
+          default_input_tax_code: string | null
+          default_output_tax_code: string | null
+          default_tds_code: string | null
+          entity_id: string
+          id: string
+          is_tax_registered: boolean
+          registration_number: string | null
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          commission_tax_code?: string | null
+          commission_tax_mode?: string | null
+          country: string
+          created_at?: string
+          default_input_tax_code?: string | null
+          default_output_tax_code?: string | null
+          default_tds_code?: string | null
+          entity_id: string
+          id?: string
+          is_tax_registered?: boolean
+          registration_number?: string | null
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          commission_tax_code?: string | null
+          commission_tax_mode?: string | null
+          country?: string
+          created_at?: string
+          default_input_tax_code?: string | null
+          default_output_tax_code?: string | null
+          default_tds_code?: string | null
+          entity_id?: string
+          id?: string
+          is_tax_registered?: boolean
+          registration_number?: string | null
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_fiscal_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          entity_id: string
+          id: string
+          notes: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          reopened_at: string | null
+          reopened_by: string | null
+          status: string
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          entity_id: string
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          reopened_at?: string | null
+          reopened_by?: string | null
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          entity_id?: string
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          reopened_at?: string | null
+          reopened_by?: string | null
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_fiscal_periods_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_fiscal_periods_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_fiscal_periods_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_fiscal_periods_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_intercompany: {
         Row: {
           amount: number
@@ -1107,6 +1797,7 @@ export type Database = {
         Row: {
           bridge_id: string
           classification: string
+          collection_category_id: string | null
           created_at: string
           gross_amount: number
           id: string
@@ -1120,6 +1811,7 @@ export type Database = {
         Insert: {
           bridge_id: string
           classification?: string
+          collection_category_id?: string | null
           created_at?: string
           gross_amount?: number
           id?: string
@@ -1133,6 +1825,7 @@ export type Database = {
         Update: {
           bridge_id?: string
           classification?: string
+          collection_category_id?: string | null
           created_at?: string
           gross_amount?: number
           id?: string
@@ -1144,6 +1837,20 @@ export type Database = {
           tax_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
           {
             foreignKeyName: "accounting_invoice_line_classifications_bridge_id_fkey"
             columns: ["bridge_id"]
@@ -1537,6 +2244,215 @@ export type Database = {
           },
         ]
       }
+      accounting_payroll_batches: {
+        Row: {
+          accrual_journal_id: string | null
+          attachment_path: string | null
+          bank_role_key: string
+          branch_id: string
+          country: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deductions_total: number
+          employer_cost_total: number
+          entity_id: string
+          gross_total: number
+          id: string
+          net_total: number
+          payment_journal_id: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          posted_by: string | null
+          posting_date: string
+          source_payout_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accrual_journal_id?: string | null
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deductions_total?: number
+          employer_cost_total?: number
+          entity_id: string
+          gross_total?: number
+          id?: string
+          net_total?: number
+          payment_journal_id?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          posted_by?: string | null
+          posting_date?: string
+          source_payout_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accrual_journal_id?: string | null
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deductions_total?: number
+          employer_cost_total?: number
+          entity_id?: string
+          gross_total?: number
+          id?: string
+          net_total?: number
+          payment_journal_id?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          posted_by?: string | null
+          posting_date?: string
+          source_payout_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payroll_batches_accrual_journal_id_fkey"
+            columns: ["accrual_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_payment_journal_id_fkey"
+            columns: ["payment_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_payroll_components: {
+        Row: {
+          amount: number
+          batch_id: string
+          created_at: string
+          dr_cr: string
+          id: string
+          label: string | null
+          leg_order: number
+          role_key: string
+        }
+        Insert: {
+          amount?: number
+          batch_id: string
+          created_at?: string
+          dr_cr: string
+          id?: string
+          label?: string | null
+          leg_order?: number
+          role_key: string
+        }
+        Update: {
+          amount?: number
+          batch_id?: string
+          created_at?: string
+          dr_cr?: string
+          id?: string
+          label?: string | null
+          leg_order?: number
+          role_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payroll_components_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_payroll_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_payroll_lines: {
+        Row: {
+          batch_id: string
+          components: Json
+          created_at: string
+          deductions_total: number
+          employee_id: string | null
+          employee_name: string
+          employer_cost: number
+          gross: number
+          id: string
+          net: number
+        }
+        Insert: {
+          batch_id: string
+          components?: Json
+          created_at?: string
+          deductions_total?: number
+          employee_id?: string | null
+          employee_name: string
+          employer_cost?: number
+          gross?: number
+          id?: string
+          net?: number
+        }
+        Update: {
+          batch_id?: string
+          components?: Json
+          created_at?: string
+          deductions_total?: number
+          employee_id?: string | null
+          employee_name?: string
+          employer_cost?: number
+          gross?: number
+          id?: string
+          net?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payroll_lines_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_payroll_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_petty_cash: {
         Row: {
           amount: number
@@ -1612,6 +2528,260 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_counselor_productivity"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_posting_rules: {
+        Row: {
+          amount_expr: string
+          country: string | null
+          created_at: string
+          dr_cr: string
+          event_key: string
+          id: string
+          is_optional: boolean
+          leg_order: number
+          notes: string | null
+          role_key: string
+          source_module: string
+        }
+        Insert: {
+          amount_expr: string
+          country?: string | null
+          created_at?: string
+          dr_cr: string
+          event_key: string
+          id?: string
+          is_optional?: boolean
+          leg_order?: number
+          notes?: string | null
+          role_key: string
+          source_module: string
+        }
+        Update: {
+          amount_expr?: string
+          country?: string | null
+          created_at?: string
+          dr_cr?: string
+          event_key?: string
+          id?: string
+          is_optional?: boolean
+          leg_order?: number
+          notes?: string | null
+          role_key?: string
+          source_module?: string
+        }
+        Relationships: []
+      }
+      accounting_recon_matches: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          journal_id: string | null
+          journal_line_id: string | null
+          matched_by: string | null
+          session_id: string
+          statement_line_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          journal_id?: string | null
+          journal_line_id?: string | null
+          matched_by?: string | null
+          session_id: string
+          statement_line_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          journal_id?: string | null
+          journal_line_id?: string | null
+          matched_by?: string | null
+          session_id?: string
+          statement_line_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_recon_matches_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_journal_line_id_fkey"
+            columns: ["journal_line_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journal_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_matched_by_fkey"
+            columns: ["matched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_matched_by_fkey"
+            columns: ["matched_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_recon_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_statement_line_id_fkey"
+            columns: ["statement_line_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_recon_statement_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_recon_sessions: {
+        Row: {
+          bank_account_code: string
+          bank_role_key: string | null
+          branch_id: string
+          closing_balance: number
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          difference: number
+          entity_id: string
+          id: string
+          matched_count: number
+          opening_balance: number
+          statement_end: string
+          statement_start: string
+          status: string
+          unmatched_count: number
+          updated_at: string
+        }
+        Insert: {
+          bank_account_code: string
+          bank_role_key?: string | null
+          branch_id: string
+          closing_balance?: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          difference?: number
+          entity_id: string
+          id?: string
+          matched_count?: number
+          opening_balance?: number
+          statement_end: string
+          statement_start: string
+          status?: string
+          unmatched_count?: number
+          updated_at?: string
+        }
+        Update: {
+          bank_account_code?: string
+          bank_role_key?: string | null
+          branch_id?: string
+          closing_balance?: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          difference?: number
+          entity_id?: string
+          id?: string
+          matched_count?: number
+          opening_balance?: number
+          statement_end?: string
+          statement_start?: string
+          status?: string
+          unmatched_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_recon_sessions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_sessions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_recon_statement_lines: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          is_matched: boolean
+          reference: string | null
+          session_id: string
+          txn_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_matched?: boolean
+          reference?: string | null
+          session_id: string
+          txn_date: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_matched?: boolean
+          reference?: string | null
+          session_id?: string
+          txn_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_recon_statement_lines_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_recon_sessions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1743,15 +2913,317 @@ export type Database = {
           },
         ]
       }
+      accounting_tax_codes: {
+        Row: {
+          code: string
+          country: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          is_active: boolean
+          is_recoverable: boolean
+          is_withholding: boolean
+          name: string
+          tax_type: string
+          total_rate: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          country: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_recoverable?: boolean
+          is_withholding?: boolean
+          name: string
+          tax_type: string
+          total_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          country?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_recoverable?: boolean
+          is_withholding?: boolean
+          name?: string
+          tax_type?: string
+          total_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_tax_components: {
+        Row: {
+          component: string
+          created_at: string
+          id: string
+          input_role_key: string | null
+          leg_order: number
+          output_role_key: string | null
+          rate: number
+          tax_code_id: string
+        }
+        Insert: {
+          component: string
+          created_at?: string
+          id?: string
+          input_role_key?: string | null
+          leg_order?: number
+          output_role_key?: string | null
+          rate?: number
+          tax_code_id: string
+        }
+        Update: {
+          component?: string
+          created_at?: string
+          id?: string
+          input_role_key?: string | null
+          leg_order?: number
+          output_role_key?: string | null
+          rate?: number
+          tax_code_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_tax_components_tax_code_id_fkey"
+            columns: ["tax_code_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_tax_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_tax_filings: {
+        Row: {
+          attachment_path: string | null
+          branch_id: string
+          country: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          entity_id: string
+          filed_by: string | null
+          filed_date: string | null
+          id: string
+          input_tax: number
+          net_payable: number
+          notes: string | null
+          output_tax: number
+          period_end: string
+          period_label: string
+          period_start: string
+          reference_number: string | null
+          status: string
+          tax_code: string | null
+          tax_type: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          branch_id: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          entity_id: string
+          filed_by?: string | null
+          filed_date?: string | null
+          id?: string
+          input_tax?: number
+          net_payable?: number
+          notes?: string | null
+          output_tax?: number
+          period_end: string
+          period_label: string
+          period_start: string
+          reference_number?: string | null
+          status?: string
+          tax_code?: string | null
+          tax_type: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_path?: string | null
+          branch_id?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          entity_id?: string
+          filed_by?: string | null
+          filed_date?: string | null
+          id?: string
+          input_tax?: number
+          net_payable?: number
+          notes?: string | null
+          output_tax?: number
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          reference_number?: string | null
+          status?: string
+          tax_code?: string | null
+          tax_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_tax_filings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_filings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_filings_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_filings_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_tax_remittances: {
+        Row: {
+          amount: number
+          attachment_path: string | null
+          bank_role_key: string
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          entity_id: string
+          filing_id: string | null
+          id: string
+          journal_id: string | null
+          payment_method: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string
+          reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id: string
+          filing_id?: string | null
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id?: string
+          filing_id?: string | null
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_tax_remittances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_filing_id_fkey"
+            columns: ["filing_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_tax_filings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_trust_accounts: {
         Row: {
           balance: number
           branch_id: string
           client_id: string
+          collection_category_id: string | null
+          collection_currency: string | null
           created_at: string
           currency: string
           entity_id: string
           id: string
+          payment_currency: string | null
           role_key: string
           student_id: string | null
           updated_at: string
@@ -1760,10 +3232,13 @@ export type Database = {
           balance?: number
           branch_id: string
           client_id: string
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           currency?: string
           entity_id: string
           id?: string
+          payment_currency?: string | null
           role_key: string
           student_id?: string | null
           updated_at?: string
@@ -1772,57 +3247,283 @@ export type Database = {
           balance?: number
           branch_id?: string
           client_id?: string
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           currency?: string
           entity_id?: string
           id?: string
+          payment_currency?: string | null
           role_key?: string
           student_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      accounting_trust_disbursements: {
+        Row: {
+          aggregator_id: string | null
+          amount: number
+          application_id: string | null
+          attachment_path: string | null
+          branch_id: string
+          client_id: string
+          collection_bank_account_id: string | null
+          collection_category_id: string | null
+          collection_currency: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          disbursement_bank_account_id: string | null
+          entity_id: string
+          fx_rate: number | null
+          id: string
+          institution_id: string | null
+          is_refund: boolean
+          journal_id: string | null
+          memo: string | null
+          payee_name: string
+          payee_type: string
+          payment_currency: string | null
+          payment_method: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string
+          reference: string | null
+          role_key: string
+          status: string
+          student_id: string | null
+          trust_entry_id: string | null
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          aggregator_id?: string | null
+          amount: number
+          application_id?: string | null
+          attachment_path?: string | null
+          branch_id: string
+          client_id: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
+          collection_currency?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          disbursement_bank_account_id?: string | null
+          entity_id: string
+          fx_rate?: number | null
+          id?: string
+          institution_id?: string | null
+          is_refund?: boolean
+          journal_id?: string | null
+          memo?: string | null
+          payee_name: string
+          payee_type: string
+          payment_currency?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          role_key: string
+          status?: string
+          student_id?: string | null
+          trust_entry_id?: string | null
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          aggregator_id?: string | null
+          amount?: number
+          application_id?: string | null
+          attachment_path?: string | null
+          branch_id?: string
+          client_id?: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
+          collection_currency?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          disbursement_bank_account_id?: string | null
+          entity_id?: string
+          fx_rate?: number | null
+          id?: string
+          institution_id?: string | null
+          is_refund?: boolean
+          journal_id?: string | null
+          memo?: string | null
+          payee_name?: string
+          payee_type?: string
+          payment_currency?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          role_key?: string
+          status?: string
+          student_id?: string | null
+          trust_entry_id?: string | null
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_disbursements_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_trust_entry_id_fkey"
+            columns: ["trust_entry_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_trust_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       accounting_trust_entries: {
         Row: {
           amount: number
+          collection_category_id: string | null
+          collection_currency: string | null
           created_at: string
           created_by: string | null
           currency: string
           entry_type: string
+          fx_rate: number | null
           id: string
           journal_id: string | null
           memo: string | null
+          payment_currency: string | null
           source_module: string
           source_record_id: string | null
           trust_account_id: string
         }
         Insert: {
           amount: number
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           entry_type: string
+          fx_rate?: number | null
           id?: string
           journal_id?: string | null
           memo?: string | null
+          payment_currency?: string | null
           source_module: string
           source_record_id?: string | null
           trust_account_id: string
         }
         Update: {
           amount?: number
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           entry_type?: string
+          fx_rate?: number | null
           id?: string
           journal_id?: string | null
           memo?: string | null
+          payment_currency?: string | null
           source_module?: string
           source_record_id?: string | null
           trust_account_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "accounting_trust_entries_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_entries_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
           {
             foreignKeyName: "accounting_trust_entries_created_by_fkey"
             columns: ["created_by"]
@@ -7678,6 +9379,7 @@ export type Database = {
           amount_in_cad: number | null
           amount_in_inr: number | null
           amount_in_usd: number | null
+          collection_category_id: string | null
           id: string
           installment_id: string | null
           invoice_id: string
@@ -7692,6 +9394,7 @@ export type Database = {
           amount_in_cad?: number | null
           amount_in_inr?: number | null
           amount_in_usd?: number | null
+          collection_category_id?: string | null
           id?: string
           installment_id?: string | null
           invoice_id: string
@@ -7706,6 +9409,7 @@ export type Database = {
           amount_in_cad?: number | null
           amount_in_inr?: number | null
           amount_in_usd?: number | null
+          collection_category_id?: string | null
           id?: string
           installment_id?: string | null
           invoice_id?: string
@@ -7714,6 +9418,20 @@ export type Database = {
           service_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "client_invoice_payment_allocations_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payment_allocations_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
           {
             foreignKeyName: "client_invoice_payment_allocations_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -7735,6 +9453,13 @@ export type Database = {
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_invoice_payment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
+          },
         ]
       }
       client_invoice_payments: {
@@ -7754,6 +9479,8 @@ export type Database = {
           business_status: string | null
           cash_register_id: string | null
           client_id: string
+          collection_bank_account_id: string | null
+          collection_category_id: string | null
           created_at: string
           currency: string
           fx_rate: number | null
@@ -7799,6 +9526,8 @@ export type Database = {
           business_status?: string | null
           cash_register_id?: string | null
           client_id: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
           created_at?: string
           currency?: string
           fx_rate?: number | null
@@ -7844,6 +9573,8 @@ export type Database = {
           business_status?: string | null
           cash_register_id?: string | null
           client_id?: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
           created_at?: string
           currency?: string
           fx_rate?: number | null
@@ -7915,6 +9646,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "client_invoice_payments_invoice_id_fkey"
@@ -8044,6 +9789,13 @@ export type Database = {
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_invoice_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
+          },
         ]
       }
       client_invoice_refund_requests: {
@@ -8156,6 +9908,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
           },
         ]
       }
@@ -8353,6 +10112,7 @@ export type Database = {
           immutable_after_paid: boolean | null
           invoice_branch_code: string | null
           invoice_category: string | null
+          invoice_context_json: Json | null
           invoice_entity_code: string | null
           invoice_locked: boolean | null
           invoice_locked_at: string | null
@@ -8443,6 +10203,7 @@ export type Database = {
           immutable_after_paid?: boolean | null
           invoice_branch_code?: string | null
           invoice_category?: string | null
+          invoice_context_json?: Json | null
           invoice_entity_code?: string | null
           invoice_locked?: boolean | null
           invoice_locked_at?: string | null
@@ -8533,6 +10294,7 @@ export type Database = {
           immutable_after_paid?: boolean | null
           invoice_branch_code?: string | null
           invoice_category?: string | null
+          invoice_context_json?: Json | null
           invoice_entity_code?: string | null
           invoice_locked?: boolean | null
           invoice_locked_at?: string | null
@@ -10474,6 +12236,13 @@ export type Database = {
             foreignKeyName: "clients_linked_student_record_id_fkey"
             columns: ["linked_student_record_id"]
             isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "clients_linked_student_record_id_fkey"
+            columns: ["linked_student_record_id"]
+            isOneToOne: false
             referencedRelation: "v_commission_student_receipt_ledger"
             referencedColumns: ["student_commission_id"]
           },
@@ -10702,6 +12471,7 @@ export type Database = {
           current_version_id: string | null
           id: string
           priority: number
+          relationship_id: string | null
           status: string
           template_id: string | null
           updated_at: string
@@ -10724,6 +12494,7 @@ export type Database = {
           current_version_id?: string | null
           id?: string
           priority?: number
+          relationship_id?: string | null
           status?: string
           template_id?: string | null
           updated_at?: string
@@ -10746,6 +12517,7 @@ export type Database = {
           current_version_id?: string | null
           id?: string
           priority?: number
+          relationship_id?: string | null
           status?: string
           template_id?: string | null
           updated_at?: string
@@ -10783,11 +12555,512 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "commercial_agreements_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_agreements_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+          {
             foreignKeyName: "commercial_agreements_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "commercial_agreement_templates"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_offer_overlays: {
+        Row: {
+          adapter_source_module: string | null
+          adapter_source_record_id: string | null
+          applies_to_json: Json
+          approval_reference: string | null
+          budget_amount: number | null
+          budget_currency: string | null
+          business_event_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          financial_impact: Json
+          id: string
+          master_agreement_id: string
+          name: string
+          offer_type: string
+          precedence_rank: number
+          relationship_id: string | null
+          stack_layer: string
+          status: string
+          supersedes_overlay_id: string | null
+          supporting_document_paths: Json
+          target_json: Json
+          updated_at: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          applies_to_json?: Json
+          approval_reference?: string | null
+          budget_amount?: number | null
+          budget_currency?: string | null
+          business_event_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          financial_impact?: Json
+          id?: string
+          master_agreement_id: string
+          name: string
+          offer_type: string
+          precedence_rank?: number
+          relationship_id?: string | null
+          stack_layer?: string
+          status?: string
+          supersedes_overlay_id?: string | null
+          supporting_document_paths?: Json
+          target_json?: Json
+          updated_at?: string
+          valid_from: string
+          valid_until: string
+        }
+        Update: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          applies_to_json?: Json
+          approval_reference?: string | null
+          budget_amount?: number | null
+          budget_currency?: string | null
+          business_event_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          financial_impact?: Json
+          id?: string
+          master_agreement_id?: string
+          name?: string
+          offer_type?: string
+          precedence_rank?: number
+          relationship_id?: string | null
+          stack_layer?: string
+          status?: string
+          supersedes_overlay_id?: string | null
+          supporting_document_paths?: Json
+          target_json?: Json
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_offer_overlays_business_event_id_fkey"
+            columns: ["business_event_id"]
+            isOneToOne: false
+            referencedRelation: "foe_business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_master_agreement_id_fkey"
+            columns: ["master_agreement_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_supersedes_overlay_id_fkey"
+            columns: ["supersedes_overlay_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_offer_overlays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_relationship_classifications: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          default_notice_period_days: number | null
+          description: string | null
+          label: string
+          metadata: Json
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          default_notice_period_days?: number | null
+          description?: string | null
+          label: string
+          metadata?: Json
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          default_notice_period_days?: number | null
+          description?: string | null
+          label?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
+      commercial_relationship_contacts: {
+        Row: {
+          active: boolean
+          contact_type: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_primary: boolean
+          job_title: string | null
+          metadata: Json
+          notes: string | null
+          phone: string | null
+          profile_id: string | null
+          relationship_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_primary?: boolean
+          job_title?: string | null
+          metadata?: Json
+          notes?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          relationship_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_primary?: boolean
+          job_title?: string | null
+          metadata?: Json
+          notes?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          relationship_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationship_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_contacts_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_contacts_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+        ]
+      }
+      commercial_relationship_ownership: {
+        Row: {
+          business_event_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          ownership_rule_code: string | null
+          ownership_status: string
+          protection_level: string
+          relationship_id: string
+          status: string
+          subject_financial_party_id: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          business_event_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          ownership_rule_code?: string | null
+          ownership_status?: string
+          protection_level?: string
+          relationship_id: string
+          status?: string
+          subject_financial_party_id: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          business_event_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          ownership_rule_code?: string | null
+          ownership_status?: string
+          protection_level?: string
+          relationship_id?: string
+          status?: string
+          subject_financial_party_id?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationship_ownersh_subject_financial_party_id_fkey"
+            columns: ["subject_financial_party_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_ownership_business_event_id_fkey"
+            columns: ["business_event_id"]
+            isOneToOne: false
+            referencedRelation: "foe_business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_ownership_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_ownership_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+        ]
+      }
+      commercial_relationship_party_roles: {
+        Row: {
+          created_at: string
+          financial_party_id: string
+          id: string
+          is_primary: boolean
+          metadata: Json
+          relationship_id: string
+          role_code: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          financial_party_id: string
+          id?: string
+          is_primary?: boolean
+          metadata?: Json
+          relationship_id: string
+          role_code: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          financial_party_id?: string
+          id?: string
+          is_primary?: boolean
+          metadata?: Json
+          relationship_id?: string
+          role_code?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationship_party_roles_financial_party_id_fkey"
+            columns: ["financial_party_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_party_roles_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_party_roles_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+        ]
+      }
+      commercial_relationships: {
+        Row: {
+          adapter_source_module: string | null
+          adapter_source_record_id: string | null
+          branch_id: string | null
+          company_entity_id: string | null
+          country_code: string | null
+          created_at: string
+          external_reference: string | null
+          health_score: number | null
+          id: string
+          metadata: Json
+          notice_period_days: number | null
+          party_a_id: string
+          party_b_id: string
+          relationship_classification_code: string
+          relationship_manager_id: string | null
+          relationship_type: string
+          renewal_date: string | null
+          status: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          branch_id?: string | null
+          company_entity_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          external_reference?: string | null
+          health_score?: number | null
+          id?: string
+          metadata?: Json
+          notice_period_days?: number | null
+          party_a_id: string
+          party_b_id: string
+          relationship_classification_code?: string
+          relationship_manager_id?: string | null
+          relationship_type: string
+          renewal_date?: string | null
+          status?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          branch_id?: string | null
+          company_entity_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          external_reference?: string | null
+          health_score?: number | null
+          id?: string
+          metadata?: Json
+          notice_period_days?: number | null
+          party_a_id?: string
+          party_b_id?: string
+          relationship_classification_code?: string
+          relationship_manager_id?: string | null
+          relationship_type?: string
+          renewal_date?: string | null
+          status?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationships_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_company_entity_id_fkey"
+            columns: ["company_entity_id"]
+            isOneToOne: false
+            referencedRelation: "firm_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_party_a_id_fkey"
+            columns: ["party_a_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_party_b_id_fkey"
+            columns: ["party_b_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_relationship_classification_code_fkey"
+            columns: ["relationship_classification_code"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationship_classifications"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_relationship_manager_id_fkey"
+            columns: ["relationship_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_relationship_manager_id_fkey"
+            columns: ["relationship_manager_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -12582,6 +14855,7 @@ export type Database = {
           basic: number
           blood_group: string | null
           bonus: number
+          bonus_percentage: number | null
           branch_id: string | null
           company_email: string | null
           company_emergency_contact_email: string | null
@@ -12603,6 +14877,12 @@ export type Database = {
           emergency_contacts: Json
           emp_code: string
           employee_category_id: string | null
+          employee_esic_pct: number
+          employee_pf_pct: number
+          employer_esic_applicable: boolean
+          employer_esic_pct: number
+          employer_pf_applicable: boolean
+          employer_pf_pct: number
           employment_type: string
           employment_type_id: string | null
           esic_applicable: boolean
@@ -12629,6 +14909,7 @@ export type Database = {
           notice_period: string | null
           official_communication_email: string | null
           org_id: string
+          other_allowances: number
           other_deductions: number
           pay_basis: string
           payroll_country: string
@@ -12638,10 +14919,13 @@ export type Database = {
           preferred_contact_method: string | null
           probation_end_date: string | null
           probation_start_date: string | null
+          professional_tax_amount: number | null
           pt_applicable: boolean
           rehire_eligible: boolean | null
           reporting_mgr_id: string | null
           salary_currency: string
+          salary_package: number | null
+          salary_structure_enabled: boolean
           security_cheque_file_name: string | null
           security_cheque_reason: string | null
           security_cheque_status: string
@@ -12676,6 +14960,7 @@ export type Database = {
           basic?: number
           blood_group?: string | null
           bonus?: number
+          bonus_percentage?: number | null
           branch_id?: string | null
           company_email?: string | null
           company_emergency_contact_email?: string | null
@@ -12697,6 +14982,12 @@ export type Database = {
           emergency_contacts?: Json
           emp_code: string
           employee_category_id?: string | null
+          employee_esic_pct?: number
+          employee_pf_pct?: number
+          employer_esic_applicable?: boolean
+          employer_esic_pct?: number
+          employer_pf_applicable?: boolean
+          employer_pf_pct?: number
           employment_type?: string
           employment_type_id?: string | null
           esic_applicable?: boolean
@@ -12723,6 +15014,7 @@ export type Database = {
           notice_period?: string | null
           official_communication_email?: string | null
           org_id: string
+          other_allowances?: number
           other_deductions?: number
           pay_basis?: string
           payroll_country?: string
@@ -12732,10 +15024,13 @@ export type Database = {
           preferred_contact_method?: string | null
           probation_end_date?: string | null
           probation_start_date?: string | null
+          professional_tax_amount?: number | null
           pt_applicable?: boolean
           rehire_eligible?: boolean | null
           reporting_mgr_id?: string | null
           salary_currency?: string
+          salary_package?: number | null
+          salary_structure_enabled?: boolean
           security_cheque_file_name?: string | null
           security_cheque_reason?: string | null
           security_cheque_status?: string
@@ -12770,6 +15065,7 @@ export type Database = {
           basic?: number
           blood_group?: string | null
           bonus?: number
+          bonus_percentage?: number | null
           branch_id?: string | null
           company_email?: string | null
           company_emergency_contact_email?: string | null
@@ -12791,6 +15087,12 @@ export type Database = {
           emergency_contacts?: Json
           emp_code?: string
           employee_category_id?: string | null
+          employee_esic_pct?: number
+          employee_pf_pct?: number
+          employer_esic_applicable?: boolean
+          employer_esic_pct?: number
+          employer_pf_applicable?: boolean
+          employer_pf_pct?: number
           employment_type?: string
           employment_type_id?: string | null
           esic_applicable?: boolean
@@ -12817,6 +15119,7 @@ export type Database = {
           notice_period?: string | null
           official_communication_email?: string | null
           org_id?: string
+          other_allowances?: number
           other_deductions?: number
           pay_basis?: string
           payroll_country?: string
@@ -12826,10 +15129,13 @@ export type Database = {
           preferred_contact_method?: string | null
           probation_end_date?: string | null
           probation_start_date?: string | null
+          professional_tax_amount?: number | null
           pt_applicable?: boolean
           rehire_eligible?: boolean | null
           reporting_mgr_id?: string | null
           salary_currency?: string
+          salary_package?: number | null
+          salary_structure_enabled?: boolean
           security_cheque_file_name?: string | null
           security_cheque_reason?: string | null
           security_cheque_status?: string
@@ -18086,14 +20392,20 @@ export type Database = {
       }
       payroll_lines: {
         Row: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -18114,22 +20426,40 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
         Insert: {
+          attendance_earned?: number | null
           basic: number
           bonus?: number
+          calc_snapshot?: Json | null
           comp_off?: number
           created_at?: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown?: Json | null
           employee_id: string
+          employer_esic?: number
+          employer_pf?: number
           esic_employee?: number
+          formula_mode?: string
           gross_earned: number
           id?: string
           incentive?: number
@@ -18150,22 +20480,40 @@ export type Database = {
           override_json?: Json | null
           paid_leaves?: number
           payable_days: number
+          payable_days_breakdown?: Json | null
           payroll_days: number
+          payroll_days_effective?: number | null
           pf_employee?: number
           pt_employee?: number
+          salary_package?: number | null
+          salary_structure_mode?: boolean
           sandwich_count?: number
+          structure_basic?: number
+          structure_bonus?: number
+          structure_conveyance?: number
+          structure_difference?: number
+          structure_hra?: number
+          structure_other_allowances?: number
+          total_earnings_a?: number
+          total_employer_cost_b?: number
           ul_count?: number
           unpaid_training?: number
         }
         Update: {
+          attendance_earned?: number | null
           basic?: number
           bonus?: number
+          calc_snapshot?: Json | null
           comp_off?: number
           created_at?: string
           cycle_id?: string
           daily_rate?: number
+          earned_breakdown?: Json | null
           employee_id?: string
+          employer_esic?: number
+          employer_pf?: number
           esic_employee?: number
+          formula_mode?: string
           gross_earned?: number
           id?: string
           incentive?: number
@@ -18186,10 +20534,22 @@ export type Database = {
           override_json?: Json | null
           paid_leaves?: number
           payable_days?: number
+          payable_days_breakdown?: Json | null
           payroll_days?: number
+          payroll_days_effective?: number | null
           pf_employee?: number
           pt_employee?: number
+          salary_package?: number | null
+          salary_structure_mode?: boolean
           sandwich_count?: number
+          structure_basic?: number
+          structure_bonus?: number
+          structure_conveyance?: number
+          structure_difference?: number
+          structure_hra?: number
+          structure_other_allowances?: number
+          total_earnings_a?: number
+          total_employer_cost_b?: number
           ul_count?: number
           unpaid_training?: number
         }
@@ -18378,6 +20738,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_foe_pipeline_jobs_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
           },
         ]
       }
@@ -21427,6 +23794,8 @@ export type Database = {
           completion_requested_by_id: string | null
           completion_requested_by_label: string | null
           created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
           duration: string | null
           employee_id: string
           end_date: string | null
@@ -21446,6 +23815,7 @@ export type Database = {
           remarks: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
           type: string
           unpaid_days: number
         }
@@ -21456,6 +23826,8 @@ export type Database = {
           completion_requested_by_id?: string | null
           completion_requested_by_label?: string | null
           created_at?: string
+          created_by_id?: string | null
+          created_by_label?: string | null
           duration?: string | null
           employee_id: string
           end_date?: string | null
@@ -21475,6 +23847,7 @@ export type Database = {
           remarks?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["training_status"]
+          training_ref?: string | null
           type: string
           unpaid_days?: number
         }
@@ -21485,6 +23858,8 @@ export type Database = {
           completion_requested_by_id?: string | null
           completion_requested_by_label?: string | null
           created_at?: string
+          created_by_id?: string | null
+          created_by_label?: string | null
           duration?: string | null
           employee_id?: string
           end_date?: string | null
@@ -21504,6 +23879,7 @@ export type Database = {
           remarks?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["training_status"]
+          training_ref?: string | null
           type?: string
           unpaid_days?: number
         }
@@ -21540,6 +23916,7 @@ export type Database = {
           countries_served: string[] | null
           country_name: string | null
           created_at: string
+          default_billing_profile_id: string | null
           default_currency: string | null
           default_payment_terms: string | null
           default_portal_url: string | null
@@ -21549,6 +23926,7 @@ export type Database = {
           metadata: Json
           name: string
           notes: string | null
+          remittance_format: string | null
           short_code: string | null
           tax_id: string | null
           updated_at: string
@@ -21569,6 +23947,7 @@ export type Database = {
           countries_served?: string[] | null
           country_name?: string | null
           created_at?: string
+          default_billing_profile_id?: string | null
           default_currency?: string | null
           default_payment_terms?: string | null
           default_portal_url?: string | null
@@ -21578,6 +23957,7 @@ export type Database = {
           metadata?: Json
           name: string
           notes?: string | null
+          remittance_format?: string | null
           short_code?: string | null
           tax_id?: string | null
           updated_at?: string
@@ -21598,6 +23978,7 @@ export type Database = {
           countries_served?: string[] | null
           country_name?: string | null
           created_at?: string
+          default_billing_profile_id?: string | null
           default_currency?: string | null
           default_payment_terms?: string | null
           default_portal_url?: string | null
@@ -21607,12 +23988,21 @@ export type Database = {
           metadata?: Json
           name?: string
           notes?: string | null
+          remittance_format?: string | null
           short_code?: string | null
           tax_id?: string | null
           updated_at?: string
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "upi_aggregators_default_billing_profile_id_fkey"
+            columns: ["default_billing_profile_id"]
+            isOneToOne: false
+            referencedRelation: "upi_billing_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       upi_agreement_versions: {
         Row: {
@@ -22149,6 +24539,207 @@ export type Database = {
           },
         ]
       }
+      upi_commission_aggregator_invoice_lines: {
+        Row: {
+          aggregator_invoice_id: string
+          amount_outstanding: number
+          amount_received: number
+          id: string
+          institution_id: string
+          institution_invoice_id: string
+          line_amount: number
+          sort_order: number
+        }
+        Insert: {
+          aggregator_invoice_id: string
+          amount_outstanding?: number
+          amount_received?: number
+          id?: string
+          institution_id: string
+          institution_invoice_id: string
+          line_amount: number
+          sort_order?: number
+        }
+        Update: {
+          aggregator_invoice_id?: string
+          amount_outstanding?: number
+          amount_received?: number
+          id?: string
+          institution_id?: string
+          institution_invoice_id?: string
+          line_amount?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_l_institution_invoice_id_fkey"
+            columns: ["institution_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_l_institution_invoice_id_fkey"
+            columns: ["institution_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipt_open_items"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_li_aggregator_invoice_id_fkey"
+            columns: ["aggregator_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_aggregator_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_lines_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_lines_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_lines_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_aggregator_invoices: {
+        Row: {
+          aggregator_id: string
+          aggregator_invoice_number: string
+          aggregator_reference_number: string | null
+          amount_invoiced: number
+          amount_outstanding: number
+          amount_received: number
+          billing_profile_id: string | null
+          claim_cycle_id: string | null
+          commission_period_code: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_date: string
+          metadata: Json
+          notes: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          aggregator_id: string
+          aggregator_invoice_number: string
+          aggregator_reference_number?: string | null
+          amount_invoiced?: number
+          amount_outstanding?: number
+          amount_received?: number
+          billing_profile_id?: string | null
+          claim_cycle_id?: string | null
+          commission_period_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_date?: string
+          metadata?: Json
+          notes?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          aggregator_id?: string
+          aggregator_invoice_number?: string
+          aggregator_reference_number?: string | null
+          amount_invoiced?: number
+          amount_outstanding?: number
+          amount_received?: number
+          billing_profile_id?: string | null
+          claim_cycle_id?: string | null
+          commission_period_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_date?: string
+          metadata?: Json
+          notes?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_billing_profile_id_fkey"
+            columns: ["billing_profile_id"]
+            isOneToOne: false
+            referencedRelation: "upi_billing_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_claim_cycle_id_fkey"
+            columns: ["claim_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "upi_claim_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      upi_commission_config: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       upi_commission_eligibility_configs: {
         Row: {
           aggregator_id: string | null
@@ -22283,6 +24874,8 @@ export type Database = {
           agency_gst_hst_number: string | null
           agency_name: string | null
           agency_phone: string | null
+          aggregator_id: string | null
+          aggregator_invoice_id: string | null
           amount_outstanding: number | null
           amount_received: number
           approved_date: string | null
@@ -22330,6 +24923,8 @@ export type Database = {
           agency_gst_hst_number?: string | null
           agency_name?: string | null
           agency_phone?: string | null
+          aggregator_id?: string | null
+          aggregator_invoice_id?: string | null
           amount_outstanding?: number | null
           amount_received?: number
           approved_date?: string | null
@@ -22377,6 +24972,8 @@ export type Database = {
           agency_gst_hst_number?: string | null
           agency_name?: string | null
           agency_phone?: string | null
+          aggregator_id?: string | null
+          aggregator_invoice_id?: string | null
           amount_outstanding?: number | null
           amount_received?: number
           approved_date?: string | null
@@ -22419,6 +25016,20 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "upi_commission_invoices_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_aggregator_invoice_id_fkey"
+            columns: ["aggregator_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_aggregator_invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "upi_commission_invoices_billing_profile_id_fkey"
             columns: ["billing_profile_id"]
@@ -22677,6 +25288,13 @@ export type Database = {
             foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
             columns: ["student_commission_id"]
             isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
             referencedRelation: "v_commission_student_receipt_ledger"
             referencedColumns: ["student_commission_id"]
           },
@@ -22714,6 +25332,7 @@ export type Database = {
         Row: {
           accounting_journal_id: string | null
           aggregator_id: string | null
+          aggregator_reference_number: string | null
           amount_allocated: number
           bank_reference: string | null
           base_amount: number | null
@@ -22755,6 +25374,7 @@ export type Database = {
         Insert: {
           accounting_journal_id?: string | null
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
           amount_allocated?: number
           bank_reference?: string | null
           base_amount?: number | null
@@ -22796,6 +25416,7 @@ export type Database = {
         Update: {
           accounting_journal_id?: string | null
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
           amount_allocated?: number
           bank_reference?: string | null
           base_amount?: number | null
@@ -22891,47 +25512,141 @@ export type Database = {
             referencedRelation: "upi_commission_remittance_batches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_commission_receipts_remittance_batch_id_fkey"
+            columns: ["remittance_batch_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_batch_reconciliation"
+            referencedColumns: ["batch_id"]
+          },
+        ]
+      }
+      upi_commission_remittance_batch_statements: {
+        Row: {
+          batch_id: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_remittance_batch_statements_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_remittance_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batch_statements_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_batch_reconciliation"
+            referencedColumns: ["batch_id"]
+          },
         ]
       }
       upi_commission_remittance_batches: {
         Row: {
           aggregator_id: string | null
+          aggregator_reference_number: string | null
+          amount_expected: number | null
+          amount_outstanding: number | null
+          amount_received: number
           batch_reference: string
+          commission_period_code: string | null
           created_at: string
+          created_by: string | null
           currency: string
+          dispute_notes: string | null
+          dispute_opened_date: string | null
+          dispute_reason: string | null
+          dispute_resolved_date: string | null
           id: string
           institution_id: string | null
           notes: string | null
           payer_type: string
+          receipt_count: number
           received_date: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
           status: string
           total_amount: number | null
           updated_at: string
         }
         Insert: {
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
           batch_reference: string
+          commission_period_code?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
+          dispute_notes?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
           id?: string
           institution_id?: string | null
           notes?: string | null
           payer_type: string
+          receipt_count?: number
           received_date?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string
         }
         Update: {
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
           batch_reference?: string
+          commission_period_code?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
+          dispute_notes?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
           id?: string
           institution_id?: string | null
           notes?: string | null
           payer_type?: string
+          receipt_count?: number
           received_date?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string
@@ -22943,6 +25658,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "upi_aggregators"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "upi_commission_remittance_batches_institution_id_fkey"
@@ -23207,6 +25929,13 @@ export type Database = {
             columns: ["student_commission_id"]
             isOneToOne: false
             referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
             referencedColumns: ["student_commission_id"]
           },
           {
@@ -23667,6 +26396,13 @@ export type Database = {
             foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
             columns: ["replacement_student_commission_id"]
             isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
+            columns: ["replacement_student_commission_id"]
+            isOneToOne: false
             referencedRelation: "v_commission_student_receipt_ledger"
             referencedColumns: ["student_commission_id"]
           },
@@ -23682,6 +26418,13 @@ export type Database = {
             columns: ["source_student_commission_id"]
             isOneToOne: false
             referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_source_student_commission_id_fkey"
+            columns: ["source_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
             referencedColumns: ["student_commission_id"]
           },
           {
@@ -24953,6 +27696,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_invoice_line_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
             referencedColumns: ["student_commission_id"]
           },
           {
@@ -28118,6 +30868,69 @@ export type Database = {
         }
         Relationships: []
       }
+      v_cae_effective_commercial_position: {
+        Row: {
+          agreement_id: string | null
+          agreement_version_id: string | null
+          as_of_date: string | null
+          block_reasons: Json | null
+          contacts: Json | null
+          overlays: Json | null
+          ownership: Json | null
+          party_roles: Json | null
+          relationship_id: string | null
+          settlement_allowed: boolean | null
+        }
+        Relationships: []
+      }
+      v_cae_institution_application_fee_waiver: {
+        Row: {
+          amount: number | null
+          currency: string | null
+          fee_schedule_id: string | null
+          institution_id: string | null
+          institution_name: string | null
+          is_waiver: boolean | null
+          master_status: string | null
+          master_updated_at: string | null
+          notes: string | null
+          partnership_route_id: string | null
+          program_id: string | null
+          valid_from: string | null
+          valid_until: string | null
+          validity_status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institution_fee_schedule_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_calendar_activity_feed: {
         Row: {
           actor_id: string | null
@@ -28266,6 +31079,193 @@ export type Database = {
             columns: ["pipeline_id"]
             isOneToOne: false
             referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_aggregator_metrics: {
+        Row: {
+          aggregator_id: string | null
+          amount_expected: number | null
+          amount_held: number | null
+          amount_invoiced: number | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          commission_period_code: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_aggregator_student_rows: {
+        Row: {
+          aggregator_id: string | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          claim_status: string | null
+          commission_period_code: string | null
+          commission_status: string | null
+          eligibility_status: string | null
+          expected_amount: number | null
+          has_open_transfer: boolean | null
+          hold_reason: string | null
+          hold_status: string | null
+          institution_id: string | null
+          institution_name: string | null
+          intake_term: string | null
+          intake_year: number | null
+          invoice_id: string | null
+          payment_status: string | null
+          program_name: string | null
+          student_commission_id: string | null
+          student_name: string | null
+          transfer_flag: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_batch_reconciliation: {
+        Row: {
+          aggregator_id: string | null
+          aggregator_reference_number: string | null
+          amount_expected: number | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          batch_id: string | null
+          batch_reference: string | null
+          commission_period_code: string | null
+          dispute_opened_date: string | null
+          dispute_reason: string | null
+          dispute_resolved_date: string | null
+          receipt_count: number | null
+          received_date: string | null
+          statement_count: number | null
+          status: string | null
+        }
+        Insert: {
+          aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: never
+          amount_received?: number | null
+          batch_id?: string | null
+          batch_reference?: string | null
+          commission_period_code?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
+          receipt_count?: number | null
+          received_date?: string | null
+          statement_count?: never
+          status?: string | null
+        }
+        Update: {
+          aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: never
+          amount_received?: number | null
+          batch_id?: string | null
+          batch_reference?: string | null
+          commission_period_code?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
+          receipt_count?: number | null
+          received_date?: string | null
+          statement_count?: never
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_remittance_batches_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_commission_institution_metrics_agg: {
+        Row: {
+          aggregator_id: string | null
+          amount_expected: number | null
+          amount_held: number | null
+          amount_invoiced: number | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          commission_period_code: string | null
+          institution_id: string | null
+          institution_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -28505,6 +31505,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "upi_commission_remittance_batches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_remittance_batch_id_fkey"
+            columns: ["remittance_batch_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_batch_reconciliation"
+            referencedColumns: ["batch_id"]
           },
         ]
       }
@@ -28785,6 +31792,154 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_accounting_collections_by_category: {
+        Row: {
+          accounting_treatment: string | null
+          category_id: string | null
+          code: string | null
+          lifecycle_status: string | null
+          name: string | null
+          parent_name: string | null
+          path: string | null
+          students_with_balance: number | null
+          trust_held: number | null
+        }
+        Relationships: []
+      }
+      vw_accounting_payment_purpose: {
+        Row: {
+          accounting_treatment: string | null
+          allocated_amount: number | null
+          branch_id: string | null
+          category_code: string | null
+          category_name: string | null
+          category_path: string | null
+          classification: string | null
+          client_id: string | null
+          collection_category_id: string | null
+          entity_id: string | null
+          expected_payee_name: string | null
+          invoice_id: string | null
+          line_gross: number | null
+          line_net: number | null
+          paid_at: string | null
+          parent_category_code: string | null
+          parent_category_name: string | null
+          payment_amount: number | null
+          payment_currency: string | null
+          payment_id: string | null
+          payment_method: string | null
+          payment_purpose: string | null
+          payment_status: string | null
+          role_key: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_firm_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "firm_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_accounting_trust_by_category: {
+        Row: {
+          accounting_treatment: string | null
+          branch_id: string | null
+          category_code: string | null
+          category_name: string | null
+          category_path: string | null
+          client_id: string | null
+          collection_category_id: string | null
+          currency: string | null
+          entity_id: string | null
+          expected_payee_name: string | null
+          parent_category_name: string | null
+          role_key: string | null
+          trust_held: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
       vw_call_stats_daily: {
         Row: {
           agent_id: string | null
@@ -28942,6 +32097,10 @@ export type Database = {
         Returns: string
       }
       _first_pipeline_stage: { Args: { _pipeline_id: string }; Returns: string }
+      _fn_stamp_weekly_off: {
+        Args: { p_date: string; p_employee: string; p_org: string }
+        Returns: boolean
+      }
       _lead_json_text_array: {
         Args: { _data: Json; _key: string }
         Returns: string[]
@@ -28965,6 +32124,10 @@ export type Database = {
       _pipeline_stage_template: {
         Args: { _service_category: string }
         Returns: string
+      }
+      accounting_user_scoped_institution: {
+        Args: { _institution_id: string; _require_edit: boolean; _uid: string }
+        Returns: boolean
       }
       acct_user_has_module: {
         Args: { _level: string; _module: string; _uid: string }
@@ -29168,6 +32331,10 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      can_manage_commission_financial: {
+        Args: { _institution_id: string; _uid: string }
+        Returns: boolean
+      }
       can_manage_knowledge_centre: { Args: { _uid: string }; Returns: boolean }
       can_manage_service_library: {
         Args: { _user_id: string }
@@ -29185,6 +32352,10 @@ export type Database = {
       }
       can_view_client: {
         Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
+      can_view_commission_financial: {
+        Args: { _institution_id: string; _uid: string }
         Returns: boolean
       }
       can_view_knowledge_centre: { Args: { _uid: string }; Returns: boolean }
@@ -29230,6 +32401,22 @@ export type Database = {
           _policy: string
         }
         Returns: boolean
+      }
+      commission_config_bool: {
+        Args: { _default?: boolean; _key: string }
+        Returns: boolean
+      }
+      commission_config_text: {
+        Args: { _default?: string; _key: string }
+        Returns: string
+      }
+      commission_institution_country_iso: {
+        Args: { _institution_id: string }
+        Returns: string
+      }
+      commission_receipt_scope_institution_id: {
+        Args: { _receipt_id: string }
+        Returns: string
       }
       complete_lead_followup: {
         Args: { _completion_note?: string; _lead_id: string }
@@ -29579,6 +32766,7 @@ export type Database = {
         Returns: Json
       }
       dsh_can: { Args: { _level: string; _uid: string }; Returns: boolean }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -29953,14 +33141,20 @@ export type Database = {
       fn_apply_payroll_override: {
         Args: { p_cycle: string; p_employee: string; p_override: Json }
         Returns: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -29981,10 +33175,22 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
@@ -29994,6 +33200,28 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_apply_priority_matrix_c17: {
+        Args: { p_date: string; p_employee: string; p_org: string }
+        Returns: Json
+      }
+      fn_apply_weekly_offs_for_cycle: {
+        Args: { p_cycle: string; p_org: string }
+        Returns: number
+      }
+      fn_apply_weekly_offs_for_date: {
+        Args: { p_date: string; p_internal?: boolean; p_org: string }
+        Returns: number
+      }
+      fn_apply_weekly_offs_for_range: {
+        Args: {
+          p_employee?: string
+          p_from: string
+          p_internal?: boolean
+          p_org: string
+          p_to: string
+        }
+        Returns: number
       }
       fn_approve_payroll_cycle: {
         Args: { p_cycle: string }
@@ -30075,14 +33303,20 @@ export type Database = {
       fn_build_payroll_line: {
         Args: { p_cycle: string; p_employee: string }
         Returns: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -30103,10 +33337,22 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
@@ -30118,6 +33364,15 @@ export type Database = {
         }
       }
       fn_bypass_branch_scope: { Args: { _uid: string }; Returns: boolean }
+      fn_cae_commercial_item_validity_status: {
+        Args: {
+          p_as_of?: string
+          p_expiring_soon_days?: number
+          p_valid_from: string
+          p_valid_until: string
+        }
+        Returns: string
+      }
       fn_cae_evaluate_settlement_eligibility: {
         Args: {
           p_as_of?: string
@@ -30131,6 +33386,14 @@ export type Database = {
       fn_cae_resolve_agreement_version: {
         Args: { p_agreement_id: string; p_as_of?: string }
         Returns: string
+      }
+      fn_cae_resolve_effective_commercial_position: {
+        Args: {
+          p_agreement_id?: string
+          p_as_of?: string
+          p_relationship_id: string
+        }
+        Returns: Json
       }
       fn_calc_day_ot_minutes: {
         Args: {
@@ -30295,14 +33558,20 @@ export type Database = {
       fn_clear_payroll_override: {
         Args: { p_cycle: string; p_employee: string }
         Returns: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -30323,10 +33592,22 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
@@ -30360,6 +33641,52 @@ export type Database = {
       fn_commit_leave_approval: {
         Args: { p_request: string }
         Returns: undefined
+      }
+      fn_compare_payroll_formulas: { Args: { p_cycle: string }; Returns: Json }
+      fn_complete_training_direct: {
+        Args: {
+          p_completion_date: string
+          p_reason: string
+          p_training_id: string
+        }
+        Returns: {
+          completion_date: string | null
+          completion_reason: string | null
+          completion_requested_at: string | null
+          completion_requested_by_id: string | null
+          completion_requested_by_label: string | null
+          created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
+          duration: string | null
+          employee_id: string
+          end_date: string | null
+          extended_at: string | null
+          extended_by_id: string | null
+          extended_by_label: string | null
+          extended_end_date: string | null
+          extension_reason: string | null
+          extension_remarks: string | null
+          hr_approved_at: string | null
+          hr_approved_by_label: string | null
+          id: string
+          manager_approved_at: string | null
+          manager_approved_by_label: string | null
+          org_id: string
+          original_end_date: string | null
+          remarks: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
+          type: string
+          unpaid_days: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "training_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       fn_compute_payroll:
         | {
@@ -30463,6 +33790,42 @@ export type Database = {
           }
         | {
             Args: {
+              p_attendance_earned?: number
+              p_basic: number
+              p_bonus?: number
+              p_canada_policy?: Json
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_formula_mode?: string
+              p_incentive?: number
+              p_late?: number
+              p_late_policy?: Json
+              p_leaves?: number
+              p_mispunch?: number
+              p_mispunch_policy?: Json
+              p_monthly: number
+              p_ot_minutes?: number
+              p_ot_policy?: Json
+              p_other_deductions?: number
+              p_paid_leaves?: number
+              p_payroll_country?: string
+              p_payroll_days: number
+              p_payroll_days_effective?: number
+              p_pf_applicable?: boolean
+              p_pt_amount?: number
+              p_pt_applicable?: boolean
+              p_sandwich?: number
+              p_structure?: Json
+              p_structure_enabled?: boolean
+              p_tds_applicable?: boolean
+              p_ul?: number
+              p_ul_mult?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               p_basic: number
               p_bonus?: number
               p_compoff?: number
@@ -30509,6 +33872,26 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_compute_salary_payable_days: {
+        Args: {
+          p_attendance_earned?: number
+          p_compoff?: number
+          p_formula_mode?: string
+          p_late?: number
+          p_late_policy?: Json
+          p_leaves?: number
+          p_mispunch?: number
+          p_mispunch_policy?: Json
+          p_paid_leaves?: number
+          p_payroll_days: number
+          p_payroll_days_effective?: number
+          p_sandwich?: number
+          p_ul?: number
+          p_ul_mult?: number
+          p_unpaid_training?: number
+        }
+        Returns: Json
       }
       fn_compute_upi_institution_completeness_score: {
         Args: { _row: Database["public"]["Tables"]["upi_institutions"]["Row"] }
@@ -30703,6 +34086,21 @@ export type Database = {
       fn_derive_status:
         | {
             Args: {
+              p_actual_break_min?: number
+              p_break_end?: string
+              p_break_start?: string
+              p_in: string
+              p_is_mispunch?: boolean
+              p_login?: string
+              p_logout?: string
+              p_out: string
+              p_shift_break_min?: number
+              p_status: Database["public"]["Enums"]["att_status"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               p_half_after: number
               p_in: string
               p_is_mispunch: boolean
@@ -30777,7 +34175,19 @@ export type Database = {
             Args: { _currency: string; _period_key?: string; _purpose?: string }
             Returns: number
           }
+      fn_employee_attendance_eligible: {
+        Args: { p_date: string; p_employee: string }
+        Returns: boolean
+      }
+      fn_employee_salary_structure_enabled: {
+        Args: { p_employee: string }
+        Returns: boolean
+      }
       fn_employee_shift_at: {
+        Args: { p_date: string; p_employee: string }
+        Returns: string
+      }
+      fn_employee_work_week_at: {
         Args: { p_date: string; p_employee: string }
         Returns: string
       }
@@ -30804,6 +34214,7 @@ export type Database = {
           basic: number
           blood_group: string | null
           bonus: number
+          bonus_percentage: number | null
           branch_id: string | null
           company_email: string | null
           company_emergency_contact_email: string | null
@@ -30825,6 +34236,12 @@ export type Database = {
           emergency_contacts: Json
           emp_code: string
           employee_category_id: string | null
+          employee_esic_pct: number
+          employee_pf_pct: number
+          employer_esic_applicable: boolean
+          employer_esic_pct: number
+          employer_pf_applicable: boolean
+          employer_pf_pct: number
           employment_type: string
           employment_type_id: string | null
           esic_applicable: boolean
@@ -30851,6 +34268,7 @@ export type Database = {
           notice_period: string | null
           official_communication_email: string | null
           org_id: string
+          other_allowances: number
           other_deductions: number
           pay_basis: string
           payroll_country: string
@@ -30860,10 +34278,13 @@ export type Database = {
           preferred_contact_method: string | null
           probation_end_date: string | null
           probation_start_date: string | null
+          professional_tax_amount: number | null
           pt_applicable: boolean
           rehire_eligible: boolean | null
           reporting_mgr_id: string | null
           salary_currency: string
+          salary_package: number | null
+          salary_structure_enabled: boolean
           security_cheque_file_name: string | null
           security_cheque_reason: string | null
           security_cheque_status: string
@@ -30915,50 +34336,99 @@ export type Database = {
         Args: { p_branch?: string; p_cycle: string }
         Returns: Json
       }
-      fn_extend_training: {
-        Args: {
-          p_extended_until: string
-          p_reason: string
-          p_remarks?: string
-          p_training_id: string
-          p_type_override?: string
-        }
-        Returns: {
-          completion_date: string | null
-          completion_reason: string | null
-          completion_requested_at: string | null
-          completion_requested_by_id: string | null
-          completion_requested_by_label: string | null
-          created_at: string
-          duration: string | null
-          employee_id: string
-          end_date: string | null
-          extended_at: string | null
-          extended_by_id: string | null
-          extended_by_label: string | null
-          extended_end_date: string | null
-          extension_reason: string | null
-          extension_remarks: string | null
-          hr_approved_at: string | null
-          hr_approved_by_label: string | null
-          id: string
-          manager_approved_at: string | null
-          manager_approved_by_label: string | null
-          org_id: string
-          original_end_date: string | null
-          remarks: string | null
-          start_date: string | null
-          status: Database["public"]["Enums"]["training_status"]
-          type: string
-          unpaid_days: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "training_records"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      fn_extend_training:
+        | {
+            Args: {
+              p_extended_until: string
+              p_reason: string
+              p_training_id: string
+            }
+            Returns: {
+              completion_date: string | null
+              completion_reason: string | null
+              completion_requested_at: string | null
+              completion_requested_by_id: string | null
+              completion_requested_by_label: string | null
+              created_at: string
+              created_by_id: string | null
+              created_by_label: string | null
+              duration: string | null
+              employee_id: string
+              end_date: string | null
+              extended_at: string | null
+              extended_by_id: string | null
+              extended_by_label: string | null
+              extended_end_date: string | null
+              extension_reason: string | null
+              extension_remarks: string | null
+              hr_approved_at: string | null
+              hr_approved_by_label: string | null
+              id: string
+              manager_approved_at: string | null
+              manager_approved_by_label: string | null
+              org_id: string
+              original_end_date: string | null
+              remarks: string | null
+              start_date: string | null
+              status: Database["public"]["Enums"]["training_status"]
+              training_ref: string | null
+              type: string
+              unpaid_days: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "training_records"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_extended_until: string
+              p_reason: string
+              p_remarks?: string
+              p_training_id: string
+              p_type_override?: string
+            }
+            Returns: {
+              completion_date: string | null
+              completion_reason: string | null
+              completion_requested_at: string | null
+              completion_requested_by_id: string | null
+              completion_requested_by_label: string | null
+              created_at: string
+              created_by_id: string | null
+              created_by_label: string | null
+              duration: string | null
+              employee_id: string
+              end_date: string | null
+              extended_at: string | null
+              extended_by_id: string | null
+              extended_by_label: string | null
+              extended_end_date: string | null
+              extension_reason: string | null
+              extension_remarks: string | null
+              hr_approved_at: string | null
+              hr_approved_by_label: string | null
+              id: string
+              manager_approved_at: string | null
+              manager_approved_by_label: string | null
+              org_id: string
+              original_end_date: string | null
+              remarks: string | null
+              start_date: string | null
+              status: Database["public"]["Enums"]["training_status"]
+              training_ref: string | null
+              type: string
+              unpaid_days: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "training_records"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       fn_finalize_leave_on_approve: {
         Args: { p_request: string }
         Returns: {
@@ -30996,6 +34466,8 @@ export type Database = {
           completion_requested_by_id: string | null
           completion_requested_by_label: string | null
           created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
           duration: string | null
           employee_id: string
           end_date: string | null
@@ -31015,6 +34487,7 @@ export type Database = {
           remarks: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
           type: string
           unpaid_days: number
         }
@@ -31214,6 +34687,10 @@ export type Database = {
         Returns: boolean
       }
       fn_is_leave_eligible: { Args: { p_employee: string }; Returns: boolean }
+      fn_is_weekly_off_day: {
+        Args: { p_date: string; p_employee: string; p_org: string }
+        Returns: boolean
+      }
       fn_jsonb_line_is_billable: { Args: { p_line: Json }; Returns: boolean }
       fn_jsonb_line_matches_service_keys: {
         Args: { p_keys: string[]; p_line: Json }
@@ -31332,31 +34809,19 @@ export type Database = {
         Args: { p_crm_role: string; p_org: string }
         Returns: Database["public"]["Enums"]["hr_role"]
       }
-      fn_mark_final_and_create_application:
-        | {
-            Args: {
-              p_campus_name?: string
-              p_client_program_id: string
-              p_client_service_case_id: string
-              p_intake_term: string
-              p_owner_user_id?: string
-              p_set_primary?: boolean
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_allow_duplicate_override?: boolean
-              p_campus_name?: string
-              p_client_program_id: string
-              p_client_service_case_id: string
-              p_duplicate_override_reason?: string
-              p_intake_term: string
-              p_owner_user_id?: string
-              p_set_primary?: boolean
-            }
-            Returns: Json
-          }
+      fn_mark_final_and_create_application: {
+        Args: {
+          p_allow_duplicate_override?: boolean
+          p_campus_name?: string
+          p_client_program_id: string
+          p_client_service_case_id: string
+          p_duplicate_override_reason?: string
+          p_intake_term: string
+          p_owner_user_id?: string
+          p_set_primary?: boolean
+        }
+        Returns: Json
+      }
       fn_mark_payouts_payroll_sent: {
         Args: { _batch_ref?: string; _payout_ids: string[] }
         Returns: Json
@@ -31483,6 +34948,14 @@ export type Database = {
             }
             Returns: boolean
           }
+      fn_payroll_days_effective: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: number
+      }
+      fn_payroll_formula_mode: {
+        Args: { p_as_of?: string; p_org: string }
+        Returns: string
+      }
       fn_performance_hub_readiness_check: {
         Args: { _period_key: string }
         Returns: Json
@@ -31747,12 +35220,20 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_refresh_aggregator_invoice_totals: {
+        Args: { p_agg_invoice_id: string }
+        Returns: undefined
+      }
       fn_refresh_receipt_allocation_totals: {
         Args: { p_receipt_id: string }
         Returns: undefined
       }
       fn_refresh_receipt_fx_review: {
         Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_refresh_remittance_batch_totals: {
+        Args: { p_batch_id: string }
         Returns: undefined
       }
       fn_register_batch_statement: {
@@ -31856,6 +35337,51 @@ export type Database = {
         Args: { p_comment: string; p_entity_id: string; p_entity_type: string }
         Returns: Json
       }
+      fn_request_training_completion: {
+        Args: {
+          p_completion_date: string
+          p_reason: string
+          p_training_id: string
+        }
+        Returns: {
+          completion_date: string | null
+          completion_reason: string | null
+          completion_requested_at: string | null
+          completion_requested_by_id: string | null
+          completion_requested_by_label: string | null
+          created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
+          duration: string | null
+          employee_id: string
+          end_date: string | null
+          extended_at: string | null
+          extended_by_id: string | null
+          extended_by_label: string | null
+          extended_end_date: string | null
+          extension_reason: string | null
+          extension_remarks: string | null
+          hr_approved_at: string | null
+          hr_approved_by_label: string | null
+          id: string
+          manager_approved_at: string | null
+          manager_approved_by_label: string | null
+          org_id: string
+          original_end_date: string | null
+          remarks: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
+          type: string
+          unpaid_days: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "training_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_reset_hr_role_permissions: { Args: { p_org: string }; Returns: number }
       fn_reset_payroll_cycle_uat: {
         Args: { p_cycle: string }
@@ -31882,6 +35408,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_resolve_aggregator_invoice_for_institution_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: string
       }
       fn_resolve_batch_dispute: {
         Args: { p_batch_id: string }
@@ -31939,9 +35469,17 @@ export type Database = {
         Args: { p_label: string }
         Returns: string
       }
+      fn_resolve_employee_salary_structure: {
+        Args: { p_employee: string; p_pt_default?: number }
+        Returns: Json
+      }
       fn_resolve_institution_country_iso: {
         Args: { _country_name: string }
         Returns: string
+      }
+      fn_resolve_payroll_policy: {
+        Args: { p_as_of?: string; p_org: string }
+        Returns: Json
       }
       fn_resolve_policy: {
         Args: { p_as_of?: string; p_domain: string; p_org: string }
@@ -31975,6 +35513,14 @@ export type Database = {
         Args: { p_cycle: string; p_employee: string }
         Returns: Json
       }
+      fn_rollup_inputs_earned: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: Json
+      }
+      fn_rollup_inputs_legacy: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: Json
+      }
       fn_sandwich_half_day_exception: {
         Args: { p_employee: string; p_off_date: string }
         Returns: boolean
@@ -31986,6 +35532,10 @@ export type Database = {
           _template_name: string
         }
         Returns: string
+      }
+      fn_seed_commission_direct_partner_demo: {
+        Args: never
+        Returns: undefined
       }
       fn_seed_foe_cash_registers: { Args: never; Returns: number }
       fn_seed_performance_hub_demo: { Args: never; Returns: undefined }
@@ -32068,6 +35618,10 @@ export type Database = {
       }
       fn_shift_logout_effective: {
         Args: { p_login: number; p_logout: number }
+        Returns: number
+      }
+      fn_shift_scheduled_work_minutes: {
+        Args: { p_login: string; p_logout: string; p_shift_break_min?: number }
         Returns: number
       }
       fn_size_wallet: {
@@ -32191,6 +35745,10 @@ export type Database = {
       }
       fn_student_commission_expected: {
         Args: { p_student_id: string }
+        Returns: number
+      }
+      fn_student_commission_open_balance: {
+        Args: { p_exclude_receipt_id?: string; p_student_id: string }
         Returns: number
       }
       fn_student_financial_summary: {
@@ -32329,6 +35887,24 @@ export type Database = {
         }
         Returns: string
       }
+      fn_trust_available_balance: {
+        Args: {
+          p_client_id: string
+          p_currency?: string
+          p_entity_id: string
+          p_role_key: string
+        }
+        Returns: number
+      }
+      fn_trust_available_balance_by_category: {
+        Args: {
+          p_category_id: string
+          p_client_id: string
+          p_currency: string
+          p_entity_id: string
+        }
+        Returns: number
+      }
       fn_unclassified_payment_count: {
         Args: { _period_key: string }
         Returns: number
@@ -32407,6 +35983,7 @@ export type Database = {
           basic: number
           blood_group: string | null
           bonus: number
+          bonus_percentage: number | null
           branch_id: string | null
           company_email: string | null
           company_emergency_contact_email: string | null
@@ -32428,6 +36005,12 @@ export type Database = {
           emergency_contacts: Json
           emp_code: string
           employee_category_id: string | null
+          employee_esic_pct: number
+          employee_pf_pct: number
+          employer_esic_applicable: boolean
+          employer_esic_pct: number
+          employer_pf_applicable: boolean
+          employer_pf_pct: number
           employment_type: string
           employment_type_id: string | null
           esic_applicable: boolean
@@ -32454,6 +36037,7 @@ export type Database = {
           notice_period: string | null
           official_communication_email: string | null
           org_id: string
+          other_allowances: number
           other_deductions: number
           pay_basis: string
           payroll_country: string
@@ -32463,10 +36047,13 @@ export type Database = {
           preferred_contact_method: string | null
           probation_end_date: string | null
           probation_start_date: string | null
+          professional_tax_amount: number | null
           pt_applicable: boolean
           rehire_eligible: boolean | null
           reporting_mgr_id: string | null
           salary_currency: string
+          salary_package: number | null
+          salary_structure_enabled: boolean
           security_cheque_file_name: string | null
           security_cheque_reason: string | null
           security_cheque_status: string
@@ -32637,6 +36224,11 @@ export type Database = {
         Args: { _achievement_pct: number; _potential: number }
         Returns: number
       }
+      fn_weekly_off_dow_for_work_week: {
+        Args: { p_org: string; p_work_week: string }
+        Returns: number[]
+      }
+      fn_weekly_off_policy_config: { Args: { p_org: string }; Returns: Json }
       fn_workflow_config: {
         Args: { p_as_of?: string; p_org: string }
         Returns: Json
@@ -33667,7 +37259,14 @@ export type Database = {
         | "documentation"
         | "viewer"
         | "client"
-      training_status: "In Progress" | "Completed" | "Extended" | "Cancelled"
+      training_status:
+        | "In Progress"
+        | "Completed"
+        | "Extended"
+        | "Cancelled"
+        | "Pending Manager Approval"
+        | "Pending HR Approval"
+        | "Rejected"
       wallet_alloc_status: "reserved" | "applied" | "reversed"
       wallet_budget_kind:
         | "month_to_month"
@@ -34117,7 +37716,15 @@ export const Constants = {
         "viewer",
         "client",
       ],
-      training_status: ["In Progress", "Completed", "Extended", "Cancelled"],
+      training_status: [
+        "In Progress",
+        "Completed",
+        "Extended",
+        "Cancelled",
+        "Pending Manager Approval",
+        "Pending HR Approval",
+        "Rejected",
+      ],
       wallet_alloc_status: ["reserved", "applied", "reversed"],
       wallet_budget_kind: [
         "month_to_month",
