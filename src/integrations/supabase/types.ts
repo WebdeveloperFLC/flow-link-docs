@@ -31694,8 +31694,6 @@ export type Database = {
           dli_ok: boolean | null
           has_application_portal: boolean | null
           has_deposit_policy_url: boolean | null
-          has_guidance_deposit_range: boolean | null
-          has_guidance_tuition_range: boolean | null
           has_official_website: boolean | null
           human_verification_method: string | null
           id: string | null
@@ -31717,8 +31715,6 @@ export type Database = {
           dli_ok?: never
           has_application_portal?: never
           has_deposit_policy_url?: never
-          has_guidance_deposit_range?: never
-          has_guidance_tuition_range?: never
           has_official_website?: never
           human_verification_method?: string | null
           id?: string | null
@@ -31740,8 +31736,6 @@ export type Database = {
           dli_ok?: never
           has_application_portal?: never
           has_deposit_policy_url?: never
-          has_guidance_deposit_range?: never
-          has_guidance_tuition_range?: never
           has_official_website?: never
           human_verification_method?: string | null
           id?: string | null
