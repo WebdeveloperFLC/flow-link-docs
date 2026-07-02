@@ -89,6 +89,8 @@ After recovery through `20261101120100`:
 
 ## Related docs
 
+- [`PLATFORM_BASELINE_v1.0.md`](./PLATFORM_BASELINE_v1.0.md) — Golden master (July 2026 baseline closed)  
+- [`MODULE_READINESS_MATRIX.md`](./MODULE_READINESS_MATRIX.md) — ERP module deployment dashboard  
 - [`GITHUB_SYNC_REPORT_2026-07.md`](./GITHUB_SYNC_REPORT_2026-07.md) — July 2026 Platform Baseline sync  
 - [`../LOVABLE_PUBLISH_CHECKLIST.md`](../LOVABLE_PUBLISH_CHECKLIST.md) — storage pre-steps  
 - [`../engineering/04-Migration-Review-Checklist.md`](../engineering/04-Migration-Review-Checklist.md) — legacy table guards
