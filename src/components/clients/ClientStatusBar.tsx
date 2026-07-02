@@ -87,8 +87,8 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
   const statusControl = (
     <>
       <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={busy}>
-        <SelectTrigger className={compact ? "w-[160px] sm:w-[200px] h-8 text-xs" : "w-[220px] h-8 text-xs"}>
-          <SelectValue placeholder="Select status…" />
+        <SelectTrigger aria-label="Change client status" className={compact ? "w-[160px] sm:w-[200px] h-8 text-xs" : "w-[220px] h-8 text-xs"}>
+          <SelectValue placeholder="Select a status" />
         </SelectTrigger>
         <SelectContent>
           {statusOptions.length === 0 ? (

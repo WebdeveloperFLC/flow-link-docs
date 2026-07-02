@@ -199,7 +199,8 @@ export default function Reports() {
                     <TableCell>{r.callbacks_pending}</TableCell>
                   </TableRow>
                 ))}
-                {!tcs.length && !loading && <TableRow><TableCell colSpan={5} className="text-muted-foreground text-center">No data</TableCell></TableRow>}
+                {loading && <TableRow><TableCell colSpan={5} className="text-muted-foreground text-center py-6">Loading…</TableCell></TableRow>}
+                {!tcs.length && !loading && <TableRow><TableCell colSpan={5} className="text-muted-foreground text-center py-6">No telecaller activity in this period.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent>
@@ -228,7 +229,8 @@ export default function Reports() {
                     <TableCell>{r.enrollments}</TableCell>
                   </TableRow>
                 ))}
-                {!cns.length && !loading && <TableRow><TableCell colSpan={4} className="text-muted-foreground text-center">No data</TableCell></TableRow>}
+                {loading && <TableRow><TableCell colSpan={4} className="text-muted-foreground text-center py-6">Loading…</TableCell></TableRow>}
+                {!cns.length && !loading && <TableRow><TableCell colSpan={4} className="text-muted-foreground text-center py-6">No counselor activity in this period.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent>
@@ -261,7 +263,8 @@ export default function Reports() {
                     <TableCell className="font-semibold">{r.converted}</TableCell>
                   </TableRow>
                 ))}
-                {!camps.length && !loading && <TableRow><TableCell colSpan={7} className="text-muted-foreground text-center">No data</TableCell></TableRow>}
+                {loading && <TableRow><TableCell colSpan={7} className="text-muted-foreground text-center py-6">Loading…</TableCell></TableRow>}
+                {!camps.length && !loading && <TableRow><TableCell colSpan={7} className="text-muted-foreground text-center py-6">No campaign data in this period.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent>
@@ -288,7 +291,8 @@ export default function Reports() {
                     <TableCell>{r.leads}</TableCell>
                   </TableRow>
                 ))}
-                {!countries.length && !loading && <TableRow><TableCell colSpan={3} className="text-muted-foreground text-center">No data</TableCell></TableRow>}
+                {loading && <TableRow><TableCell colSpan={3} className="text-muted-foreground text-center py-6">Loading…</TableCell></TableRow>}
+                {!countries.length && !loading && <TableRow><TableCell colSpan={3} className="text-muted-foreground text-center py-6">No country demand data in this period.</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent>

@@ -257,8 +257,8 @@ const Clients = () => {
             />
           </div>
           <Select value={statusFilter} onValueChange={(v) => setParam("status", v)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status" />
+            <SelectTrigger className="w-[180px]" aria-label="Filter by status">
+              <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All statuses</SelectItem>
@@ -270,8 +270,8 @@ const Clients = () => {
             </SelectContent>
           </Select>
           <Select value={countryFilter} onValueChange={(v) => setParam("country", v)}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Country" />
+            <SelectTrigger className="w-[160px]" aria-label="Filter by country">
+              <SelectValue placeholder="Filter by country" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All countries</SelectItem>
@@ -307,8 +307,8 @@ const Clients = () => {
           <Card className="px-4 py-3 flex flex-wrap items-center gap-3 border-primary/30 bg-primary/5">
             <span className="text-sm font-medium">{selected.size} selected</span>
             <Select value={bulkStatus} onValueChange={setBulkStatus}>
-              <SelectTrigger className="w-[200px] h-8">
-                <SelectValue placeholder="Set status…" />
+              <SelectTrigger className="w-[200px] h-8" aria-label="Set status for selected clients">
+                <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((s) => (
@@ -319,12 +319,12 @@ const Clients = () => {
               </SelectContent>
             </Select>
             <Button size="sm" variant="secondary" disabled={!bulkStatus || bulkBusy} onClick={() => void applyBulkStatus()}>
-              Apply status
+              Apply to selected
             </Button>
-            <Button size="sm" variant="outline" onClick={exportSelected}>
-              <Download className="size-3.5 mr-1" /> Export CSV
+            <Button size="sm" variant="outline" onClick={exportSelected} aria-label="Export selected clients as CSV">
+              <Download className="size-3.5 mr-1" aria-hidden="true" /> Export CSV
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())} aria-label="Clear selection">
               Clear
             </Button>
           </Card>
@@ -333,7 +333,7 @@ const Clients = () => {
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="grid grid-cols-12 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
             <div className="col-span-1 flex items-center">
-              <Checkbox checked={allPageSelected} onCheckedChange={toggleAll} aria-label="Select all on page" />
+              <Checkbox checked={allPageSelected} onCheckedChange={toggleAll} aria-label="Select all clients on this page" />
             </div>
             <div className="col-span-3">Client</div>
             <div className="col-span-2">{CLIENT_FILE_NUMBER_LABEL}</div>
@@ -397,8 +397,8 @@ const Clients = () => {
                   {formatAppType(c.application_type, serviceNames)}
                 </Link>
                 <div className="col-span-1 text-right">
-                  <Link to={`/clients/${c.id}`} className="inline-flex">
-                    <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground" />
+                  <Link to={`/clients/${c.id}`} className="inline-flex" aria-label={`Open ${c.full_name}`}>
+                    <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground" aria-hidden="true" />
                   </Link>
                 </div>
               </div>
@@ -421,13 +421,13 @@ const Clients = () => {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setParam("page", String(page - 1))}>
-                <ChevronLeft className="size-4" /> Prev
+                <ChevronLeft className="size-4" aria-hidden="true" /> Previous
               </Button>
               <span className="text-xs text-muted-foreground tabular-nums">
                 Page {page} / {totalPages}
               </span>
               <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => setParam("page", String(page + 1))}>
-                Next <ChevronRight className="size-4" />
+                Next <ChevronRight className="size-4" aria-hidden="true" />
               </Button>
             </div>
           </div>

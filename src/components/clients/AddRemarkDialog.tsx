@@ -145,13 +145,13 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
           </div>
           <div className="space-y-1.5">
             <Label>Note details</Label>
-            <Textarea value={remark} onChange={(e) => setRemark(e.target.value)} rows={3} placeholder="Add details..." />
+            <Textarea value={remark} onChange={(e) => setRemark(e.target.value)} rows={3} placeholder="Add any additional details…" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Lead status</Label>
               <Select value={leadStatus} onValueChange={(v) => setLeadStatus(v as LeadStatus)}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectTrigger aria-label="Lead status"><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="hot">Hot</SelectItem>
                   <SelectItem value="warm">Warm</SelectItem>
@@ -164,7 +164,7 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
             <div className="space-y-1.5">
               <Label>Outcome</Label>
               <Select value={outcome} onValueChange={setOutcome}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectTrigger aria-label="Outcome"><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="connected">Connected</SelectItem>
                   <SelectItem value="no_answer">No answer</SelectItem>
