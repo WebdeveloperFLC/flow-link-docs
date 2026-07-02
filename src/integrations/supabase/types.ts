@@ -31688,14 +31688,10 @@ export type Database = {
       }
       v_upi_institution_profile_readiness: {
         Row: {
-          active_contact_count: number | null
-          active_contact_with_email_count: number | null
           completeness_score: number | null
           dli_ok: boolean | null
           has_application_portal: boolean | null
           has_deposit_policy_url: boolean | null
-          has_guidance_deposit_range: boolean | null
-          has_guidance_tuition_range: boolean | null
           has_official_website: boolean | null
           human_verification_method: string | null
           id: string | null
@@ -31711,14 +31707,10 @@ export type Database = {
           profile_source_url: string | null
         }
         Insert: {
-          active_contact_count?: never
-          active_contact_with_email_count?: never
           completeness_score?: number | null
           dli_ok?: never
           has_application_portal?: never
           has_deposit_policy_url?: never
-          has_guidance_deposit_range?: never
-          has_guidance_tuition_range?: never
           has_official_website?: never
           human_verification_method?: string | null
           id?: string | null
@@ -31734,14 +31726,10 @@ export type Database = {
           profile_source_url?: string | null
         }
         Update: {
-          active_contact_count?: never
-          active_contact_with_email_count?: never
           completeness_score?: number | null
           dli_ok?: never
           has_application_portal?: never
           has_deposit_policy_url?: never
-          has_guidance_deposit_range?: never
-          has_guidance_tuition_range?: never
           has_official_website?: never
           human_verification_method?: string | null
           id?: string | null
