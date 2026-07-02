@@ -393,7 +393,7 @@ SET search_path = public
 AS $$
 DECLARE
   r public.upi_commission_receipts%ROWTYPE;
-  sa record;
+  v_stu_alloc record;
   v_snap uuid;
   v_inv record;
   v_st record;
@@ -410,14 +410,14 @@ BEGIN
     RAISE EXCEPTION 'receipt must be draft or ready to post';
   END IF;
 
-  FOR sa IN
+  FOR v_stu_alloc IN
     SELECT * FROM public.upi_commission_receipt_student_allocations WHERE receipt_id = p_receipt_id
   LOOP
-    IF sa.snapshot_id IS NOT NULL THEN
+    IF v_stu_alloc.snapshot_id IS NOT NULL THEN
       SELECT commission_snapshot_id INTO v_snap
-      FROM public.upi_commission_students WHERE id = sa.student_commission_id;
-      IF v_snap IS DISTINCT FROM sa.snapshot_id THEN
-        RAISE EXCEPTION 'snapshot mismatch for student %', sa.student_commission_id;
+      FROM public.upi_commission_students WHERE id = v_stu_alloc.student_commission_id;
+      IF v_snap IS DISTINCT FROM v_stu_alloc.snapshot_id THEN
+        RAISE EXCEPTION 'snapshot mismatch for student %', v_stu_alloc.student_commission_id;
       END IF;
     END IF;
   END LOOP;
@@ -439,9 +439,9 @@ BEGIN
   END LOOP;
 
   FOR v_st IN
-    SELECT DISTINCT sa.student_commission_id AS student_commission_id
-    FROM public.upi_commission_receipt_student_allocations sa
-    WHERE sa.receipt_id = p_receipt_id
+    SELECT DISTINCT rsa.student_commission_id AS student_commission_id
+    FROM public.upi_commission_receipt_student_allocations rsa
+    WHERE rsa.receipt_id = p_receipt_id
   LOOP
     PERFORM public.fn_sync_student_from_receipts(v_st.student_commission_id);
     UPDATE public.upi_commission_students SET last_receipt_id = p_receipt_id WHERE id = v_st.student_commission_id;

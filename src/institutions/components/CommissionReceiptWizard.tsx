@@ -425,12 +425,16 @@ export function CommissionReceiptWizard({
     const next = studentAllocs.filter((a) => a.invoice_allocation_id !== iaId);
     eligible.forEach((s, idx) => {
       const open = studentOpenBalance(s);
-      const share = idx === eligible.length - 1 ? remaining : Math.min(open, remaining / (eligible.length - idx));
-      remaining -= share;
+      const slotsLeft = eligible.length - idx;
+      let share =
+        idx === eligible.length - 1 ? remaining : remaining / slotsLeft;
+      share = Math.min(share, open);
+      share = Math.round(share * 100) / 100;
+      remaining = Math.round((remaining - share) * 100) / 100;
       next.push({
         invoice_allocation_id: iaId,
         student_commission_id: s.id,
-        amount_allocated: Math.round(share * 100) / 100,
+        amount_allocated: share,
       });
     });
     setStudentAllocs(next);
