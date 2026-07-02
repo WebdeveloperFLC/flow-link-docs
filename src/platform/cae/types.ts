@@ -146,6 +146,10 @@ export interface CommercialAgreementConfig {
   existingCustomerRules: ExistingCustomerRuleConfig[];
   fraudChecks: FraudCheckConfig[];
   priorityStack: PriorityLayer[];
+  relationshipClassifications?: string[];
+  relationshipRoleCodes?: RelationshipPartyRoleCode[];
+  overlayStackLayers?: OverlayStackLayer[];
+  overlayPrecedenceDefault?: number;
 }
 
 export interface OverrideRequestInput {
@@ -198,6 +202,7 @@ export interface CommercialAgreement {
   agreementType: string;
   status: AgreementLifecycleStatus;
   currentVersionId?: string | null;
+  relationshipId?: string | null;
   priority: number;
   companyEntityId?: string | null;
   branchId?: string | null;
@@ -263,4 +268,305 @@ export interface CreateAgreementVersionInput {
   effectiveTo?: string;
   changeSummary?: string;
   createdBy?: string;
+}
+
+export type CommercialValidityStatus =
+  | "active"
+  | "upcoming"
+  | "expiring_soon"
+  | "expired"
+  | "suspended"
+  | "terminated"
+  | "cancelled";
+
+export type RelationshipStatus = "draft" | "active" | "suspended" | "terminated" | "archived";
+
+export type RelationshipClassificationCode =
+  | "standard"
+  | "strategic_partner"
+  | "university_partnership"
+  | "aggregator"
+  | "referral_channel"
+  | "vendor"
+  | "internal"
+  | "trial";
+
+export type RelationshipPartyRoleCode =
+  | "principal"
+  | "counterparty"
+  | "referrer"
+  | "beneficiary"
+  | "subject_client"
+  | "relationship_owner"
+  | "guarantor"
+  | "introducer"
+  | "payee"
+  | "payer";
+
+export type RelationshipOwnershipStatus =
+  | "unassigned"
+  | "assigned_future_link"
+  | "protected"
+  | "shared"
+  | "contested"
+  | "override_pending"
+  | "override_approved";
+
+export type RelationshipProtectionLevel = "block_settlement" | "require_override" | "audit_only";
+
+export type OverlayStackLayer =
+  | "constitution"
+  | "customer_ownership"
+  | "commercial_agreement"
+  | "overlay"
+  | "promotion"
+  | "incentive"
+  | "settlement_rules"
+  | "workflow"
+  | "accounting";
+
+export type RelationshipContactType =
+  | "commercial"
+  | "legal"
+  | "finance"
+  | "operations"
+  | "escalation"
+  | "relationship_manager";
+
+export interface CommercialRelationship {
+  id: string;
+  relationshipType: string;
+  partyAId: string;
+  partyBId: string;
+  companyEntityId?: string | null;
+  branchId?: string | null;
+  countryCode?: string | null;
+  status: RelationshipStatus;
+  validFrom?: string | null;
+  validTo?: string | null;
+  noticePeriodDays?: number | null;
+  relationshipManagerId?: string | null;
+  relationshipClassificationCode?: RelationshipClassificationCode | string;
+  externalReference?: string | null;
+  healthScore?: number | null;
+  renewalDate?: string | null;
+  adapterSourceModule?: string | null;
+  adapterSourceRecordId?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CommercialRelationshipPartyRole {
+  id: string;
+  relationshipId: string;
+  financialPartyId: string;
+  roleCode: RelationshipPartyRoleCode | string;
+  isPrimary: boolean;
+  validFrom?: string | null;
+  validTo?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CommercialRelationshipOwnership {
+  id: string;
+  relationshipId: string;
+  subjectFinancialPartyId: string;
+  ownershipStatus: RelationshipOwnershipStatus;
+  protectionLevel: RelationshipProtectionLevel;
+  ownershipRuleCode?: string | null;
+  validFrom?: string | null;
+  validTo?: string | null;
+  status: "draft" | "active" | "suspended" | "expired" | "archived";
+  metadata?: Record<string, unknown>;
+}
+
+export interface CommercialRelationshipContact {
+  id: string;
+  relationshipId: string;
+  contactType: RelationshipContactType;
+  fullName: string;
+  email?: string | null;
+  phone?: string | null;
+  jobTitle?: string | null;
+  profileId?: string | null;
+  isPrimary: boolean;
+  active: boolean;
+  notes?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface EffectiveCommercialPosition {
+  found: boolean;
+  asOf: string;
+  relationshipId?: string;
+  agreementId?: string | null;
+  agreementVersionId?: string | null;
+  partyRoles?: CommercialRelationshipPartyRole[];
+  ownership?: CommercialRelationshipOwnership[];
+  contacts?: CommercialRelationshipContact[];
+  overlays?: CommercialOfferOverlay[];
+  settlementAllowed: boolean;
+  blockReasons: string[];
+}
+
+export interface CreateCommercialRelationshipInput {
+  relationshipType: string;
+  partyAId: string;
+  partyBId: string;
+  companyEntityId?: string;
+  branchId?: string;
+  countryCode?: string;
+  validFrom?: string;
+  validTo?: string;
+  noticePeriodDays?: number;
+  relationshipManagerId?: string;
+  relationshipClassificationCode?: RelationshipClassificationCode | string;
+  externalReference?: string;
+  healthScore?: number;
+  renewalDate?: string;
+  adapterSourceModule?: string;
+  adapterSourceRecordId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CommercialOfferOverlay {
+  id: string;
+  masterAgreementId: string;
+  relationshipId?: string | null;
+  offerType: string;
+  name: string;
+  description?: string | null;
+  financialImpact?: Record<string, unknown>;
+  validFrom: string;
+  validUntil: string;
+  status: CommercialValidityStatus | string;
+  precedenceRank?: number;
+  stackLayer?: OverlayStackLayer | string;
+  supersedesOverlayId?: string | null;
+  appliesToJson?: Record<string, unknown>;
+  supportingDocumentPaths?: string[];
+  approvalReference?: string | null;
+  budgetAmount?: number | null;
+  budgetCurrency?: string | null;
+  targetJson?: Record<string, unknown>;
+  adapterSourceModule?: string | null;
+  adapterSourceRecordId?: string | null;
+}
+
+export interface CreateOfferOverlayInput {
+  masterAgreementId: string;
+  relationshipId?: string;
+  offerType: string;
+  name: string;
+  description?: string;
+  financialImpact?: Record<string, unknown>;
+  validFrom: string;
+  validUntil: string;
+  precedenceRank?: number;
+  stackLayer?: OverlayStackLayer | string;
+  supersedesOverlayId?: string;
+  appliesToJson?: Record<string, unknown>;
+  supportingDocumentPaths?: string[];
+  approvalReference?: string;
+  budgetAmount?: number;
+  budgetCurrency?: string;
+  targetJson?: Record<string, unknown>;
+  createdBy?: string;
+  adapterSourceModule?: string;
+  adapterSourceRecordId?: string;
+}
+
+/** Read-only institution promotion from Institution Master (SSOT) */
+export interface InstitutionApplicationFeeWaiver {
+  institutionId: string;
+  institutionName: string;
+  amount: number;
+  currency: string;
+  validFrom: string;
+  validUntil?: string | null;
+  validityStatus: CommercialValidityStatus;
+  isWaiver: boolean;
+  programId?: string | null;
+  partnershipRouteId?: string | null;
+  masterUpdatedAt?: string;
+  readOnly: true;
+}
+
+/** Generated Agreement Summary — never persisted as editable object */
+export interface AgreementSummary {
+  generatedAt: string;
+  asOfDate: string;
+  agreementId: string;
+  overview: AgreementSummaryOverview;
+  commercialSummary: string[];
+  commissionStructure: AgreementSummaryCommissionRule[];
+  temporaryOffers: CommercialOfferOverlay[];
+  validityItems: AgreementSummaryValidityItem[];
+  institutionPromotions: InstitutionApplicationFeeWaiver[];
+  figures: AgreementSummaryFigures;
+  sourceRefs: AgreementSummarySourceRefs;
+}
+
+export interface AgreementSummaryOverview {
+  agreementStatus: string;
+  agreementType: string;
+  relationship?: CommercialRelationship | null;
+  parties: { role: string; displayName: string; partyType: string }[];
+  companyEntityId?: string | null;
+  branchId?: string | null;
+  effectiveDate?: string | null;
+  expiryDate?: string | null;
+  renewalDate?: string | null;
+  noticePeriodDays?: number | null;
+  agreementHealth: CommercialValidityStatus;
+  relationshipManagerId?: string | null;
+  versionNumber?: number | null;
+}
+
+export interface AgreementSummaryCommissionRule {
+  commissionType: string;
+  calculationMethod: string;
+  triggerEvent: string;
+  settlementCycle: string;
+  currency: string;
+  taxTreatment?: string;
+  minimumThreshold?: number | null;
+  maximumLimit?: number | null;
+  applicableCountries?: string[];
+  applicableInstitutions?: string[];
+  applicablePrograms?: string[];
+  effectiveDate: string;
+  expiryDate?: string | null;
+  currentStatus: CommercialValidityStatus;
+  businessSummary: string;
+}
+
+export interface AgreementSummaryValidityItem {
+  itemType: string;
+  itemId: string;
+  label: string;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  status: CommercialValidityStatus;
+  settlementAllowed: boolean;
+}
+
+export interface AgreementSummaryFigures {
+  estimatedRevenue?: number | null;
+  actualRevenue?: number | null;
+  revenueTarget?: number | null;
+  commissionEarned?: number | null;
+  commissionReceived?: number | null;
+  commissionOutstanding?: number | null;
+  temporaryBonusLiability?: number | null;
+  settlementValue?: number | null;
+  pendingClaims?: number | null;
+  performanceAgainstTarget?: number | null;
+}
+
+export interface AgreementSummarySourceRefs {
+  agreementVersionId?: string | null;
+  relationshipId?: string | null;
+  institutionId?: string | null;
+  adapterSourceModule?: string | null;
+  adapterSourceRecordId?: string | null;
 }

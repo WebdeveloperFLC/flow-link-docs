@@ -45,4 +45,8 @@ export * from "./cae/fraudDetectionService";
 export * from "./cae/existingCustomerRules";
 export * from "./cae/agreementPriority";
 export * from "./cae/adapters/adapterStrategy";
+export * from "./cae/commercialRelationshipRegistry";
+export * from "./cae/commercialOfferOverlayService";
+export * from "./cae/validityStatus";
+export * from "./cae/agreementSummaryGenerator";
 export * from "./settlement/settlementEngine";

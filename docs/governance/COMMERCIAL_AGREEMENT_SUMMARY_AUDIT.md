@@ -93,10 +93,20 @@ Non-destructive extensions only:
 | Phase | Scope |
 |-------|-------|
 | **Phase 2 (approved, local 541)** | Registry, versions, lifecycle, ownership — foundation |
-| **Phase 2b (architecture review)** | `commercial_relationships`, summary fields, overlay table design |
+| **Phase 2b (approved)** | `commercial_relationships` → `commercial_offer_overlays` → **Agreement Summary Generator** (live data, not editable) |
 | **Phase 3 (Settlement Engine)** | Validity enforcement at settlement time (`as_of` gate) |
-| **Phase 4 (Agreement Summary UI)** | Nine tabs — read structured CAE + institution sync |
-| **Phase 5** | Figures rollups, executive alert wiring |
+| **Phase 4 (Agreement Summary UI)** | Nine tabs consume `generateAgreementSummary()` |
+| **Phase 5** | Figures rollups from commission/settlement adapters, executive alerts |
+
+### Build order (frozen)
+
+1. **commercial_relationships** — party ↔ party link; agreements bind via `relationship_id`
+2. **commercial_offer_overlays** — temporary offers; never touch `commercial_agreement_versions`
+3. **Agreement Summary Generator** — `generateAgreementSummary()` reads live master + institution SSOT view
+
+**No** `commercial_summary_snapshots` table — summary is generated, not stored as editable content.
+
+**Tab 7 SSOT:** `v_cae_institution_application_fee_waiver` reads `institution_fee_schedule` only (read-only).
 
 ---
 

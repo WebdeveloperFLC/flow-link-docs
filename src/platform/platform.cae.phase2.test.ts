@@ -6,7 +6,14 @@ import { DEFAULT_COMMERCIAL_AGREEMENT_CONFIG } from "@/platform/cae/defaultComme
 import { evaluateExistingCustomerRules } from "@/platform/cae/existingCustomerRules";
 import { evaluateFraudChecks } from "@/platform/cae/fraudDetectionService";
 import { adapterTemplateForLegacyModule } from "@/platform/cae/adapters/adapterStrategy";
-import type { CustomerOwnershipSnapshot, SettlementEligibilityRequest } from "@/platform/cae/types";
+import { ownershipBlocksSettlement } from "@/platform/cae/effectiveCommercialPositionService";
+import { sortOverlaysByPrecedence, winningOverlay } from "@/platform/cae/overlayPrecedence";
+import type {
+  CommercialOfferOverlay,
+  CommercialRelationshipOwnership,
+  CustomerOwnershipSnapshot,
+  SettlementEligibilityRequest,
+} from "@/platform/cae/types";
 
 const baseRequest = (overrides?: Partial<SettlementEligibilityRequest>): SettlementEligibilityRequest => ({
   settlementType: "incentive_counselor",
@@ -89,5 +96,68 @@ describe("CAE Phase 2 — adapter strategy", () => {
 
   it("maps incentive_plans to incentive template", () => {
     expect(adapterTemplateForLegacyModule("incentive_plans")).toBe("incentive");
+  });
+});
+
+describe("CAE Phase 2 — relationship governance config", () => {
+  it("seeds relationship classifications and role codes", () => {
+    expect(DEFAULT_COMMERCIAL_AGREEMENT_CONFIG.relationshipClassifications).toContain("university_partnership");
+    expect(DEFAULT_COMMERCIAL_AGREEMENT_CONFIG.relationshipRoleCodes).toContain("subject_client");
+    expect(DEFAULT_COMMERCIAL_AGREEMENT_CONFIG.overlayStackLayers).toContain("customer_ownership");
+  });
+});
+
+describe("CAE Phase 2 — overlay precedence", () => {
+  const base = (overrides: Partial<CommercialOfferOverlay>): CommercialOfferOverlay => ({
+    id: overrides.id ?? "o1",
+    masterAgreementId: "agr-1",
+    offerType: "bonus",
+    name: "Test",
+    validFrom: "2026-01-01",
+    validUntil: "2026-12-31",
+    status: "active",
+    ...overrides,
+  });
+
+  it("orders constitutional layers before overlay layer", () => {
+    const sorted = sortOverlaysByPrecedence([
+      base({ id: "o1", stackLayer: "overlay", precedenceRank: 10 }),
+      base({ id: "o2", stackLayer: "customer_ownership", precedenceRank: 200 }),
+    ]);
+    expect(sorted[0]?.stackLayer).toBe("customer_ownership");
+  });
+
+  it("picks winning overlay by precedence rank within same layer", () => {
+    const winner = winningOverlay([
+      base({ id: "o1", precedenceRank: 50, offerType: "bonus" }),
+      base({ id: "o2", precedenceRank: 10, offerType: "bonus" }),
+    ], { offerType: "bonus" });
+    expect(winner?.id).toBe("o2");
+  });
+});
+
+describe("CAE Phase 2 — effective commercial position ownership gate", () => {
+  const ownership = (
+    overrides: Partial<CommercialRelationshipOwnership>,
+  ): CommercialRelationshipOwnership => ({
+    id: "ow-1",
+    relationshipId: "rel-1",
+    subjectFinancialPartyId: "party-1",
+    ownershipStatus: "protected",
+    protectionLevel: "block_settlement",
+    status: "active",
+    ...overrides,
+  });
+
+  it("blocks settlement when active ownership protection applies", () => {
+    expect(
+      ownershipBlocksSettlement([ownership({ ownershipStatus: "protected" })], "2026-06-01"),
+    ).toBe(true);
+  });
+
+  it("allows settlement when override approved", () => {
+    expect(
+      ownershipBlocksSettlement([ownership({ ownershipStatus: "override_approved" })], "2026-06-01"),
+    ).toBe(false);
   });
 });
