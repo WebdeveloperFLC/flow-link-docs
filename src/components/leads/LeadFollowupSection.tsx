@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save } from "lucide-react";
 import { LEAD_FOLLOWUP_CHANNELS } from "@/lib/leadFollowup";
 import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
 
@@ -14,12 +12,10 @@ type Props = {
   onFollowupAtChange: (value: string) => void;
   onFollowupChannelChange: (value: string) => void;
   onFollowupNoteChange: (value: string) => void;
-  onSaveFollowup: () => Promise<boolean>;
-  savingFollowup: boolean;
   followupLogVersion: number;
   onFollowupCompleted: () => void;
   onNotesMigrated?: (cleanedNotes: string | null) => void;
-  followupSaved?: boolean;
+  ensureSynced?: () => Promise<boolean>;
   notePlaceholder?: string;
   description?: string;
 };
@@ -32,14 +28,12 @@ export function LeadFollowupSection({
   onFollowupAtChange,
   onFollowupChannelChange,
   onFollowupNoteChange,
-  onSaveFollowup,
-  savingFollowup,
   followupLogVersion,
   onFollowupCompleted,
   onNotesMigrated,
-  followupSaved = false,
+  ensureSynced,
   notePlaceholder = "e.g. Send fee quote, call back after IELTS",
-  description = "Schedule the next touchpoint. Use Save follow-up here — no need to save the whole lead form.",
+  description = "Schedule the next touchpoint. Follow-up saves automatically with the lead form.",
 }: Props) {
   return (
     <>
@@ -79,34 +73,18 @@ export function LeadFollowupSection({
           />
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => void onSaveFollowup()}
-          disabled={savingFollowup || !followupAtLocal.trim()}
-        >
-          <Save className="size-3.5 mr-1" />
-          {savingFollowup ? "Saving…" : "Save follow-up"}
-        </Button>
-        {!leadId && (
-          <span className="text-xs text-muted-foreground">
-            First save needs first + last name only; then follow-up saves independently.
-          </span>
-        )}
-      </div>
+      {!leadId && (
+        <p className="text-xs text-muted-foreground">
+          Enter first and last name — follow-up saves with the rest of the lead when you leave a field.
+        </p>
+      )}
       <LeadFollowupLogPanel
         leadId={leadId}
         hasOpenFollowup={!!followupAtLocal.trim()}
         refreshToken={followupLogVersion}
-        saving={savingFollowup}
-        onSaveFollowup={onSaveFollowup}
+        ensureSynced={ensureSynced}
         onCompleted={onFollowupCompleted}
         onNotesMigrated={onNotesMigrated}
-        upcomingAtLocal={followupAtLocal}
-        upcomingChannel={followupChannel}
-        upcomingNote={followupNote}
-        upcomingSaved={followupSaved}
       />
     </>
   );

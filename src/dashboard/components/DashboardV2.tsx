@@ -343,7 +343,7 @@ export function DashboardV2() {
     <AppLayout>
       <PageHeader
         title="Dashboard"
-        description={`Welcome back${user?.email ? `, ${user.email.split("@")[0]}` : ""}. CRM metrics only — Odoo data not included.`}
+        description={`Welcome back${user?.email ? `, ${user.email.split("@")[0]}` : ""}. Your CRM overview for leads, clients, and tasks.`}
         actions={
           <Button asChild variant="outline" size="sm">
             <Link to="/reports">
@@ -660,8 +660,7 @@ export function DashboardV2() {
                   Team performance
                 </div>
                 <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-                  Telephony, counselor productivity, campaigns, and country/intake analytics live on Reports — not
-                  duplicated here during migration.
+                  Telephony, counselor productivity, campaigns, and country/intake analytics are on Reports.
                 </p>
               </div>
               <Button asChild variant="outline" className="shrink-0">

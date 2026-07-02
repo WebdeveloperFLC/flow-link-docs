@@ -94,7 +94,7 @@ export function LeadFollowupLogPanel({
 
   const onComplete = async () => {
     if (!leadId) {
-      toast.error("Save the follow-up first (Save follow-up button above)");
+      toast.error("Enter first and last name — the lead saves automatically when contact details are present");
       return;
     }
     setCompleting(true);
@@ -125,7 +125,7 @@ export function LeadFollowupLogPanel({
   if (!leadId && !hasOpenFollowup) {
     return (
       <p className="text-xs text-muted-foreground border-t mt-4 pt-4">
-        Set a date and click Save follow-up to start history (first + last name required once).
+        Set a date — follow-up saves automatically with the lead form (first + last name required once).
       </p>
     );
   }
@@ -141,8 +141,8 @@ export function LeadFollowupLogPanel({
                 <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
               )}
               {!openEntry && hasOpenFollowup && (
-                <Badge variant={upcomingSaved ? "secondary" : "outline"} className="text-[10px]">
-                  {upcomingSaved ? "Saved" : "Not saved yet"}
+                <Badge variant="outline" className="text-[10px]">
+                  Pending save
                 </Badge>
               )}
             </div>

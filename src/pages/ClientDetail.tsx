@@ -62,6 +62,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   ClientDetailTabNav,
+  legacyClientTabRedirectMessage,
   resolveClientDetailTab,
   shouldOpenAssessmentFromTab,
   type ClientDetailTabId,
@@ -180,8 +181,14 @@ const ClientDetail = () => {
 
   useEffect(() => {
     if (!tabParam || tabParam === activeTab) return;
-    const legacy = ["family", "services", "setup", "programs"];
+    const legacy = ["family", "services", "setup", "programs", "staging", "qualification"];
     if (legacy.includes(tabParam)) {
+      const message = legacyClientTabRedirectMessage(tabParam, activeTab);
+      const storageKey = `crm-legacy-tab-toast:${tabParam}->${activeTab}`;
+      if (message && !sessionStorage.getItem(storageKey)) {
+        toast.message(message);
+        sessionStorage.setItem(storageKey, "1");
+      }
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);

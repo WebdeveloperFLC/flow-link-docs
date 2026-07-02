@@ -53,6 +53,40 @@ export function resolveClientDetailTab(value: string | null): ClientDetailTabId 
   return "overview";
 }
 
+const LEGACY_TAB_LABELS: Record<string, string> = {
+  family: "Family",
+  services: "Services",
+  setup: "Setup",
+  programs: "Programs",
+  staging: "Staging",
+  qualification: "Qualification",
+};
+
+const RESOLVED_TAB_LABELS: Record<ClientDetailTabId, string> = {
+  overview: "Overview",
+  profile: "Profile",
+  "client-services": "Client Services",
+  applications: "Applications",
+  documents: "Documents",
+  forms: "Forms & Letters",
+  commercial: "Payments",
+  communications: "Comms",
+  tasks: "Tasks",
+  team: "Team & Access",
+  "activity-log": "Activity Log",
+};
+
+/** Human-readable one-time redirect notice for legacy ?tab= URLs. */
+export function legacyClientTabRedirectMessage(
+  legacyTab: string,
+  resolvedTab: ClientDetailTabId,
+): string | null {
+  if (legacyTab === resolvedTab) return null;
+  const from = LEGACY_TAB_LABELS[legacyTab] ?? legacyTab;
+  const to = RESOLVED_TAB_LABELS[resolvedTab] ?? resolvedTab;
+  return `'${from}' is now under '${to}'.`;
+}
+
 export function shouldOpenAssessmentFromTab(_value: string | null): boolean {
   return false;
 }

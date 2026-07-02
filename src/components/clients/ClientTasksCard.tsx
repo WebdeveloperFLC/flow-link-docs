@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, AlertTriangle, CheckCircle2, CalendarClock, Trash2 } from "lucide-react";
-import { listTasks, completeTask, subscribeTasks, deleteTask, bucketize, type ClientTask } from "@/lib/clientTasks";
+import { Badge } from "@/components/ui/badge";
+import { Clock, AlertTriangle, CheckCircle2, CalendarClock, Trash2, Loader2, Plus } from "lucide-react";
+import { listTasks, completeTask, subscribeTasks, deleteTask, createTask, bucketize, type ClientTask } from "@/lib/clientTasks";
 import { TaskDueCountdown } from "./TaskDueCountdown";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -20,6 +22,9 @@ const PRIO_TONE: Record<string, string> = {
 export function ClientTasksCard({ clientId }: { clientId: string }) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<ClientTask[]>([]);
+  const [quickTitle, setQuickTitle] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [completingId, setCompletingId] = useState<string | null>(null);
   const profileUserIds = useMemo(
     () => tasks.flatMap((t) => [t.assigned_to, t.created_by]),
     [tasks],
@@ -37,18 +42,49 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
   }, [clientId]);
 
   const buckets = useMemo(() => bucketize(tasks), [tasks]);
+  const overdueCount = buckets.overdue.length;
 
-  const onComplete = async (t: ClientTask) => {
+  const onQuickAdd = async () => {
+    const title = quickTitle.trim();
+    if (!title) return;
+    setAdding(true);
     try {
-      await completeTask(t.id);
+      await createTask({ clientId, title, priority: "normal" });
+      setQuickTitle("");
+      toast.success("Task added");
+      await refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed");
+      toast.error(e instanceof Error ? e.message : "Could not add task");
+    } finally {
+      setAdding(false);
     }
   };
+
+  const onComplete = async (t: ClientTask) => {
+    const prev = tasks;
+    setCompletingId(t.id);
+    setTasks((current) =>
+      current.map((row) =>
+        row.id === t.id ? { ...row, status: "done" as const, completed_at: new Date().toISOString() } : row,
+      ),
+    );
+    try {
+      await completeTask(t.id);
+      toast.success("Task completed");
+      await refresh();
+    } catch (e) {
+      setTasks(prev);
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setCompletingId(null);
+    }
+  };
+
   const onDelete = async (t: ClientTask) => {
     if (!confirm(`Delete "${t.title}"?`)) return;
     try {
       await deleteTask(t.id);
+      toast.success("Task deleted");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
     }
@@ -64,11 +100,19 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
           {items.map((t) => {
             const overdue = t.due_at && new Date(t.due_at).getTime() < Date.now() && t.status !== "done";
             return (
-              <div key={t.id} className="px-6 py-3 flex items-start gap-3">
+              <div
+                key={t.id}
+                className={cn(
+                  "px-6 py-3 flex items-start gap-3",
+                  overdue && "bg-destructive/5 border-l-2 border-l-destructive",
+                )}
+              >
                 <Checkbox
                   checked={t.status === "done"}
-                  onCheckedChange={() => t.status !== "done" && onComplete(t)}
+                  disabled={completingId === t.id}
+                  onCheckedChange={() => t.status !== "done" && void onComplete(t)}
                   className="mt-0.5"
+                  aria-label={`Mark ${t.title} complete`}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
@@ -105,18 +149,40 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
   return (
     <Card className="overflow-hidden shadow-elev-sm">
       <div className="px-6 py-4 border-b">
-        <div className="font-semibold flex items-center gap-2">
+        <div className="font-semibold flex items-center gap-2 flex-wrap">
           <CalendarClock className="size-4" /> Tasks & callbacks
+          {overdueCount > 0 && (
+            <Badge variant="destructive" className="text-[10px]">
+              {overdueCount} overdue
+            </Badge>
+          )}
         </div>
         <div className="text-xs text-muted-foreground mt-1">
           {buckets.overdue.length + buckets.dueToday.length + buckets.upcoming.length} open · {buckets.done.length} done
-          {" · "}
-          Use the <strong>Task</strong> button in the header to create new tasks.
         </div>
+        <form
+          className="mt-3 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void onQuickAdd();
+          }}
+        >
+          <Input
+            value={quickTitle}
+            onChange={(e) => setQuickTitle(e.target.value)}
+            placeholder="Quick add task — type title and press Enter"
+            aria-label="Quick add task title"
+            disabled={adding}
+          />
+          <Button type="submit" size="sm" variant="secondary" disabled={adding || !quickTitle.trim()}>
+            {adding ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Plus className="size-4" aria-hidden />}
+            <span className="sr-only">Add task</span>
+          </Button>
+        </form>
       </div>
       {tasks.length === 0 && (
         <div className="px-6 py-10 text-sm text-muted-foreground text-center">
-          No tasks yet — use the Task button at the top of this client record to create one.
+          No tasks yet — use the quick-add field above or the Task button in the header for full details.
         </div>
       )}
       <Section icon={AlertTriangle} label="Overdue" items={buckets.overdue} tone="text-destructive" />

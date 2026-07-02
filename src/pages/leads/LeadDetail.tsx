@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fetchLead, fetchServiceCodeMap, type Lead } from "@/lib/leads";
-import { convertLeadToClient } from "@/lib/convertLeadToClient";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
 import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
@@ -33,6 +32,10 @@ import { LeadBackgroundOverview } from "@/components/leads/LeadBackgroundOvervie
 import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
 import { leadToBackgroundState } from "@/lib/leadBackground";
 import { buildLeadCustomComboCodes } from "@/lib/leads/leadServicePreview";
+import { ConvertLeadConfirmDialog } from "@/components/leads/ConvertLeadConfirmDialog";
+import { ConversionResultSummaryDialog } from "@/components/leads/ConversionResultSummaryDialog";
+import { useLeadConversion } from "@/hooks/useLeadConversion";
+import { useProfileNameMap } from "@/hooks/useProfileNameMap";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -73,8 +76,30 @@ const LeadDetail = () => {
     application_id: string | null;
     registration_number: string | null;
   } | null>(null);
-  const [converting, setConverting] = useState(false);
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
+
+  const counselorIds = useMemo(
+    () => (lead?.assigned_counselor_id ? [lead.assigned_counselor_id] : []),
+    [lead?.assigned_counselor_id],
+  );
+  const counselorNames = useProfileNameMap(counselorIds);
+
+  const conversion = useLeadConversion({
+    resolveClientHref: (clientId) => `/clients/${clientId}`,
+    onNavigate: ({ href }) => nav(href),
+    resolveCounselorName: (l) =>
+      l.assigned_counselor_id ? counselorNames[l.assigned_counselor_id] ?? null : null,
+    resolveServiceLabels: (l) => {
+      const codes = [
+        ...(l.coaching_services ?? []),
+        ...(l.visa_services ?? []),
+        ...(l.admission_services ?? []),
+        ...(l.allied_services ?? []),
+        ...(l.travel_financial_services ?? []),
+      ];
+      return codes.map((c) => serviceMap.get(c) ?? c);
+    },
+  });
 
   const ensureFollowupSynced = async (): Promise<boolean> => {
     if (!lead?.next_followup_at) return false;
@@ -94,10 +119,6 @@ const LeadDetail = () => {
 
   const onRegisterAsClient = async () => {
     if (!lead) return;
-    if (lead.converted_to_client_id) {
-      nav(`/clients/${lead.converted_to_client_id}`);
-      return;
-    }
     const isCold = lead.lead_type === "cold" || lead.is_cold_pool;
     if (!isCold) {
       const validation = leadWarmHotSchema.safeParse({
@@ -109,16 +130,7 @@ const LeadDetail = () => {
         return;
       }
     }
-    setConverting(true);
-    try {
-      const result = await convertLeadToClient(lead, { leadNotes: lead.notes ?? undefined });
-      toast.success(`Client file created — opening profile`);
-      nav(`/clients/${result.clientId}`);
-    } catch (e: unknown) {
-      toast.error(formatSupabaseError(e, "Conversion failed"));
-    } finally {
-      setConverting(false);
-    }
+    await conversion.requestConversion(lead, { leadNotes: lead.notes ?? undefined });
   };
 
   useEffect(() => {
@@ -164,9 +176,9 @@ const LeadDetail = () => {
               <Pencil className="h-4 w-4 mr-1" /> Edit
             </Button>
             {lead.status !== "converted" ? (
-              <Button onClick={onRegisterAsClient} disabled={converting}>
+              <Button onClick={() => void onRegisterAsClient()} disabled={conversion.converting}>
                 <UserCheck className="h-4 w-4 mr-1" />
-                {converting ? "Converting…" : "Register as Client"}
+                {conversion.converting ? "Converting…" : "Register as Client"}
               </Button>
             ) : convertedClient ? (
               <Button variant="outline" asChild>
@@ -367,6 +379,21 @@ const LeadDetail = () => {
           <div className="text-sm whitespace-pre-wrap">{lead.notes || <span className="text-muted-foreground">No notes</span>}</div>
         </Card>
       </div>
+
+      <ConvertLeadConfirmDialog
+        open={conversion.confirmOpen}
+        summary={conversion.confirmSummary}
+        busy={conversion.converting}
+        onClose={conversion.closeConfirm}
+        onConfirm={(reason) => void conversion.confirmConversion(reason)}
+      />
+      <ConversionResultSummaryDialog
+        open={conversion.resultOpen}
+        result={conversion.conversionResult}
+        clientHref={conversion.clientHref}
+        onClose={conversion.closeResult}
+        onResultChange={conversion.setConversionResult}
+      />
     </AppLayout>
   );
 };

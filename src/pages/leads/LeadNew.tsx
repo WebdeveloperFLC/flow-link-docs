@@ -25,6 +25,7 @@ import {
   fetchLead,
   fetchBranches,
   fetchDepartments,
+  fetchServiceCodeMap,
   findDuplicateLeads,
   suggestDepartmentFromServices,
   type LeadDraft,
@@ -44,8 +45,11 @@ import { dialCodeFor } from "@/lib/countryCodes";
 import { buildServiceLibraryUrl, buildClientDetailUrlFromServiceLibrary } from "@/lib/service-library/serviceCodes";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
-import { convertLeadToClient } from "@/lib/convertLeadToClient";
 import type { Lead } from "@/lib/leads";
+import { FormSaveStatus, type FormSaveStatusState } from "@/components/ui/form-save-status";
+import { ConvertLeadConfirmDialog } from "@/components/leads/ConvertLeadConfirmDialog";
+import { ConversionResultSummaryDialog } from "@/components/leads/ConversionResultSummaryDialog";
+import { useLeadConversion } from "@/hooks/useLeadConversion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   fetchEligiblePrimaryUsers,
@@ -92,7 +96,6 @@ const LeadNew = () => {
   const [leadId, setLeadId] = useState<string | null>(editId);
   const [leadNumber, setLeadNumber] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [converting, setConverting] = useState(false);
   const [convertedClientId, setConvertedClientId] = useState<string | null>(null);
   const autoConvertStarted = useRef(false);
 
@@ -108,8 +111,10 @@ const LeadNew = () => {
   const [followupChannel, setFollowupChannel] = useState("");
   const [followupNote, setFollowupNote] = useState("");
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
-  const [followupSaved, setFollowupSaved] = useState(false);
-  const [savingFollowup, setSavingFollowup] = useState(false);
+  const [formSaveStatus, setFormSaveStatus] = useState<FormSaveStatusState>("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [serviceLabelMap, setServiceLabelMap] = useState<Map<string, string>>(new Map());
   const [background, setBackground] = useState<LeadBackgroundState>(EMPTY_LEAD_BACKGROUND);
   const [upgradingCold, setUpgradingCold] = useState(false);
 
@@ -130,7 +135,36 @@ const LeadNew = () => {
   useEffect(() => {
     fetchBranches().then(setBranches);
     fetchDepartments().then(setDepartments);
+    fetchServiceCodeMap().then(setServiceLabelMap);
   }, []);
+
+  const conversion = useLeadConversion({
+    resolveClientHref: (clientId) =>
+      slLibraryId
+        ? buildClientDetailUrlFromServiceLibrary({
+            clientId,
+            libraryId: slLibraryId,
+            country: slCountry,
+            serviceCode: slVisaService ?? undefined,
+          })
+        : `/clients/${clientId}`,
+    onNavigate: ({ href }) => nav(href),
+    resolveCounselorName: (l) => {
+      const id = l.assigned_counselor_id ?? (f.assigned_counselor_id as string | undefined) ?? null;
+      if (!id) return null;
+      return eligiblePrimaryUsers.find((u) => u.id === id)?.name ?? null;
+    },
+    resolveServiceLabels: (l) => {
+      const codes = [
+        ...(l.coaching_services ?? []),
+        ...(l.visa_services ?? []),
+        ...(l.admission_services ?? []),
+        ...(l.allied_services ?? []),
+        ...(l.travel_financial_services ?? []),
+      ];
+      return codes.map((c) => serviceLabelMap.get(c) ?? c);
+    },
+  });
 
   useEffect(() => {
     if (editId || !user?.id || defaultedPrimaryUserRef.current) return;
@@ -216,7 +250,10 @@ const LeadNew = () => {
     setFollowupAtLocal(toDatetimeLocalValue(l.next_followup_at));
     setFollowupChannel(l.followup_channel ?? "");
     setFollowupNote(l.followup_note ?? "");
-    setFollowupSaved(!!l.next_followup_at);
+    if (l.next_followup_at) {
+      setFormSaveStatus("saved");
+      setLastSavedAt(new Date(l.updated_at ?? l.created_at));
+    }
     if (l.converted_to_client_id) {
       setConvertedClientId(l.converted_to_client_id);
     }
@@ -290,6 +327,7 @@ const LeadNew = () => {
     }
     autosaveInFlightRef.current = true;
     setSaving(true);
+    setFormSaveStatus("saving");
     try {
       const saved = await upsertLeadAutosave(currentLeadId, buildDraft());
       const prevAssigned = lastAssignedCounselorRef.current;
@@ -317,12 +355,20 @@ const LeadNew = () => {
         setFollowupLogVersion((v) => v + 1);
       } catch (e) {
         console.warn("[lead followup sync]", e);
-        toast.error(formatSupabaseError(e, "Follow-up log sync failed — publish pending migrations in Lovable"));
+        const msg = formatSupabaseError(e, "Follow-up log sync failed — publish pending migrations in Lovable");
+        setSaveError(msg);
+        setFormSaveStatus("error");
+        toast.error(msg);
       }
+      setLastSavedAt(new Date());
+      setSaveError(null);
+      setFormSaveStatus("saved");
       return saved.id;
     } catch (e: unknown) {
       const msg = formatSupabaseError(e, "Save failed");
       console.error("[lead autosave]", e);
+      setSaveError(msg);
+      setFormSaveStatus("error");
       toast.error(msg);
       return null;
     } finally {
@@ -373,74 +419,53 @@ const LeadNew = () => {
     }
   };
 
-  const ensureLeadIdForFollowup = async (): Promise<string | null> => {
-    if (leadIdRef.current) return leadIdRef.current;
-    const fn = (f.first_name as string)?.trim();
-    const ln = (f.last_name as string)?.trim();
-    if (!fn || !ln) {
-      toast.error("Enter first and last name once — then follow-up saves on its own");
-      return null;
+  const flushAutosave = async (): Promise<string | null> => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
     }
-    return ensureLeadDraftStub();
+    return autosave();
   };
 
-  const saveFollowupOnly = useCallback(async (): Promise<boolean> => {
-    if (!followupAtLocal.trim()) {
-      toast.error("Set a follow-up date first");
-      return false;
-    }
-    setSavingFollowup(true);
-    try {
-      const id = await ensureLeadIdForFollowup();
-      if (!id) return false;
-      await syncLeadFollowupLog(id, {
-        scheduledAt: fromDatetimeLocalValue(followupAtLocal),
-        channel: followupChannel || null,
-        note: followupNote.trim() || null,
-      });
-      setFollowupLogVersion((v) => v + 1);
-      setFollowupSaved(true);
-      toast.success("Follow-up saved");
-      return true;
-    } catch (e) {
-      toast.error(formatSupabaseError(e, "Could not save follow-up"));
-      return false;
-    } finally {
-      setSavingFollowup(false);
-    }
-  }, [followupAtLocal, followupChannel, followupNote, mode, f.first_name, f.last_name, f.middle_name, f.lead_temperature, f.email, f.phone]);
-
-  const onFollowupCompleted = useCallback(() => {
-    setFollowupAtLocal("");
-    setFollowupChannel("");
-    setFollowupNote("");
-    setFollowupSaved(false);
-    setFollowupLogVersion((v) => v + 1);
-  }, []);
-
-  const onFollowupNotesMigrated = useCallback((cleanedNotes: string | null) => {
-    setNotes(cleanedNotes ?? "");
-  }, []);
-
-  const onFollowupAtChange = useCallback((value: string) => {
-    setFollowupAtLocal(value);
-    setFollowupSaved(false);
-  }, []);
-  const onFollowupChannelChange = useCallback((value: string) => {
-    setFollowupChannel(value);
-    setFollowupSaved(false);
-  }, []);
-  const onFollowupNoteChange = useCallback((value: string) => {
-    setFollowupNote(value);
-    setFollowupSaved(false);
-  }, []);
-
   const scheduleAutosave = () => {
+    if (formSaveStatus === "saved") setFormSaveStatus("unsaved");
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     autosaveTimerRef.current = setTimeout(() => {
       autosaveTimerRef.current = null;
       void autosaveFnRef.current();
     }, 400);
+  };
+
+  const onFollowupCompleted = () => {
+    setFollowupAtLocal("");
+    setFollowupChannel("");
+    setFollowupNote("");
+    setFollowupLogVersion((v) => v + 1);
+    scheduleAutosave();
+  };
+
+  const onFollowupNotesMigrated = (cleanedNotes: string | null) => {
+    setNotes(cleanedNotes ?? "");
+  };
+
+  const onFollowupAtChange = (value: string) => {
+    setFollowupAtLocal(value);
+    setTimeout(scheduleAutosave, 0);
+  };
+
+  const onFollowupChannelChange = (value: string) => {
+    setFollowupChannel(value);
+    setTimeout(scheduleAutosave, 0);
+  };
+
+  const onFollowupNoteChange = (value: string) => {
+    setFollowupNote(value);
+    setTimeout(scheduleAutosave, 0);
+  };
+
+  const ensureFollowupSynced = async (): Promise<boolean> => {
+    const id = await flushAutosave();
+    return !!id;
   };
 
   useEffect(() => {
@@ -466,16 +491,16 @@ const LeadNew = () => {
     ...(f as Partial<Lead>),
   }), [f, services, interestedCountries, notes, followupAtLocal, followupChannel, followupNote]);
 
-  const convertAndNavigate = async () => {
+  const prepareConversion = async () => {
     let id = leadId;
     if (!id) {
-      id = await autosave();
+      id = await flushAutosave();
       if (!id) {
         toast.error("Enter first and last name to save the lead first");
         return;
       }
     } else {
-      await autosave();
+      id = (await flushAutosave()) ?? id;
     }
 
     const lead = await fetchLead(id);
@@ -497,37 +522,16 @@ const LeadNew = () => {
       return;
     }
 
-    setConverting(true);
-    try {
-      const merged = mergeLeadFromForm(lead);
-      const result = await convertLeadToClient(merged, {
-        leadNotes: notes,
-        slCountry,
-        slVisaService,
-        slServiceLabel,
-        slLibraryId,
-        slSubService,
-        slServiceCategory: slCat === "coaching" ? "coaching_services" : null,
-      });
-      const label = result.registrationNumber ?? result.clientId.slice(0, 8);
-      toast.success(result.alreadyConverted ? "Opening client profile" : `Client created: ${label}`);
-      if (slLibraryId) {
-        nav(
-          buildClientDetailUrlFromServiceLibrary({
-            clientId: result.clientId,
-            libraryId: slLibraryId,
-            country: slCountry,
-            serviceCode: slVisaService ?? undefined,
-          }),
-        );
-      } else {
-        nav(`/clients/${result.clientId}`);
-      }
-    } catch (e: unknown) {
-      toast.error(formatSupabaseError(e, "Conversion failed"));
-    } finally {
-      setConverting(false);
-    }
+    const merged = mergeLeadFromForm(lead);
+    await conversion.requestConversion(merged, {
+      leadNotes: notes,
+      slCountry,
+      slVisaService,
+      slServiceLabel,
+      slLibraryId,
+      slSubService,
+      slServiceCategory: slCat === "coaching" ? "coaching_services" : null,
+    });
   };
 
   useEffect(() => {
@@ -538,7 +542,7 @@ const LeadNew = () => {
     }
     if (leadId && leadNumber) {
       autoConvertStarted.current = true;
-      void convertAndNavigate();
+      void prepareConversion();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registerClientParam, editId, leadId, leadNumber, convertedClientId]);
@@ -609,16 +613,9 @@ const LeadNew = () => {
       toast.error(formatLeadValidationError(payload.error, "Complete required lead fields"));
       return;
     }
-    setSaving(true);
-    try {
-      const saved = await upsertLeadAutosave(leadId, draft);
-      toast.success(`Saved ${saved.lead_number}`);
-      nav(`/leads/${saved.id}`);
-    } catch (e) {
-      toast.error(formatSupabaseError(e, "Save failed"));
-    } finally {
-      setSaving(false);
-    }
+    const id = await flushAutosave();
+    if (!id) return;
+    nav(`/leads/${id}`);
   };
 
   const isCold = mode === "cold";
@@ -696,7 +693,7 @@ const LeadNew = () => {
   const draftForValidation = buildDraft();
   const canRegisterAsClient =
     !convertedClientId &&
-    !converting &&
+    !conversion.converting &&
     !saving &&
     !!(f.first_name as string)?.trim() &&
     !!(f.last_name as string)?.trim() &&
@@ -787,16 +784,32 @@ const LeadNew = () => {
         fallbackHref="/leads"
       />
       <PageHeader
-        title={editId ? "Edit Lead" : "New Lead"}
+        title={
+          registerClientParam
+            ? editId
+              ? "Register client"
+              : "Register client"
+            : editId
+              ? "Edit Lead"
+              : "New Lead"
+        }
         description={
-          leadNumber
-            ? `Lead # ${leadNumber}`
-            : "Capture lead details, then Register as Client to open the client profile."
+          registerClientParam
+            ? "You're registering a client from a lead record — every client starts as a lead."
+            : leadNumber
+              ? `Lead # ${leadNumber}`
+              : "Capture lead details, then Register as Client to open the client profile."
         }
         actions={
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            {(saving || converting) && (
-              <span className="text-xs text-muted-foreground">{converting ? "Converting…" : "Saving…"}</span>
+            <FormSaveStatus
+              state={formSaveStatus}
+              savedAt={lastSavedAt}
+              error={saveError}
+              onRetry={() => void flushAutosave()}
+            />
+            {conversion.converting && (
+              <span className="text-xs text-muted-foreground">Converting…</span>
             )}
             {slLibraryId ? (
               <Button
@@ -820,6 +833,12 @@ const LeadNew = () => {
         }
       />
       <div className="p-3 sm:p-6 mx-auto space-y-6 max-w-5xl">
+        {registerClientParam && (
+          <Card className="p-3 border-primary/30 bg-primary/5 text-sm">
+            <span className="font-medium text-foreground">Register client mode.</span>{" "}
+            Complete the lead details below, then confirm registration to open the client profile.
+          </Card>
+        )}
         <Card className="p-3 bg-muted/40 border-dashed text-sm text-muted-foreground">
           When the person confirms they want to proceed, click{" "}
           <span className="font-semibold text-foreground">Register as Client</span> — the client is created
@@ -999,13 +1018,11 @@ const LeadNew = () => {
                     onFollowupAtChange={onFollowupAtChange}
                     onFollowupChannelChange={onFollowupChannelChange}
                     onFollowupNoteChange={onFollowupNoteChange}
-                    onSaveFollowup={saveFollowupOnly}
-                    savingFollowup={savingFollowup}
                     followupLogVersion={followupLogVersion}
                     onFollowupCompleted={onFollowupCompleted}
                     onNotesMigrated={onFollowupNotesMigrated}
-                    followupSaved={followupSaved}
-                    description="Schedule the next touchpoint for the assigned primary user. Save here — no need to save the whole form. Carried over when you register as client."
+                    ensureSynced={ensureFollowupSynced}
+                    description="Schedule the next touchpoint. Saves automatically with the lead form and carries over when you register as client."
                   />
                 </Card>
               </>
@@ -1044,14 +1061,12 @@ const LeadNew = () => {
                   onFollowupAtChange={onFollowupAtChange}
                   onFollowupChannelChange={onFollowupChannelChange}
                   onFollowupNoteChange={onFollowupNoteChange}
-                  onSaveFollowup={saveFollowupOnly}
-                  savingFollowup={savingFollowup}
                   followupLogVersion={followupLogVersion}
                   onFollowupCompleted={onFollowupCompleted}
                   onNotesMigrated={onFollowupNotesMigrated}
-                  followupSaved={followupSaved}
+                  ensureSynced={ensureFollowupSynced}
                   notePlaceholder="Brief reminder for next call"
-                  description="Optional — schedule when to call this cold lead again. Save here without saving the whole form."
+                  description="Optional — schedule when to call this cold lead again. Saves with the lead form."
                 />
               </Card>
             )}
@@ -1078,7 +1093,7 @@ const LeadNew = () => {
                 <div className="flex flex-wrap gap-2 justify-end">
                   <Button
                     variant="secondary"
-                    onClick={convertAndNavigate}
+                    onClick={() => void prepareConversion()}
                     disabled={!canRegisterAsClient}
                     title={
                       canRegisterAsClient
@@ -1092,8 +1107,8 @@ const LeadNew = () => {
                     Register as Client
                   </Button>
                   <Button
-                    onClick={validateAndSubmit}
-                    disabled={saving || converting || !canRegisterAsClient}
+                    onClick={() => void validateAndSubmit()}
+                    disabled={conversion.converting || !canRegisterAsClient}
                     title={
                       canRegisterAsClient
                         ? "Save lead and open detail page"
@@ -1109,6 +1124,21 @@ const LeadNew = () => {
             )}
         </>
       </div>
+
+      <ConvertLeadConfirmDialog
+        open={conversion.confirmOpen}
+        summary={conversion.confirmSummary}
+        busy={conversion.converting}
+        onClose={conversion.closeConfirm}
+        onConfirm={(reason) => void conversion.confirmConversion(reason)}
+      />
+      <ConversionResultSummaryDialog
+        open={conversion.resultOpen}
+        result={conversion.conversionResult}
+        clientHref={conversion.clientHref}
+        onClose={conversion.closeResult}
+        onResultChange={conversion.setConversionResult}
+      />
     </AppLayout>
   );
 };
