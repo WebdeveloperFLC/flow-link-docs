@@ -99,7 +99,7 @@ export function ClientStageStepper({
             <div className="text-xs font-medium text-muted-foreground truncate min-w-0">
               {pipelineTitle}
               <span className="ml-2 text-foreground/80">
-                · stage {stepNumber ?? "?"} of {stepTotal}
+                · current stage {stepNumber ?? "?"} of {stepTotal}
               </span>
             </div>
             {headerActions}

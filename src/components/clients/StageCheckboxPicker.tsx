@@ -117,7 +117,7 @@ export function StageCheckboxPicker({
             disabled={disabled}
           >
             <ListChecks className="size-3.5" />
-            Stages
+            Done
             <span className="text-muted-foreground">
               ({doneCount}/{stages.length})
             </span>

@@ -73,7 +73,7 @@ export async function fetchDashboardExecutiveData(
     odooLinkedRes,
     odooSynced7dRes,
   ] = await Promise.all([
-    needAdmissions && mode === "summary"
+    needAdmissions
       ? supabase.from("clients").select("*", { count: "exact", head: true })
       : emptyCount,
     needAdmissions ? (supabase as any).from("vw_lead_funnel").select("*") : emptyRows,
