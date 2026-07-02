@@ -35409,6 +35409,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_resolve_aggregator_invoice_for_institution_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: string
+      }
       fn_resolve_batch_dispute: {
         Args: { p_batch_id: string }
         Returns: undefined
