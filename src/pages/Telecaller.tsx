@@ -58,7 +58,7 @@ const Telecaller = () => {
             <Coffee className="size-4 mr-1.5" />Break
           </Button>
           <Button size="sm" variant="outline" onClick={() => setStatusRemote("offline")}>
-            <SkipForward className="size-4 mr-1.5" />Off
+            <SkipForward className="size-4 mr-1.5" aria-hidden="true" />Go offline
           </Button>
         </div>
 
