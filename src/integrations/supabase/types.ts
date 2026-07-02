@@ -12236,6 +12236,13 @@ export type Database = {
             foreignKeyName: "clients_linked_student_record_id_fkey"
             columns: ["linked_student_record_id"]
             isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "clients_linked_student_record_id_fkey"
+            columns: ["linked_student_record_id"]
+            isOneToOne: false
             referencedRelation: "v_commission_student_receipt_ledger"
             referencedColumns: ["student_commission_id"]
           },
@@ -23909,6 +23916,7 @@ export type Database = {
           countries_served: string[] | null
           country_name: string | null
           created_at: string
+          default_billing_profile_id: string | null
           default_currency: string | null
           default_payment_terms: string | null
           default_portal_url: string | null
@@ -23918,6 +23926,7 @@ export type Database = {
           metadata: Json
           name: string
           notes: string | null
+          remittance_format: string | null
           short_code: string | null
           tax_id: string | null
           updated_at: string
@@ -23938,6 +23947,7 @@ export type Database = {
           countries_served?: string[] | null
           country_name?: string | null
           created_at?: string
+          default_billing_profile_id?: string | null
           default_currency?: string | null
           default_payment_terms?: string | null
           default_portal_url?: string | null
@@ -23947,6 +23957,7 @@ export type Database = {
           metadata?: Json
           name: string
           notes?: string | null
+          remittance_format?: string | null
           short_code?: string | null
           tax_id?: string | null
           updated_at?: string
@@ -23967,6 +23978,7 @@ export type Database = {
           countries_served?: string[] | null
           country_name?: string | null
           created_at?: string
+          default_billing_profile_id?: string | null
           default_currency?: string | null
           default_payment_terms?: string | null
           default_portal_url?: string | null
@@ -23976,12 +23988,21 @@ export type Database = {
           metadata?: Json
           name?: string
           notes?: string | null
+          remittance_format?: string | null
           short_code?: string | null
           tax_id?: string | null
           updated_at?: string
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "upi_aggregators_default_billing_profile_id_fkey"
+            columns: ["default_billing_profile_id"]
+            isOneToOne: false
+            referencedRelation: "upi_billing_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       upi_agreement_versions: {
         Row: {
@@ -24518,6 +24539,183 @@ export type Database = {
           },
         ]
       }
+      upi_commission_aggregator_invoice_lines: {
+        Row: {
+          aggregator_invoice_id: string
+          amount_outstanding: number
+          amount_received: number
+          id: string
+          institution_id: string
+          institution_invoice_id: string
+          line_amount: number
+          sort_order: number
+        }
+        Insert: {
+          aggregator_invoice_id: string
+          amount_outstanding?: number
+          amount_received?: number
+          id?: string
+          institution_id: string
+          institution_invoice_id: string
+          line_amount: number
+          sort_order?: number
+        }
+        Update: {
+          aggregator_invoice_id?: string
+          amount_outstanding?: number
+          amount_received?: number
+          id?: string
+          institution_id?: string
+          institution_invoice_id?: string
+          line_amount?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_l_institution_invoice_id_fkey"
+            columns: ["institution_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_l_institution_invoice_id_fkey"
+            columns: ["institution_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipt_open_items"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_li_aggregator_invoice_id_fkey"
+            columns: ["aggregator_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_aggregator_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_lines_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_lines_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoice_lines_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_aggregator_invoices: {
+        Row: {
+          aggregator_id: string
+          aggregator_invoice_number: string
+          aggregator_reference_number: string | null
+          amount_invoiced: number
+          amount_outstanding: number
+          amount_received: number
+          billing_profile_id: string | null
+          claim_cycle_id: string | null
+          commission_period_code: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_date: string
+          metadata: Json
+          notes: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          aggregator_id: string
+          aggregator_invoice_number: string
+          aggregator_reference_number?: string | null
+          amount_invoiced?: number
+          amount_outstanding?: number
+          amount_received?: number
+          billing_profile_id?: string | null
+          claim_cycle_id?: string | null
+          commission_period_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_date?: string
+          metadata?: Json
+          notes?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          aggregator_id?: string
+          aggregator_invoice_number?: string
+          aggregator_reference_number?: string | null
+          amount_invoiced?: number
+          amount_outstanding?: number
+          amount_received?: number
+          billing_profile_id?: string | null
+          claim_cycle_id?: string | null
+          commission_period_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_date?: string
+          metadata?: Json
+          notes?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_billing_profile_id_fkey"
+            columns: ["billing_profile_id"]
+            isOneToOne: false
+            referencedRelation: "upi_billing_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_claim_cycle_id_fkey"
+            columns: ["claim_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "upi_claim_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_aggregator_invoices_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       upi_commission_config: {
         Row: {
           description: string | null
@@ -24676,6 +24874,8 @@ export type Database = {
           agency_gst_hst_number: string | null
           agency_name: string | null
           agency_phone: string | null
+          aggregator_id: string | null
+          aggregator_invoice_id: string | null
           amount_outstanding: number | null
           amount_received: number
           approved_date: string | null
@@ -24723,6 +24923,8 @@ export type Database = {
           agency_gst_hst_number?: string | null
           agency_name?: string | null
           agency_phone?: string | null
+          aggregator_id?: string | null
+          aggregator_invoice_id?: string | null
           amount_outstanding?: number | null
           amount_received?: number
           approved_date?: string | null
@@ -24770,6 +24972,8 @@ export type Database = {
           agency_gst_hst_number?: string | null
           agency_name?: string | null
           agency_phone?: string | null
+          aggregator_id?: string | null
+          aggregator_invoice_id?: string | null
           amount_outstanding?: number | null
           amount_received?: number
           approved_date?: string | null
@@ -24812,6 +25016,20 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "upi_commission_invoices_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_aggregator_invoice_id_fkey"
+            columns: ["aggregator_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_aggregator_invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "upi_commission_invoices_billing_profile_id_fkey"
             columns: ["billing_profile_id"]
@@ -25070,6 +25288,13 @@ export type Database = {
             foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
             columns: ["student_commission_id"]
             isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
             referencedRelation: "v_commission_student_receipt_ledger"
             referencedColumns: ["student_commission_id"]
           },
@@ -25107,6 +25332,7 @@ export type Database = {
         Row: {
           accounting_journal_id: string | null
           aggregator_id: string | null
+          aggregator_reference_number: string | null
           amount_allocated: number
           bank_reference: string | null
           base_amount: number | null
@@ -25148,6 +25374,7 @@ export type Database = {
         Insert: {
           accounting_journal_id?: string | null
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
           amount_allocated?: number
           bank_reference?: string | null
           base_amount?: number | null
@@ -25189,6 +25416,7 @@ export type Database = {
         Update: {
           accounting_journal_id?: string | null
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
           amount_allocated?: number
           bank_reference?: string | null
           base_amount?: number | null
@@ -25284,47 +25512,141 @@ export type Database = {
             referencedRelation: "upi_commission_remittance_batches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_commission_receipts_remittance_batch_id_fkey"
+            columns: ["remittance_batch_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_batch_reconciliation"
+            referencedColumns: ["batch_id"]
+          },
+        ]
+      }
+      upi_commission_remittance_batch_statements: {
+        Row: {
+          batch_id: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_remittance_batch_statements_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_remittance_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batch_statements_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_batch_reconciliation"
+            referencedColumns: ["batch_id"]
+          },
         ]
       }
       upi_commission_remittance_batches: {
         Row: {
           aggregator_id: string | null
+          aggregator_reference_number: string | null
+          amount_expected: number | null
+          amount_outstanding: number | null
+          amount_received: number
           batch_reference: string
+          commission_period_code: string | null
           created_at: string
+          created_by: string | null
           currency: string
+          dispute_notes: string | null
+          dispute_opened_date: string | null
+          dispute_reason: string | null
+          dispute_resolved_date: string | null
           id: string
           institution_id: string | null
           notes: string | null
           payer_type: string
+          receipt_count: number
           received_date: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
           status: string
           total_amount: number | null
           updated_at: string
         }
         Insert: {
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
           batch_reference: string
+          commission_period_code?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
+          dispute_notes?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
           id?: string
           institution_id?: string | null
           notes?: string | null
           payer_type: string
+          receipt_count?: number
           received_date?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string
         }
         Update: {
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
           batch_reference?: string
+          commission_period_code?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
+          dispute_notes?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
           id?: string
           institution_id?: string | null
           notes?: string | null
           payer_type?: string
+          receipt_count?: number
           received_date?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string
@@ -25336,6 +25658,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "upi_aggregators"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "upi_commission_remittance_batches_institution_id_fkey"
@@ -25600,6 +25929,13 @@ export type Database = {
             columns: ["student_commission_id"]
             isOneToOne: false
             referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
             referencedColumns: ["student_commission_id"]
           },
           {
@@ -26060,6 +26396,13 @@ export type Database = {
             foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
             columns: ["replacement_student_commission_id"]
             isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
+            columns: ["replacement_student_commission_id"]
+            isOneToOne: false
             referencedRelation: "v_commission_student_receipt_ledger"
             referencedColumns: ["student_commission_id"]
           },
@@ -26075,6 +26418,13 @@ export type Database = {
             columns: ["source_student_commission_id"]
             isOneToOne: false
             referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_source_student_commission_id_fkey"
+            columns: ["source_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
             referencedColumns: ["student_commission_id"]
           },
           {
@@ -27346,6 +27696,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_invoice_line_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_aggregator_student_rows"
             referencedColumns: ["student_commission_id"]
           },
           {
@@ -30726,6 +31083,193 @@ export type Database = {
           },
         ]
       }
+      v_commission_aggregator_metrics: {
+        Row: {
+          aggregator_id: string | null
+          amount_expected: number | null
+          amount_held: number | null
+          amount_invoiced: number | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          commission_period_code: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_aggregator_student_rows: {
+        Row: {
+          aggregator_id: string | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          claim_status: string | null
+          commission_period_code: string | null
+          commission_status: string | null
+          eligibility_status: string | null
+          expected_amount: number | null
+          has_open_transfer: boolean | null
+          hold_reason: string | null
+          hold_status: string | null
+          institution_id: string | null
+          institution_name: string | null
+          intake_term: string | null
+          intake_year: number | null
+          invoice_id: string | null
+          payment_status: string | null
+          program_name: string | null
+          student_commission_id: string | null
+          student_name: string | null
+          transfer_flag: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_batch_reconciliation: {
+        Row: {
+          aggregator_id: string | null
+          aggregator_reference_number: string | null
+          amount_expected: number | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          batch_id: string | null
+          batch_reference: string | null
+          commission_period_code: string | null
+          dispute_opened_date: string | null
+          dispute_reason: string | null
+          dispute_resolved_date: string | null
+          receipt_count: number | null
+          received_date: string | null
+          statement_count: number | null
+          status: string | null
+        }
+        Insert: {
+          aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: never
+          amount_received?: number | null
+          batch_id?: string | null
+          batch_reference?: string | null
+          commission_period_code?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
+          receipt_count?: number | null
+          received_date?: string | null
+          statement_count?: never
+          status?: string | null
+        }
+        Update: {
+          aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: never
+          amount_received?: number | null
+          batch_id?: string | null
+          batch_reference?: string | null
+          commission_period_code?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
+          receipt_count?: number | null
+          received_date?: string | null
+          statement_count?: never
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_remittance_batches_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_commission_institution_metrics_agg: {
+        Row: {
+          aggregator_id: string | null
+          amount_expected: number | null
+          amount_held: number | null
+          amount_invoiced: number | null
+          amount_outstanding: number | null
+          amount_received: number | null
+          commission_period_code: string | null
+          institution_id: string | null
+          institution_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_commission_receipt_open_items: {
         Row: {
           amount_outstanding: number | null
@@ -30961,6 +31505,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "upi_commission_remittance_batches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_remittance_batch_id_fkey"
+            columns: ["remittance_batch_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_batch_reconciliation"
+            referencedColumns: ["batch_id"]
           },
         ]
       }
@@ -34681,12 +35232,20 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_refresh_aggregator_invoice_totals: {
+        Args: { p_agg_invoice_id: string }
+        Returns: undefined
+      }
       fn_refresh_receipt_allocation_totals: {
         Args: { p_receipt_id: string }
         Returns: undefined
       }
       fn_refresh_receipt_fx_review: {
         Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_refresh_remittance_batch_totals: {
+        Args: { p_batch_id: string }
         Returns: undefined
       }
       fn_register_batch_statement: {
