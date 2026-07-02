@@ -7,11 +7,11 @@ import {
   fetchDashboardOperationsData,
 } from "../lib/fetchDashboardData";
 
-export function useDashboardExecutiveData(mode: ExecutiveMode) {
+export function useDashboardExecutiveData(mode: ExecutiveMode, windowDays = 30) {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["dashboard-v2", "executive", mode],
-    queryFn: () => fetchDashboardExecutiveData(mode),
+    queryKey: ["dashboard-v2", "executive", mode, windowDays],
+    queryFn: () => fetchDashboardExecutiveData(mode, windowDays),
     enabled: !!user,
     staleTime: 60_000,
   });

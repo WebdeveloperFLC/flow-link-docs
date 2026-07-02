@@ -65,6 +65,7 @@ import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
 import { LeadFollowupSection } from "@/components/leads/LeadFollowupSection";
 import { LeadBackgroundSummaryCard } from "@/components/leads/LeadBackgroundSummaryCard";
 import { UpgradeColdLeadCard } from "@/components/leads/UpgradeColdLeadCard";
+import { LeadFormStepNav, scrollToLeadSection } from "@/components/leads/LeadFormStepNav";
 import {
   backgroundStateToLeadDraft,
   EMPTY_LEAD_BACKGROUND,
@@ -610,7 +611,9 @@ const LeadNew = () => {
       ? leadColdSchema.safeParse({ ...draft })
       : leadWarmHotSchema.safeParse({ ...draft, travel_services: services.travel_services });
     if (!payload.success) {
+      const fieldKey = String(payload.error.errors[0]?.path[0] ?? "");
       toast.error(formatLeadValidationError(payload.error, "Complete required lead fields"));
+      if (fieldKey) scrollToLeadSection(fieldKey);
       return;
     }
     const id = await flushAutosave();
@@ -673,6 +676,7 @@ const LeadNew = () => {
   const handleUpgradeCold = async () => {
     setUpgradingCold(true);
     try {
+      await flushAutosave();
       setMode("warm_hot");
       setField("lead_temperature", "warm");
       if (leadIdRef.current) {
@@ -858,14 +862,16 @@ const LeadNew = () => {
               <UpgradeColdLeadCard onUpgrade={handleUpgradeCold} upgrading={upgradingCold} />
             )}
 
-            <Card className="p-4 sm:p-6 space-y-4">
+            <LeadFormStepNav isCold={isCold} className="sticky top-0 z-10 py-2 bg-background/95 backdrop-blur border-b -mx-3 px-3 sm:-mx-6 sm:px-6" />
+
+            <Card id="lead-section-personal" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
               <h3 className="font-semibold">1. Personal Information</h3>
               {personalFields}
             </Card>
 
             {!isCold && (
               <>
-                <Card className="p-4 sm:p-6 space-y-4">
+                <Card id="lead-section-geography" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
                   <h3 className="font-semibold">2. Geography</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -883,7 +889,7 @@ const LeadNew = () => {
                   </div>
                 </Card>
 
-                <Card className="p-4 sm:p-6 space-y-4">
+                <Card id="lead-section-background" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
                   <h3 className="font-semibold">3. Background</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
@@ -920,7 +926,7 @@ const LeadNew = () => {
                   onCommit={commitBackgroundAutosave}
                 />
 
-                <Card className="p-4 sm:p-6 space-y-4">
+                <Card id="lead-section-funding" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
                   <h3 className="font-semibold">4. Funding &amp; Timeline</h3>
                   <LeadJourneyFieldsBlock
                     interestedCountries={interestedCountries}
@@ -941,7 +947,7 @@ const LeadNew = () => {
                   />
                 </Card>
 
-                <Card className="p-4 sm:p-6 space-y-4">
+                <Card id="lead-section-services" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
                   <h3 className="font-semibold">5. Services Required *</h3>
                   <ServiceTabs
                     value={services}
@@ -953,7 +959,7 @@ const LeadNew = () => {
                   {visaLockBlock}
                 </Card>
 
-                <Card className="p-4 sm:p-6 space-y-4">
+                <Card id="lead-section-assignment" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
                   <h3 className="font-semibold">6. Assignment</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
@@ -1008,7 +1014,7 @@ const LeadNew = () => {
                   </div>
                 </Card>
 
-                <Card className="p-4 sm:p-6 space-y-4">
+                <Card id="lead-section-followup" className="p-4 sm:p-6 space-y-4 scroll-mt-24">
                   <h3 className="font-semibold">7. Follow-up</h3>
                   <LeadFollowupSection
                     leadId={leadId}
@@ -1071,7 +1077,7 @@ const LeadNew = () => {
               </Card>
             )}
 
-            <Card className="p-6 space-y-3">
+            <Card id="lead-section-notes" className="p-6 space-y-3 scroll-mt-24">
               <h3 className="font-semibold">{isCold ? "Notes" : "8. Notes"}</h3>
               <Textarea
                 ref={notesRef}

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import { useMasterItems } from "@/lib/masters";
 import { resolveClientStatusLabel } from "@/lib/clientStatus";
+import { ClientStatusConfirmDialog } from "@/components/clients/ClientStatusConfirmDialog";
 
 type Props = {
   clientId: string;
@@ -22,6 +23,7 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
   const [clientStatus, setClientStatus] = useState("in_progress");
   const [savedStatus, setSavedStatus] = useState("in_progress");
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -45,12 +47,7 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
 
   if (!canUpload || caseClosed) return null;
 
-  const onSaveStatus = async () => {
-    const next = clientStatus || defaultStatusCode;
-    if (!next) {
-      toast.error("Select a client status");
-      return;
-    }
+  const persistStatus = async (next: string, reason?: string) => {
     setBusy(true);
     try {
       const { error } = await supabase.from("clients").update({ status: next }).eq("id", clientId);
@@ -61,7 +58,7 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
         summary: "Client status updated",
         previousValue: resolveClientStatusLabel(savedStatus, statusOptions),
         newValue: resolveClientStatusLabel(next, statusOptions),
-        metadata: { status: next },
+        metadata: { status: next, reason: reason ?? null },
       });
       setSavedStatus(next);
       setClientStatus(next);
@@ -70,8 +67,57 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
       toast.error(e instanceof Error ? e.message : "Failed to save client status");
     } finally {
       setBusy(false);
+      setConfirmOpen(false);
     }
   };
+
+  const onSaveStatus = () => {
+    const next = clientStatus || defaultStatusCode;
+    if (!next) {
+      toast.error("Select a client status");
+      return;
+    }
+    if (next === savedStatus) {
+      toast.message("Status unchanged");
+      return;
+    }
+    setConfirmOpen(true);
+  };
+
+  const statusControl = (
+    <>
+      <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={busy}>
+        <SelectTrigger className={compact ? "w-[160px] sm:w-[200px] h-8 text-xs" : "w-[220px] h-8 text-xs"}>
+          <SelectValue placeholder="Select status…" />
+        </SelectTrigger>
+        <SelectContent>
+          {statusOptions.length === 0 ? (
+            <SelectItem value="in_progress" disabled>
+              No statuses — add in Masters
+            </SelectItem>
+          ) : (
+            statusOptions.map((opt) => (
+              <SelectItem key={opt.code} value={opt.code}>
+                {opt.label}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+      <Button size="sm" variant="secondary" className="h-8" onClick={onSaveStatus} disabled={busy}>
+        Save
+      </Button>
+      <ClientStatusConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        currentLabel={resolveClientStatusLabel(savedStatus, statusOptions)}
+        nextLabel={resolveClientStatusLabel(clientStatus || defaultStatusCode, statusOptions)}
+        nextCode={clientStatus || defaultStatusCode}
+        busy={busy}
+        onConfirm={(reason) => void persistStatus(clientStatus || defaultStatusCode, reason)}
+      />
+    </>
+  );
 
   if (compact) {
     return (
@@ -79,27 +125,7 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
         <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hidden sm:inline">
           Client status
         </span>
-        <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={busy}>
-          <SelectTrigger className="w-[160px] sm:w-[200px] h-8 text-xs">
-            <SelectValue placeholder="Select status…" />
-          </SelectTrigger>
-          <SelectContent>
-            {statusOptions.length === 0 ? (
-              <SelectItem value="in_progress" disabled>
-                No statuses — add in Masters
-              </SelectItem>
-            ) : (
-              statusOptions.map((opt) => (
-                <SelectItem key={opt.code} value={opt.code}>
-                  {opt.label}
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-        <Button size="sm" variant="secondary" className="h-8" onClick={onSaveStatus} disabled={busy}>
-          Save
-        </Button>
+        {statusControl}
       </div>
     );
   }
@@ -107,23 +133,7 @@ export function ClientStatusBar({ clientId, caseClosed, compact = true }: Props)
   return (
     <div className="rounded-md border bg-muted/20 p-3 space-y-2">
       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client status</div>
-      <div className="flex flex-wrap gap-2">
-        <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={busy}>
-          <SelectTrigger className="w-[220px] h-8 text-xs">
-            <SelectValue placeholder="Select status…" />
-          </SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((opt) => (
-              <SelectItem key={opt.code} value={opt.code}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button size="sm" variant="secondary" className="h-8" onClick={onSaveStatus} disabled={busy}>
-          Save
-        </Button>
-      </div>
+      <div className="flex flex-wrap gap-2">{statusControl}</div>
     </div>
   );
 }

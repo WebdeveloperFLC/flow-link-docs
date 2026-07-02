@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ function downloadCSV(name: string, rows: any[]) {
 }
 
 export default function Reports() {
+  const [windowDays, setWindowDays] = useState(30);
   const [calls, setCalls] = useState<CallDaily[]>([]);
   const [funnel, setFunnel] = useState<Funnel[]>([]);
   const [tcs, setTcs] = useState<Telecaller[]>([]);
@@ -52,7 +54,7 @@ export default function Reports() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+      const since = new Date(Date.now() - windowDays * 24 * 3600 * 1000).toISOString().slice(0, 10);
       const [c, f, t, cn, cp, co, sd] = await Promise.all([
         (supabase as any).from("vw_call_stats_daily").select("*").gte("day", since).order("day"),
         (supabase as any).from("vw_lead_funnel").select("*"),
@@ -73,7 +75,7 @@ export default function Reports() {
       if (!selectedPipeline && rows.length) setSelectedPipeline(rows[0].pipeline_id);
       setLoading(false);
     })();
-  }, []);
+  }, [windowDays]);
 
   // KPIs
   const totalCalls = calls.reduce((s, r) => s + (r.total_calls || 0), 0);
@@ -102,20 +104,37 @@ export default function Reports() {
 
   return (
     <AppLayout>
-        <PageHeader title="Reports & Analytics" description="Operational and conversion metrics — last 30 days" />
+        <PageHeader
+          title="Reports & Analytics"
+          description={`Operational and conversion metrics — last ${windowDays} days`}
+          actions={
+            <Select value={String(windowDays)} onValueChange={(v) => setWindowDays(Number(v))}>
+              <SelectTrigger className="w-[130px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        />
       <div className="p-6 space-y-6">
         {/* KPI tiles */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KPI icon={<Phone className="size-4" />} label="Total Calls" value={totalCalls} />
           <KPI icon={<Phone className="size-4" />} label="Answered" value={`${totalAnswered} (${answerRate}%)`} />
           <KPI icon={<PhoneOff className="size-4" />} label="Unanswered" value={totalUnanswered} />
-          <KPI icon={<Flame className="size-4" />} label="Hot Leads" value={`${hotLeads} / ${totalLeads}`} />
+          <Link to="/leads?segment=hot" className="block rounded-lg border bg-card p-4 hover:border-primary/40 transition-colors">
+            <KPI icon={<Flame className="size-4" />} label="Hot Leads" value={`${hotLeads} / ${totalLeads}`} />
+          </Link>
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2">
-            <CardHeader><CardTitle>Calls (last 30 days)</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Calls (last {windowDays} days)</CardTitle></CardHeader>
             <CardContent style={{ height: 280 }}>
               <ResponsiveContainer>
                 <BarChart data={callsByDay}>
@@ -140,6 +159,17 @@ export default function Reports() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              <div className="flex flex-wrap gap-2 pt-2 justify-center">
+                {tempData.map((d) => (
+                  <Link
+                    key={d.name}
+                    to={`/leads?segment=${d.name}`}
+                    className="text-xs font-medium px-2.5 py-1 rounded-full border hover:border-primary/50 capitalize"
+                  >
+                    {d.name} ({d.value})
+                  </Link>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -293,14 +323,21 @@ export default function Reports() {
                 return <div className="text-sm text-muted-foreground text-center py-12">No pipeline data yet.</div>;
               }
               return (
-                <ResponsiveContainer>
-                  <BarChart data={filtered}>
-                    <XAxis dataKey="stage_label" fontSize={11} angle={-15} textAnchor="end" height={60} interval={0} />
-                    <YAxis fontSize={11} allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="client_count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <>
+                  <ResponsiveContainer>
+                    <BarChart data={filtered}>
+                      <XAxis dataKey="stage_label" fontSize={11} angle={-15} textAnchor="end" height={60} interval={0} />
+                      <YAxis fontSize={11} allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="client_count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="pt-3 text-center">
+                    <Link to="/clients" className="text-sm text-primary hover:underline">
+                      View all clients →
+                    </Link>
+                  </div>
+                </>
               );
             })()}
           </CardContent>

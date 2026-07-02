@@ -163,17 +163,164 @@ export async function updateLead(id: string, patch: LeadDraft): Promise<Lead> {
   throw error;
 }
 
-export async function fetchLeads(opts: { temperatures?: LeadTemperature[]; coldPool?: boolean; search?: string; limit?: number } = {}): Promise<Lead[]> {
-  let q = supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(opts.limit ?? 200);
-  if (opts.coldPool !== undefined) q = q.eq("is_cold_pool", opts.coldPool);
-  if (opts.temperatures && opts.temperatures.length) q = q.in("lead_temperature", opts.temperatures);
-  if (opts.search) {
-    const s = `%${opts.search}%`;
+export type LeadSortKey =
+  | "created_at"
+  | "updated_at"
+  | "next_followup_at"
+  | "last_name"
+  | "lead_temperature"
+  | "status";
+
+export type FollowupDueFilter = "overdue" | "today" | "week" | "none" | "any";
+
+export type LeadSegment = "all" | "active" | "cold" | "warm" | "hot";
+
+export type FetchLeadsOptions = {
+  /** Unified segment — overrides temperatures/coldPool when set. */
+  segment?: LeadSegment;
+  temperatures?: LeadTemperature[];
+  coldPool?: boolean;
+  statuses?: LeadStatus[];
+  branch?: string;
+  department?: string;
+  assignedCounselorId?: string;
+  unassignedOnly?: boolean;
+  search?: string;
+  followupDue?: FollowupDueFilter;
+  sort?: LeadSortKey;
+  sortDir?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+  /** Legacy cap when pagination omitted. */
+  limit?: number;
+};
+
+export type FetchLeadsResult = {
+  rows: Lead[];
+  total: number;
+};
+
+function applyLeadSegment(q: ReturnType<typeof supabase.from>, segment: LeadSegment) {
+  switch (segment) {
+    case "cold":
+      return q.eq("is_cold_pool", true);
+    case "warm":
+      return q.eq("is_cold_pool", false).eq("lead_temperature", "warm");
+    case "hot":
+      return q.eq("is_cold_pool", false).eq("lead_temperature", "hot");
+    case "active":
+      return q.eq("is_cold_pool", false).in("lead_temperature", ["warm", "hot"]);
+    default:
+      return q;
+  }
+}
+
+function applyFollowupDueFilter(
+  q: ReturnType<typeof supabase.from>,
+  filter: FollowupDueFilter,
+) {
+  const now = new Date();
+  if (filter === "none") return q.is("next_followup_at", null);
+  if (filter === "any") return q.not("next_followup_at", "is", null);
+  if (filter === "overdue") {
+    return q.lt("next_followup_at", now.toISOString()).not("status", "eq", "converted");
+  }
+  if (filter === "today") {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    return q.gte("next_followup_at", start.toISOString()).lte("next_followup_at", end.toISOString());
+  }
+  if (filter === "week") {
+    const end = new Date(now.getTime() + 7 * 86400000);
+    return q.gte("next_followup_at", now.toISOString()).lte("next_followup_at", end.toISOString());
+  }
+  return q;
+}
+
+export async function fetchLeadsQuery(opts: FetchLeadsOptions = {}): Promise<FetchLeadsResult> {
+  const pageSize = opts.pageSize ?? opts.limit ?? 50;
+  const page = Math.max(1, opts.page ?? 1);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const sort = opts.sort ?? "created_at";
+  const ascending = opts.sortDir === "asc";
+
+  let q = supabase
+    .from("leads")
+    .select("*", { count: "exact" })
+    .order(sort, { ascending, nullsFirst: sort === "next_followup_at" && ascending })
+    .range(from, to);
+
+  if (opts.segment) {
+    q = applyLeadSegment(q, opts.segment);
+  } else {
+    if (opts.coldPool !== undefined) q = q.eq("is_cold_pool", opts.coldPool);
+    if (opts.temperatures?.length) q = q.in("lead_temperature", opts.temperatures);
+  }
+
+  if (opts.statuses?.length) q = q.in("status", opts.statuses);
+  if (opts.branch) q = q.eq("branch", opts.branch);
+  if (opts.department) q = q.eq("department", opts.department);
+  if (opts.unassignedOnly) q = q.is("assigned_counselor_id", null);
+  else if (opts.assignedCounselorId) q = q.eq("assigned_counselor_id", opts.assignedCounselorId);
+
+  if (opts.followupDue && opts.followupDue !== "any") {
+    q = applyFollowupDueFilter(q, opts.followupDue);
+  }
+
+  if (opts.search?.trim()) {
+    const s = `%${opts.search.trim()}%`;
     q = q.or(`first_name.ilike.${s},last_name.ilike.${s},email.ilike.${s},phone.ilike.${s},lead_number.ilike.${s}`);
   }
-  const { data, error } = await q;
+
+  const { data, error, count } = await q;
   if (error) throw error;
-  return (data ?? []) as unknown as Lead[];
+  return { rows: (data ?? []) as unknown as Lead[], total: count ?? 0 };
+}
+
+/** @deprecated Prefer fetchLeadsQuery for filters/pagination. */
+export async function fetchLeads(opts: { temperatures?: LeadTemperature[]; coldPool?: boolean; search?: string; limit?: number } = {}): Promise<Lead[]> {
+  const segment: LeadSegment | undefined =
+    opts.coldPool === true
+      ? "cold"
+      : opts.temperatures?.length === 2 && opts.temperatures.includes("warm") && opts.temperatures.includes("hot")
+        ? "active"
+        : undefined;
+  const { rows } = await fetchLeadsQuery({
+    segment,
+    temperatures: segment ? undefined : opts.temperatures,
+    coldPool: segment ? undefined : opts.coldPool,
+    search: opts.search,
+    limit: opts.limit ?? 200,
+    pageSize: opts.limit ?? 200,
+  });
+  return rows;
+}
+
+export async function bulkUpdateLeads(
+  ids: string[],
+  patch: LeadDraft,
+): Promise<{ updated: number; failed: Array<{ id: string; error: string }> }> {
+  const unique = Array.from(new Set(ids));
+  const failed: Array<{ id: string; error: string }> = [];
+  let updated = 0;
+  for (const id of unique) {
+    try {
+      await updateLead(id, patch);
+      updated += 1;
+    } catch (e) {
+      failed.push({ id, error: formatSupabaseError(e, "Update failed") });
+    }
+  }
+  return { updated, failed };
+}
+
+export async function fetchLeadBranches(): Promise<string[]> {
+  const { data, error } = await supabase.from("leads").select("branch").not("branch", "is", null).limit(500);
+  if (error) throw error;
+  return Array.from(new Set((data ?? []).map((r) => String((r as { branch: string }).branch).trim()).filter(Boolean))).sort();
 }
 
 export async function fetchLead(id: string): Promise<Lead | null> {

@@ -1,65 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Plus, Search, Upload } from "lucide-react";
-import { LeadsTable } from "@/components/leads/LeadsTable";
-import { fetchLeads, type Lead } from "@/lib/leads";
-import { fetchProfileNames } from "@/lib/leadAssignment";
-import { ImportColdLeadsDialog } from "@/components/leads/ImportColdLeadsDialog";
+import { Navigate, useSearchParams } from "react-router-dom";
 
-const ColdPool = () => {
-  const nav = useNavigate();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [importOpen, setImportOpen] = useState(false);
-  const [refreshTick, setRefreshTick] = useState(0);
-
-  useEffect(() => {
-    setLoading(true);
-    fetchLeads({ coldPool: true, search: search || undefined })
-      .then(async (rows) => {
-        setLeads(rows);
-        const ids = rows.map((l) => l.assigned_counselor_id).filter(Boolean) as string[];
-        const map = await fetchProfileNames(ids);
-        setOwnerNames(Object.fromEntries(map));
-      })
-      .finally(() => setLoading(false));
-  }, [search, refreshTick]);
-
-  return (
-    <AppLayout>
-      <PageHeader
-        title="Cold Pool"
-        description="Bulk-imported / low-engagement leads awaiting first contact"
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4 mr-1" /> Import CSV
-            </Button>
-            <Button onClick={() => nav("/leads/new?mode=cold")}>
-              <Plus className="h-4 w-4 mr-1" /> New Cold Lead
-            </Button>
-          </div>
-        }
-      />
-      <div className="p-8 space-y-4">
-        <div className="relative max-w-md">
-          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
-        <Card>
-          {loading ? <div className="p-12 text-center text-muted-foreground text-sm">Loading…</div> : <LeadsTable leads={leads} showCampaign ownerNames={ownerNames} />}
-        </Card>
-      </div>
-      <ImportColdLeadsDialog open={importOpen} onOpenChange={setImportOpen} onImported={() => setRefreshTick((n) => n + 1)} />
-    </AppLayout>
-  );
-};
-
-export default ColdPool;
+/** Legacy route — unified leads workspace with cold segment. */
+export default function ColdPool() {
+  const [params] = useSearchParams();
+  const next = new URLSearchParams(params);
+  next.set("segment", "cold");
+  return <Navigate to={`/leads?${next.toString()}`} replace />;
+}

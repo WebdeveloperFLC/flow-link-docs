@@ -43,9 +43,12 @@ function daysAheadIso(days: number) {
   return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
 }
 
-export async function fetchDashboardExecutiveData(mode: ExecutiveMode): Promise<DashboardExecutiveData> {
-  const since30 = daysAgoIso(30);
-  const since30Ts = daysAgoTimestamp(30);
+export async function fetchDashboardExecutiveData(
+  mode: ExecutiveMode,
+  windowDays = 30,
+): Promise<DashboardExecutiveData> {
+  const since30 = daysAgoIso(windowDays);
+  const since30Ts = daysAgoTimestamp(windowDays);
 
   const needAdmissions = mode === "full" || mode === "summary";
   const needRevenue = mode === "full" || mode === "revenue";

@@ -12,10 +12,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { History, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const PAGE_SIZE = 50;
 
-const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = [
+const PRIMARY_FILTERS: Array<{ key: string; label: string; actions: string[] }> = [
   { key: "all", label: "All", actions: [] },
   {
     key: "lead",
@@ -24,6 +30,7 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
       "lead_created",
       "lead_updated",
       "lead_converted",
+      "lead_conversion_reverted",
       "lead_followup_scheduled",
       "lead_followup_completed",
     ],
@@ -31,12 +38,7 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
   {
     key: "profile",
     label: "Profile",
-    actions: ["profile_updated", "contact_updated", "client_created"],
-  },
-  {
-    key: "services",
-    label: "Services",
-    actions: ["services_updated", "pipeline_assigned"],
+    actions: ["profile_updated", "contact_updated", "client_created", "client_status_changed"],
   },
   {
     key: "stage",
@@ -47,19 +49,8 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
       "stage_note_cleared",
       "stage_entered",
       "stage_changed",
-      "client_status_changed",
       "internal_sub_status_changed",
     ],
-  },
-  {
-    key: "documents",
-    label: "Documents",
-    actions: ["document.uploaded", "document.trashed", "document.purged", "document.restored"],
-  },
-  {
-    key: "tasks",
-    label: "Tasks",
-    actions: ["task_created", "task_assigned", "task_reassigned", "task_completed"],
   },
   {
     key: "finance",
@@ -76,6 +67,24 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
       "receipt_approved",
     ],
   },
+];
+
+const MORE_FILTERS: Array<{ key: string; label: string; actions: string[] }> = [
+  {
+    key: "services",
+    label: "Services",
+    actions: ["services_updated", "pipeline_assigned"],
+  },
+  {
+    key: "documents",
+    label: "Documents",
+    actions: ["document.uploaded", "document.trashed", "document.purged", "document.restored"],
+  },
+  {
+    key: "tasks",
+    label: "Tasks",
+    actions: ["task_created", "task_assigned", "task_reassigned", "task_completed"],
+  },
   {
     key: "team",
     label: "Team",
@@ -90,6 +99,8 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
   },
   { key: "notes", label: "Notes", actions: ["note_added", "remark"] },
 ];
+
+const FILTER_GROUPS = [...PRIMARY_FILTERS, ...MORE_FILTERS];
 
 function formatLogDate(iso: string): string {
   try {
@@ -185,7 +196,7 @@ export function ClientActivityLogCard({ clientId }: { clientId: string }) {
           Complete audit trail — lead history, profile, stages, documents, tasks, payments, and team changes.
         </p>
         <div className="mt-3 flex items-center gap-2 flex-wrap">
-          {FILTER_GROUPS.map((f) => (
+          {PRIMARY_FILTERS.map((f) => (
             <button
               key={f.key}
               type="button"
@@ -200,6 +211,29 @@ export function ClientActivityLogCard({ clientId }: { clientId: string }) {
               {f.label}
             </button>
           ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "px-2.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold transition inline-flex items-center gap-1",
+                  MORE_FILTERS.some((f) => f.key === filter)
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
+                )}
+              >
+                More
+                <ChevronDown className="size-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {MORE_FILTERS.map((f) => (
+                <DropdownMenuItem key={f.key} onClick={() => setFilter(f.key)}>
+                  {f.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="relative ml-auto min-w-[180px]">
             <Search className="size-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input

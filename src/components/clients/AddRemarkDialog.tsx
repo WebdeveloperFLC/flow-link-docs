@@ -12,6 +12,7 @@ import { appendTimeline } from "@/lib/timeline";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import type { LeadStatus } from "@/lib/telecallerQueue";
 import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface Preset { id: string; label: string; category: string; }
 
@@ -86,7 +87,7 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
         await appendClientActivityLog({
           clientId,
           action: "note_added",
-          summary: "Remark added",
+          summary: "Note added",
           newValue: finalRemark,
           metadata: { outcome, leadStatus, callbackAt },
         });
@@ -97,7 +98,7 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
         if (callbackAt) { patch.status = "callback"; patch.next_call_at = callbackAt; }
         if (Object.keys(patch).length) await supabase.from("call_queue_items").update(patch as never).eq("id", queueItemId);
       }
-      toast.success("Remark saved");
+      toast.success(clientId ? "Note saved to client file" : "Note saved to lead record");
       onOpenChange(false);
       setRemark(""); setPresetId(""); setOutcome(""); setLeadStatus(""); setCallbackAt("");
       onSaved?.();
@@ -109,10 +110,22 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader><DialogTitle>Add remark</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Add note</DialogTitle>
+        </DialogHeader>
         <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {clientId ? "Scope: client file" : "Scope: lead record"}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {clientId
+                ? "Visible on the client timeline and activity log."
+                : "Stored on the lead until conversion; then copied to client history."}
+            </span>
+          </div>
           <div className="space-y-1.5">
-            <Label>Predefined remark</Label>
+            <Label>Quick note template</Label>
             <Select value={presetId} onValueChange={setPresetId}>
               <SelectTrigger><SelectValue placeholder="Pick from list (searchable)" /></SelectTrigger>
               <SelectContent>
@@ -131,7 +144,7 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
             )}
           </div>
           <div className="space-y-1.5">
-            <Label>Custom remark</Label>
+            <Label>Note details</Label>
             <Textarea value={remark} onChange={(e) => setRemark(e.target.value)} rows={3} placeholder="Add details..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -169,7 +182,7 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueIte
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={busy}>Save remark</Button>
+          <Button onClick={submit} disabled={busy}>{busy ? "Saving…" : "Save note"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

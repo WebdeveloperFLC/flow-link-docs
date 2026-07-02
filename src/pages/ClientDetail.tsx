@@ -1219,7 +1219,11 @@ const ClientDetail = () => {
             onServiceSwitched={onServiceSwitched}
           />
         )}
-        <ClientDetailTabNav badges={{ documents: serviceCase?.id ? documentMissingCount : requiredMissing.length, communications: pendingAppointmentCount }} />
+        <ClientDetailTabNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          badges={{ documents: serviceCase?.id ? documentMissingCount : requiredMissing.length, communications: pendingAppointmentCount }}
+        />
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           <TabsContent value="overview" className="mt-0 space-y-6">

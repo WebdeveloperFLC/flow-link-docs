@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { createTask, type TaskKind, type TaskPriority } from "@/lib/clientTasks";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 import {
   TASK_DUE_PRESETS,
   dueAtFromPresetHours,
@@ -33,7 +35,7 @@ export function AddTaskDialog({
   clientId: string;
   defaultKind?: TaskKind;
   prefillTitle?: string;
-  /** Application workflow: requires assignee + due date; shows department filter + SLA presets. */
+  /** Tracked task (application workflow): requires assignee + due date; Immigration dept preset. */
   applicationMode?: boolean;
   pipelineStageId?: string | null;
   onCreated?: () => void;
@@ -112,13 +114,23 @@ export function AddTaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{applicationMode ? "Assign application task" : `New ${kind}`}</DialogTitle>
+          <DialogTitle>{applicationMode ? "Tracked task" : `New ${kind}`}</DialogTitle>
           {applicationMode && (
             <DialogDescription>
-              Assign to a department member with a due date. They receive an in-app notification immediately.
+              Application-stage tasks require an assignee and due date so immigration work is never left unowned.
             </DialogDescription>
           )}
         </DialogHeader>
+        {applicationMode && (
+          <Alert className="border-primary/20 bg-primary/5">
+            <Info className="size-4" />
+            <AlertDescription className="text-sm">
+              <span className="font-medium text-foreground">Why these fields are required:</span> tracked tasks
+              auto-select the Immigration department, default to a 24-hour due date, and notify the assignee
+              immediately. Use a regular task when ownership and SLA are flexible.
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -202,7 +214,7 @@ export function AddTaskDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={submit} disabled={busy}>
-            {applicationMode ? "Assign task" : "Create"}
+            {applicationMode ? "Assign tracked task" : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

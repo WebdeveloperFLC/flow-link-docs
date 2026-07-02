@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, UserCheck, Lock, ExternalLink } from "lucide-react";
+import { Pencil, UserCheck, Lock, ExternalLink, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -36,6 +36,16 @@ import { ConvertLeadConfirmDialog } from "@/components/leads/ConvertLeadConfirmD
 import { ConversionResultSummaryDialog } from "@/components/leads/ConversionResultSummaryDialog";
 import { useLeadConversion } from "@/hooks/useLeadConversion";
 import { useProfileNameMap } from "@/hooks/useProfileNameMap";
+import { canRevertLeadConversion, revertLeadConversion } from "@/lib/revertLeadConversion";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -77,6 +87,8 @@ const LeadDetail = () => {
     registration_number: string | null;
   } | null>(null);
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
+  const [revertOpen, setRevertOpen] = useState(false);
+  const [reverting, setReverting] = useState(false);
 
   const counselorIds = useMemo(
     () => (lead?.assigned_counselor_id ? [lead.assigned_counselor_id] : []),
@@ -133,6 +145,25 @@ const LeadDetail = () => {
     await conversion.requestConversion(lead, { leadNotes: lead.notes ?? undefined });
   };
 
+  const onRevertConversion = async () => {
+    if (!lead) return;
+    setReverting(true);
+    try {
+      await revertLeadConversion({ leadId: lead.id });
+      const refreshed = await fetchLead(lead.id);
+      setLead(refreshed);
+      setConvertedClient(null);
+      setRevertOpen(false);
+      toast.success("Lead unlinked from client file (24h grace window)");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not unlink conversion");
+    } finally {
+      setReverting(false);
+    }
+  };
+
+  const showRevert = lead ? canRevertLeadConversion(lead) : false;
+
   useEffect(() => {
     if (!id) return;
     Promise.all([fetchLead(id), fetchServiceCodeMap()])
@@ -181,14 +212,22 @@ const LeadDetail = () => {
                 {conversion.converting ? "Converting…" : "Register as Client"}
               </Button>
             ) : convertedClient ? (
-              <Button variant="outline" asChild>
-                <Link to={`/clients/${convertedClient.id}`}>
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  Client file
-                  {convertedClient.application_id ? ` · ${convertedClient.application_id}` : ""}
-                  {convertedClient.registration_number ? ` · Reg ${convertedClient.registration_number}` : ""}
-                </Link>
-              </Button>
+              <>
+                <Button variant="outline" asChild>
+                  <Link to={`/clients/${convertedClient.id}`}>
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Client file
+                    {convertedClient.application_id ? ` · ${convertedClient.application_id}` : ""}
+                    {convertedClient.registration_number ? ` · Reg ${convertedClient.registration_number}` : ""}
+                  </Link>
+                </Button>
+                {showRevert && (
+                  <Button variant="outline" onClick={() => setRevertOpen(true)} disabled={reverting}>
+                    <Undo2 className="h-4 w-4 mr-1" />
+                    Unlink conversion
+                  </Button>
+                )}
+              </>
             ) : (
               <Badge variant="secondary">Converted</Badge>
             )}
@@ -394,6 +433,23 @@ const LeadDetail = () => {
         onClose={conversion.closeResult}
         onResultChange={conversion.setConversionResult}
       />
+      <AlertDialog open={revertOpen} onOpenChange={(v) => !reverting && setRevertOpen(v)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlink lead from client file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the link between this lead and the client record within the 24-hour grace window.
+              The client file is not deleted — only the conversion link is cleared so you can correct a mistaken registration.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={reverting}>Cancel</AlertDialogCancel>
+            <Button onClick={() => void onRevertConversion()} disabled={reverting}>
+              {reverting ? "Unlinking…" : "Unlink conversion"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };

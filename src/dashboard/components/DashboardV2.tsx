@@ -176,7 +176,8 @@ function KpiGrid({ items, isLoading, skeletonCount, gridClass }: { items: KpiIte
   );
 }
 
-function buildExecutiveKpis(executive: DashboardExecutiveData, mode: ExecutiveMode): KpiItem[] {
+function buildExecutiveKpis(executive: DashboardExecutiveData, mode: ExecutiveMode, windowDays: number): KpiItem[] {
+  const periodLabel = `${windowDays}d`;
   if (mode === "revenue") {
     return [
       {
@@ -186,24 +187,25 @@ function buildExecutiveKpis(executive: DashboardExecutiveData, mode: ExecutiveMo
         tone: "review",
         hint: executive.overdueInvoices ? `${executive.overdueInvoices} overdue` : undefined,
         info: KPI_TOOLTIPS.outstandingAr,
+        to: "/accounting/reports",
       },
-      { label: "Collected (30d)", value: fmtMoney(executive.revenue.collected30d), icon: DollarSign, tone: "binders", info: KPI_TOOLTIPS.collected30d },
-      { label: "Invoiced (30d)", value: fmtMoney(executive.revenue.invoiced30d), icon: Receipt, tone: "clients", info: KPI_TOOLTIPS.invoiced30d },
-      { label: "Collection Rate", value: `${executive.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review", info: KPI_TOOLTIPS.collectionRate },
+      { label: `Collected (${periodLabel})`, value: fmtMoney(executive.revenue.collected30d), icon: DollarSign, tone: "binders", to: "/accounting/reports", info: KPI_TOOLTIPS.collected30d },
+      { label: `Invoiced (${periodLabel})`, value: fmtMoney(executive.revenue.invoiced30d), icon: Receipt, tone: "clients", to: "/accounting/reports", info: KPI_TOOLTIPS.invoiced30d },
+      { label: "Collection Rate", value: `${executive.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review", to: "/accounting/reports", info: KPI_TOOLTIPS.collectionRate },
     ];
   }
 
   if (mode === "summary") {
     return [
       { label: "Enrollments", value: executive.admissions.enrollments, icon: GraduationCap, tone: "binders", to: "/clients", info: KPI_TOOLTIPS.enrollments },
-      { label: "New Apps (30d)", value: executive.admissions.newApplications30d, icon: FileText, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.newApps30d },
+      { label: `New Apps (${periodLabel})`, value: executive.admissions.newApplications30d, icon: FileText, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.newApps30d },
       {
         label: "Hot Leads",
         value: executive.hotLeads,
         icon: Flame,
         tone: "review",
         hint: `${executive.totalLeads} total`,
-        to: "/leads",
+        to: "/leads?segment=hot",
         info: KPI_TOOLTIPS.hotLeads,
       },
       { label: "Total Clients", value: executive.clients, icon: Users, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.totalClients },
@@ -212,19 +214,20 @@ function buildExecutiveKpis(executive: DashboardExecutiveData, mode: ExecutiveMo
 
   return [
     { label: "Enrollments", value: executive.admissions.enrollments, icon: GraduationCap, tone: "binders", to: "/clients", info: KPI_TOOLTIPS.enrollments },
-    { label: "New Apps (30d)", value: executive.admissions.newApplications30d, icon: FileText, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.newApps30d },
-    { label: "Study Permits", value: executive.admissions.studyPermits, icon: Stamp, tone: "ai", info: KPI_TOOLTIPS.studyPermits },
+    { label: `New Apps (${periodLabel})`, value: executive.admissions.newApplications30d, icon: FileText, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.newApps30d },
+    { label: "Study Permits", value: executive.admissions.studyPermits, icon: Stamp, tone: "ai", to: "/clients", info: KPI_TOOLTIPS.studyPermits },
     {
       label: "Outstanding AR",
       value: fmtMoney(executive.outstandingAr),
       icon: Receipt,
       tone: "review",
       hint: executive.overdueInvoices ? `${executive.overdueInvoices} overdue` : undefined,
+      to: "/accounting/reports",
       info: KPI_TOOLTIPS.outstandingAr,
     },
-    { label: "Collected (30d)", value: fmtMoney(executive.revenue.collected30d), icon: DollarSign, tone: "binders", info: KPI_TOOLTIPS.collected30d },
-    { label: "Invoiced (30d)", value: fmtMoney(executive.revenue.invoiced30d), icon: Receipt, tone: "clients", info: KPI_TOOLTIPS.invoiced30d },
-    { label: "Collection Rate", value: `${executive.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review", info: KPI_TOOLTIPS.collectionRate },
+    { label: `Collected (${periodLabel})`, value: fmtMoney(executive.revenue.collected30d), icon: DollarSign, tone: "binders", to: "/accounting/reports", info: KPI_TOOLTIPS.collected30d },
+    { label: `Invoiced (${periodLabel})`, value: fmtMoney(executive.revenue.invoiced30d), icon: Receipt, tone: "clients", to: "/accounting/reports", info: KPI_TOOLTIPS.invoiced30d },
+    { label: "Collection Rate", value: `${executive.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review", to: "/accounting/reports", info: KPI_TOOLTIPS.collectionRate },
   ];
 }
 
@@ -240,7 +243,7 @@ function buildOperationsKpis(executive: DashboardExecutiveData | undefined, oper
 
   if (mode === "counselor") {
     return [
-      { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions" },
+      { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions", to: "/clients" },
       { label: "Bookings (7d)", value: operations.upcomingBookings, icon: CalendarClock, tone: "ai", to: "/calendar" },
       handoffKpi,
     ];
@@ -249,13 +252,13 @@ function buildOperationsKpis(executive: DashboardExecutiveData | undefined, oper
   if (mode === "telecaller") {
     return [
       { label: "Pending Callbacks", value: operations.pendingCallbacks, icon: PhoneForwarded, tone: "documents", to: "/reports" },
-      { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions" },
+      { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions", to: "/clients" },
       handoffKpi,
     ];
   }
 
   return [
-    { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions" },
+    { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions", to: "/clients" },
     { label: "Bookings (7d)", value: operations.upcomingBookings, icon: CalendarClock, tone: "ai", to: "/calendar" },
     { label: "Pending Callbacks", value: operations.pendingCallbacks, icon: PhoneForwarded, tone: "documents", to: "/reports" },
     handoffKpi,
@@ -265,14 +268,14 @@ function buildOperationsKpis(executive: DashboardExecutiveData | undefined, oper
       icon: Flame,
       tone: "review",
       hint: executive ? `${executive.totalLeads} total` : undefined,
-      to: "/leads",
+      to: "/leads?segment=hot",
       info: KPI_TOOLTIPS.hotLeads,
     },
     { label: "Open Leads", value: operations.admissions.openFormalLeads, icon: Users, tone: "institutions", to: "/leads", info: KPI_TOOLTIPS.openLeads },
-    { label: "Final Programs", value: operations.admissions.finalPrograms, icon: Target, tone: "documents" },
+    { label: "Final Programs", value: operations.admissions.finalPrograms, icon: Target, tone: "documents", to: "/clients" },
     { label: "Total Clients", value: executive?.clients ?? 0, icon: Users, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.totalClients },
     ...(DASHBOARD_ASSESSMENTS_KPI
-      ? [{ label: "Assessments Done", value: operations.admissions.assessmentsCompleted, icon: ClipboardList, tone: "documents" as StatTone }]
+      ? [{ label: "Assessments Done", value: operations.admissions.assessmentsCompleted, icon: ClipboardList, tone: "documents" as StatTone, to: "/clients" }]
       : []),
   ];
 }
@@ -301,15 +304,16 @@ export function DashboardV2() {
     [roles, isAdmin, isCommissionAdmin],
   );
 
-  const executiveQuery = useDashboardExecutiveData(visibility.executive.mode);
+  const [selectedPipeline, setSelectedPipeline] = useState("");
+  const [windowDays, setWindowDays] = useState(30);
+
+  const executiveQuery = useDashboardExecutiveData(visibility.executive.mode, windowDays);
   const operationsQuery = useDashboardOperationsData(visibility.operations.enabled, visibility.operations.mode);
   const moduleQuery = useDashboardModuleData(visibility.modules.enabled);
 
   const executive = executiveQuery.data;
   const operations = operationsQuery.data;
   const moduleData = moduleQuery.data;
-
-  const [selectedPipeline, setSelectedPipeline] = useState("");
 
   const agingData = useMemo(() => (executive ? aggregateAgingBuckets(executive.aging) : []), [executive]);
 
@@ -322,7 +326,7 @@ export function DashboardV2() {
   const stageChartData = executive?.stageDist.filter((row) => row.pipeline_id === activePipeline) ?? [];
   const statusChartData = executive?.applicationsByStatus.slice(0, 10) ?? [];
 
-  const executiveKpis = executive ? buildExecutiveKpis(executive, visibility.executive.mode) : [];
+  const executiveKpis = executive ? buildExecutiveKpis(executive, visibility.executive.mode, windowDays) : [];
   const operationsKpis = operations ? buildOperationsKpis(executive, operations, visibility.operations.mode) : [];
   const upiCards = moduleData ? buildUpiCards(moduleData) : [];
 
@@ -345,11 +349,23 @@ export function DashboardV2() {
         title="Dashboard"
         description={`Welcome back${user?.email ? `, ${user.email.split("@")[0]}` : ""}. Your CRM overview for leads, clients, and tasks.`}
         actions={
-          <Button asChild variant="outline" size="sm">
-            <Link to="/reports">
-              Full reports <ArrowUpRight className="size-4 ml-1" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={String(windowDays)} onValueChange={(v) => setWindowDays(Number(v))}>
+              <SelectTrigger className="w-[130px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/reports">
+                Full reports <ArrowUpRight className="size-4 ml-1" />
+              </Link>
+            </Button>
+          </div>
         }
       />
 
