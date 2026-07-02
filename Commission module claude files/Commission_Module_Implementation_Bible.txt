@@ -1,0 +1,700 @@
+
+FUTURE LINK ERP — COMMISSION MODULE
+IMPLEMENTATION BIBLE
+Definitive Implementation Specification for AI-Assisted Build (Cursor)
+with architectural rationale for human engineers
+Field
+Detail
+Document type
+Implementation specification (build-from) — not an audit or review
+Primary consumer
+Cursor / AI-assisted implementation; secondary: human engineers
+Governs
+Commission Module build across Phases 3–6 (post AS-IS Phases 1–2B)
+Upstream inputs
+AS-IS Technical Inventory (baseline) + TO-BE Enterprise Architecture Review
+Core scope decision
+Extensible payout core built commission-first; other service lines are future phases
+Finance boundary
+Commission publishes financial events; Finance module is SSOT for GL/tax/close
+Guiding principle
+REUSE → EXTEND → CREATE
+Version / date
+v1.0 — 30 June 2026
+
+How to use this document:  Each feature specification carries the same five sub-fields — Purpose, Business Rules, Implementation Sequence, Acceptance Criteria, and Regression Requirements. Cursor should implement features strictly in the sequence given (§12), never violate a Non-Negotiable Rule (§2), and treat every “REUSE” instruction as binding: extend the cited existing symbol, do not re-create it.
+
+Contents
+0.  Purpose, Scope & How Cursor Must Use This Document
+1.  Single Source of Truth (SSOT) Principles
+2.  Non-Negotiable Business Rules
+3.  Database Standards & Conventions
+4.  Currency & FX Architecture
+5.  Finance Module Alignment (Event-Publishing Contract)
+6.  Configurable Rules Engine Specification
+7.  Core Data Model — Extensible Payee & Earning Model
+8.  Feature Specifications (Phase 3–6)
+9.  Workflow & Approval Diagrams
+10.  UI Standards
+11.  Coding Standards
+12.  Migration Sequence & Implementation Order
+13.  Acceptance Criteria & UAT Scenarios
+14.  Edge Cases & Test Cases
+15.  Performance Expectations
+16.  Rollback Strategy
+
+0. Purpose, Scope & How Cursor Must Use This Document
+This is the Implementation Bible for the Future Link ERP Commission Module. It converts the approved TO-BE architecture into a build specification. It tells Cursor exactly what to implement, in what order, and how to prove it works. Where the earlier Review said “what should change,” this document says “how to build it and when it is done.”
+0.1 Scope decision (binding)
+Future Link operates many service lines — institution recruitment, visa and immigration services, coaching, English/French/German language, consultation, government-fee handling, internal referrals, franchise branches, partner offices, and counselors. The Commission Module will not implement all of these now. Instead it builds a service-line-agnostic payout core and implements the institution-commission service line first. Every other service line is a future phase that plugs into the same core.
+Design-for-many, build-one:  The payee, earning, rule, and event models MUST be built generically enough that adding “visa service payout” or “referral payout” later is configuration + a new rule set, not a schema redesign. But only the institution-commission service line is implemented and tested in Phases 3–6. Do not build visa/coaching/referral logic yet — only leave the seams.
+0.2 Feature specification format
+Every feature in §8 uses this exact structure. Cursor must not implement a feature that is missing any field.
+Field
+What it means for the build
+Purpose
+Why this exists (business + architectural rationale for humans).
+Business Rules
+The invariants that must always hold. Violating one is a defect.
+Implementation Sequence
+Ordered steps: migrations → RPCs → events → UI → tests.
+Acceptance Criteria
+Observable, testable conditions that mean “done.”
+Regression Requirements
+Existing behavior that must still pass after the change.
+0.3 REUSE → EXTEND → CREATE decision rule
+Before writing any code for a capability, Cursor applies this test in order and records the outcome in the PR description:
+	•	REUSE — does a cited existing symbol already do this? If yes, call it. Never duplicate simulateCommission, resolveCommissionForStudent, the Phase 1 lifecycle RPCs, or the receipt state functions.
+	•	EXTEND — can an existing table/RPC/component be widened with additive columns or parameters? Prefer this over new entities.
+	•	CREATE — only when neither applies. New entities must follow §3 standards and publish events per §5.
+
+1. Single Source of Truth (SSOT) Principles
+These principles are the constitution of the module. Every later section derives from them.
+#
+Principle
+Consequence for implementation
+1
+The database is the source of truth, not the UI.
+No business rule lives only in React. Every rule that guards money exists in SQL (RPC/constraint/trigger).
+2
+All business writes go through RPCs.
+No direct .insert/.update on financial tables from the client. Preserve the existing RPC-mediated write model.
+3
+Calculation is deterministic and reproducible.
+Same inputs → same output. simulateCommission (TS) and fn_resolve_commission_rule (SQL) MUST stay mirrored.
+4
+Finance is the SSOT for accounting.
+The Commission Module never owns journals, ledgers, tax, or period close. It publishes events; Finance posts them (§5).
+5
+Immutable records are never edited, only superseded.
+Snapshots and posted receipts are append-only. Corrections are new adjustment/credit/debit events.
+6
+Every financial mutation is audited.
+Actor, timestamp, before/after, reason recorded in an append-only audit log (§8, F3.3).
+7
+Configuration lives in data, not code.
+Thresholds, rounding, FX fallbacks, and channel toggles are rows, not constants.
+8
+One earning may have many payees.
+The payee/earning-allocation model is the core seam for all future service lines and split/multi-level payouts.
+
+2. Non-Negotiable Business Rules
+These rules are inviolable. If any implementation step would break one, Cursor must stop and flag it rather than proceed. Each is testable and appears in the regression suite (§14).
+ID
+Rule
+Enforced by
+NN-1
+A posted receipt can never be edited or deleted — only voided.
+DB trigger trg_block_receipt_edit (existing) — keep.
+NN-2
+A commission snapshot is immutable once created.
+DB trigger trg_block_snapshot_update (existing) — keep.
+NN-3
+A receipt cannot post unless fully allocated.
+fn_validate_receipt_allocations + fn_post_commission_receipt (existing).
+NN-4
+FX review is mandatory when receipt currency ≠ invoice currency.
+needsFxReview + fn_approve_receipt_fx_review (existing).
+NN-5
+The Commission Module posts NO accounting journals itself.
+It emits a financial event; Finance owns the journal (§5). NEW.
+NN-6
+Every financial-state change writes an audit record.
+Audit-log insert inside each mutating RPC (§8 F3.3). NEW.
+NN-7
+Financial actions above threshold require maker-checker approval.
+Approval engine gate (§8 F4.1). NEW.
+NN-8
+Money is stored as numeric(14,2); rates as numeric(12,6).
+Column types + CHECK constraints. Existing convention — keep.
+NN-9
+base_amount is always derived, never hand-entered.
+Generated column base_amount = round(receipt_amount * exchange_rate, 2) (existing).
+NN-10
+No financial row is hard-deleted.
+Soft-delete pattern (deleted_at) on financial tables (§8 F4.4). NEW.
+NN-11
+A student/earning cannot be claimed while on active hold or ineligible.
+isReadyForClaim() + RPC guard (existing) — keep.
+NN-12
+Rule changes that affect payouts are versioned and approved before publish.
+Rules engine publish gate (§6). EXTEND existing fn_publish_commission_rules.
+
+3. Database Standards & Conventions
+All new tables and columns follow these conventions so the schema stays consistent with the existing upi_commission* namespace.
+3.1 Naming & structure
+	•	Namespace: all commission tables are prefixed upi_commission_* (or upi_* for shared masters). New payee/earning tables follow the same prefix.
+	•	Primary keys: id uuid default gen_random_uuid(). Masters keyed on a text code where an existing pattern exists (hold reasons, periods).
+	•	Money & rates: amounts numeric(14,2) with CHECK (>= 0) or (> 0) as appropriate; exchange rates numeric(12,6) CHECK (> 0).
+	•	Timestamps: created_at, updated_at timestamptz default now(); updated_at maintained by a touch_updated_at() trigger (existing pattern).
+	•	Soft delete: financial tables carry deleted_at timestamptz null; all reads filter deleted_at IS NULL (NN-10).
+	•	Currency columns: every monetary row records its own currency (e.g. earning_currency, payout_currency) — never assume a global currency (§4).
+3.2 Mandatory columns on every NEW financial table
+id            uuid       primary key default gen_random_uuid() created_at    timestamptz not null default now() created_by    uuid       not null            -- actor (auth.uid()) updated_at    timestamptz not null default now() deleted_at    timestamptz                    -- soft delete (NN-10) -- money columns: numeric(14,2); rates numeric(12,6) -- currency columns: text not null (ISO 4217)
+3.3 Integrity & audit
+	•	Every mutating RPC writes one audit row (actor, entity, entity_id, action, before jsonb, after jsonb, reason) before returning.
+	•	Foreign keys are declared and indexed. No orphan financial rows.
+	•	Immutability is enforced by trigger, not by application convention (follow trg_block_receipt_edit / trg_block_snapshot_update).
+	•	RLS: every new financial table gets a role/entity-scoped policy. Never ship an auth_all USING(true) policy (that pattern is being remediated, not repeated).
+3.4 Additive-only migrations
+Migrations are forward-only and additive. Do not drop or rename existing commission columns/tables. New capability is delivered by adding columns/tables and back-filling, so Phase 1–2B behavior is never disturbed (regression safety, §14).
+
+4. Currency & FX Architecture
+Currency is a first-class concern, not an afterthought. The module already stores per-row currencies and a generated base_amount; this section makes the full currency strategy explicit and binding so every service line inherits it.
+4.1 The five currencies
+Currency role
+Where it lives
+Meaning
+Earning currency
+earning / commission row
+Currency the commission is earned in (e.g. institution pays CAD).
+Student-payment currency
+student / source context
+Currency the student paid tuition in (may differ from earning).
+Payout / settlement currency
+payee allocation / receipt
+Currency actually remitted to the payee/partner.
+Company base currency
+config (company/entity)
+Reporting/consolidation currency for a given legal entity.
+Invoice currency
+billing profile / invoice
+Currency the institution is invoiced in (existing: billing profile).
+4.2 FX rules (binding)
+	•	Locked rates: the exchange_rate on a receipt/earning is captured and frozen at the moment of the financial event. base_amount is derived and never re-derived retroactively (NN-9).
+	•	Effective-dated history: create an fx_rate_history table (effective_from, from_ccy, to_ccy, rate, source). Replace the hardcoded CAD=61.7 fallback with a looked-up, dated rate. CREATE.
+	•	FX gain/loss: when settlement currency differs from earning currency, the realized difference is computed and published to Finance as an FX gain/loss event — the Commission Module does not book it itself (§5).
+	•	FX review gate: mandatory when receipt currency ≠ invoice currency (NN-4) — reuse needsFxReview and fn_approve_receipt_fx_review.
+	•	No silent conversion: conversions always record from_ccy, to_ccy, rate, and rate source. A converted amount without a recorded rate is a defect.
+Reuse note:  The receipts table already implements the locked-rate pattern correctly: exchange_rate numeric(12,6) plus base_amount GENERATED ALWAYS AS (round(receipt_amount * exchange_rate, 2)) STORED. New earning/payout tables MUST copy this exact pattern rather than invent a new one.
+
+5. Finance Module Alignment (Event-Publishing Contract)
+This section is the single most important architectural boundary in the build. The Commission Module MUST NOT implement its own accounting. Finance is the Single Source of Truth for journals, ledgers, tax, reconciliation, and period close. Commission publishes financial events; Finance consumes and posts them.
+5.1 Responsibility split (binding)
+Concern
+Owned by Commission
+Owned by Finance (SSOT)
+Commission calculation & eligibility
+Yes
+No
+Claims, invoices, receipts, allocations
+Yes
+No
+Payee earning & payout allocation
+Yes
+No
+Emitting financial events
+Yes
+Consumes
+General ledger / journals
+No
+Yes
+Tax / GST / VAT computation & filing
+No
+Yes
+Reconciliation to ledger
+Provides data
+Yes
+Period close & lock
+No
+Yes
+Revenue recognition
+No
+Yes
+5.2 The financial-event contract
+The reserved accounting_journal_id column is the seam. Instead of populating a journal directly, the posting RPC writes a commission_financial_events row (append-only) describing what happened, and Finance links back its journal id. The Commission Module treats accounting_journal_id as written-by-Finance, read-only to Commission.
+commission_financial_events (append-only)   id, event_type, occurred_at, entity_type, entity_id,   amount numeric(14,2), currency text, base_amount numeric(14,2), base_currency text,   payee_id, institution_id, legal_entity_id,   status: pending | posted | rejected,   finance_journal_id uuid,   -- set by Finance, not by Commission   created_by, created_at   event_type ∈ { receipt_posted, receipt_voided, commission_earned,                adjustment_raised, credit_note_issued, debit_note_issued,                write_off_approved, fx_gain_loss, clawback_applied }
+5.3 Event lifecycle
+	•	A mutating Commission RPC (e.g. fn_post_commission_receipt) inserts a commission_financial_event with status=pending inside the same transaction.
+	•	Finance consumes pending events, posts journals, sets finance_journal_id and status=posted, and (only Finance) writes back accounting_journal_id on the source row.
+	•	If Finance rejects (status=rejected), Commission surfaces it as a reconciliation exception — it does not retry-post itself.
+	•	Commission never reads or writes journal/ledger tables. It reads only its own events + the finance_journal_id echoed back.
+Why this matters:  This keeps Commission and Finance independently evolvable and prevents two modules from disagreeing about the books. It also means every other future service line (visa, coaching, referral) posts to Finance through the SAME event contract — one integration, many producers.
+
+6. Configurable Rules Engine Specification
+Elevate the existing commission rules into a first-class configurable rules engine so payout logic changes without code changes. This EXTENDS the current rule model (upi_commission_rules, resolveCommissionForStudent, fn_resolve_commission_rule); it does not replace it.
+6.1 Required capabilities
+Capability
+Status today
+Bible requirement
+Effective dates
+Partial
+Every rule/rule-set has effective_from/to; resolution filters by the earning date.
+Priorities / precedence
+Existing
+Keep the Promotion→Intake→Program→Category→Campus→Country→Default precedence; expose precedence_rank.
+Versioning
+Partial
+Rule-sets are versioned; publishing creates an immutable version (EXTEND fn_publish_commission_rules).
+Testing
+Partial
+Unit-tested resolver exists; add a rule-set test harness fixture per published version.
+Simulation
+Existing
+REUSE simulateCommission for what-if previews against a draft version.
+Rollback
+Missing
+A published version can be superseded by re-activating a prior version (no data edit).
+Approval
+Missing
+Publishing a version requires maker-checker approval (§8 F4.1).
+Audit
+Missing
+Publish/rollback writes an audit record (who, when, from→to version).
+6.2 Design constraints
+	•	The rules engine is service-line-agnostic: a rule references an earning context (attributes) and produces a payout, regardless of whether the earning is an institution commission or a future visa-service fee.
+	•	Rules are data. No payout condition is hardcoded in TS/SQL beyond the generic operators already supported (=, !=, >, <, in) plus effective-date and scope matching.
+	•	Draft → (approve) → published → (supersede) is the only lifecycle. Published versions are immutable (consistent with NN-2 philosophy).
+	•	Resolution remains deterministic and mirrored between TS (preview) and SQL (authoritative).
+
+7. Core Data Model — Extensible Payee & Earning Model
+This is the central EXTEND of the entire program and the seam that unlocks split, shared, multi-level, agent, counselor, branch, and future service-line payouts. Build it in Phase 5, but design every earlier phase to be compatible with it.
+7.1 Concept
+Today a upi_commission_students row conflates “the earning” and “the single payee.” The Bible separates them: an earning (money generated by a student/service event) can be allocated to one or many payees via payee-allocation rows.
+commission_payees            -- WHO gets paid (institution, aggregator, agent,                                 counselor, branch, referral source, …)   id, payee_type, display_name, legal_entity_id, default_currency, …   commission_earnings          -- WHAT was earned (generalizes the student row)   id, source_type, source_id (e.g. student), earning_currency,   gross_amount, matched_rule_version_id, snapshot_id, …   commission_earning_allocations   -- HOW it splits across payees   id, earning_id, payee_id, allocation_type (percent|fixed),   allocation_value, payout_amount, payout_currency, level (for multi-level), …
+7.2 Migration strategy (non-disruptive)
+	•	Introduce the three tables additively. Do NOT drop upi_commission_students.
+	•	Back-fill: for every existing student row, create one earning + one 100%-to-institution allocation. This preserves current behavior exactly (a single-payee earning is just the degenerate case).
+	•	Point new reads at the earning/allocation model; keep the legacy student view synced via the existing trg_sync_ucs_legacy_status pattern so Phase 1–2B UI keeps working.
+	•	Only after parity is proven (regression suite green) do split/multi-level features activate.
+Compatibility guarantee:  Because a single-payee earning is the degenerate case of the general model, the institution-commission service line behaves identically before and after this EXTEND. That is the acceptance bar for Phase 5’s first milestone (§13).
+
+8. Feature Specifications (Phase 3–6)
+Each feature below is self-contained and follows the §0.2 format. Implement in the §12 order. IDs map to the roadmap phase (F3.x = Phase 3, etc.).
+8.1 Phase 3 — Financial Backbone & Controls
+F3.1  Financial-event publishing (Commission → Finance)
+Purpose
+Establish the SSOT boundary: Commission emits financial events; Finance posts journals. Rationale: keeps books consistent and lets all future service lines share one Finance integration (§5).
+Business Rules
+	•	NN-5: Commission posts no journals itself.
+	•	Every money-moving RPC emits exactly one event in-transaction.
+	•	accounting_journal_id is written only by Finance; Commission treats it read-only.
+Implementation Sequence
+	•	Migration: create commission_financial_events (append-only, §5.2 shape).
+	•	EXTEND fn_post_commission_receipt / void to insert a pending event.
+	•	Add a read API/view for reconciliation status.
+	•	No UI change required; expose event status on the receipt detail.
+Acceptance Criteria
+	•	Posting a receipt creates one pending financial event with correct amount/currency/base_amount.
+	•	Voiding creates a compensating event.
+	•	accounting_journal_id remains NULL until Finance writes it (matches UAT 2A-18 until Finance is live).
+Regression Requirements
+	•	Existing post/void/allocation behavior unchanged (Phase 2A UAT still passes).
+	•	trg_block_receipt_edit still blocks edits on posted/voided receipts.
+
+F3.2  Adjustments, credit notes & debit notes
+Purpose
+Provide immutable-safe corrections. Rationale: snapshots/receipts are immutable (NN-1/2), so corrections must be additive posting events, never edits.
+Business Rules
+	•	A correction never edits the original row; it creates a linked adjustment/credit/debit record.
+	•	Each correction emits its own financial event (§5).
+	•	Credit/debit notes reference the invoice they correct.
+Implementation Sequence
+	•	Migration: commission_adjustments, commission_credit_notes, commission_debit_notes.
+	•	RPCs to raise each, with approval gate hook (F4.1).
+	•	Emit financial events; link to original entity.
+	•	UI: correction action on invoice/receipt detail (post-approval).
+Acceptance Criteria
+	•	Raising a credit note leaves the original invoice unchanged and produces a linked note + event.
+	•	Net outstanding reflects the correction.
+Regression Requirements
+	•	Original invoice/receipt totals and immutability unchanged.
+
+F3.3  Append-only audit log
+Purpose
+Defensible who-changed-what trail on financial mutations. Rationale: NN-6; required for audit/compliance and the §9 audit reports.
+Business Rules
+	•	Every mutating financial RPC writes one audit row before returning.
+	•	Audit rows capture actor, entity, action, before/after (jsonb), reason.
+	•	Audit log is append-only (no update/delete) — enforce by trigger.
+Implementation Sequence
+	•	Migration: commission_audit_log + block-update/delete trigger.
+	•	Add audit insert to each mutating RPC (receipt, invoice, adjustment, hold, transfer, rule publish).
+	•	UI: read-only audit timeline on entity detail.
+Acceptance Criteria
+	•	Every financial state change produces exactly one audit row with correct before/after.
+	•	Audit rows cannot be updated or deleted.
+Regression Requirements
+	•	Mutating RPCs return same results; only an audit row is added.
+
+F3.4  RLS remediation on financial tables
+Purpose
+Close the top security gap. Rationale: existing auth_all USING(true) policies let any authenticated user mutate financial rows (Review §8, Critical).
+Business Rules
+	•	Replace auth_all policies on upi_commission_students / _invoices / _invoice_line_items with role- and entity-scoped policies.
+	•	No new table ships with USING(true).
+Implementation Sequence
+	•	Migration: drop permissive policies; add scoped policies (commission admin / accounting / entity).
+	•	Verify counselor confidential view still hides amounts.
+Acceptance Criteria
+	•	A non-privileged authenticated user can no longer read/write financial rows directly.
+	•	Existing privileged workflows unaffected.
+Regression Requirements
+	•	All Phase 1–2B UATs pass under the tightened policies.
+
+8.2 Phase 4 — Approvals, Audit & Automation
+F4.1  Workflow & approval engine (maker-checker)
+Purpose
+Gate financial actions with multi-eyes approval. Rationale: NN-7; segregation of duties is impossible without it.
+Business Rules
+	•	Actions above a configurable threshold require a different approver than the maker.
+	•	Approval state is persisted, not implicit.
+	•	Approve/reject writes an audit row (F3.3).
+Implementation Sequence
+	•	Migration: commission_workflows, commission_approvals, commission_approval_steps.
+	•	RPC gate: post-receipt, generate-invoice, write-off, adjustment, rule-publish route through approval.
+	•	UI: approval queue + approve/reject with reason.
+Acceptance Criteria
+	•	A maker cannot approve their own above-threshold action.
+	•	Below-threshold actions proceed without approval (configurable).
+Regression Requirements
+	•	Below-threshold flows behave as today; no silent gating of existing low-risk actions.
+
+F4.2  Activate CRM/Admission auto student-row (earning) creation
+Purpose
+Remove the manual data-entry bottleneck. Rationale: clientIntegrationBridge.ts is designed but dormant (BRIDGE_ENABLED=false); auto-creation is the top scale bottleneck.
+Business Rules
+	•	An admission/CRM event (e.g. application_submitted, deposit paid) creates a pending earning.
+	•	De-duplicate against the existing eligibility evaluator — do NOT introduce a third eligibility code path.
+Implementation Sequence
+	•	Consolidate eligibility logic: the dormant bridge checker must call the SAME rule as fn_evaluate_eligibility (remove the duplicate).
+	•	Set BRIDGE_ENABLED true behind a config flag; wire event listeners.
+	•	Emit suggestions; create pending earnings; never auto-claim.
+Acceptance Criteria
+	•	A qualifying admission event creates exactly one pending earning.
+	•	Eligibility outcome matches the single canonical evaluator.
+Regression Requirements
+	•	Manual creation still works; no double-creation when both manual and event paths fire.
+
+F4.3  Notifications & email dispatch
+Purpose
+Drive approval, dunning, dispute, and renewal alerts. Rationale: workflows in F4.1 depend on notifying approvers; no commission notifications exist today.
+Business Rules
+	•	Every notification is recorded in a notification log (auditable).
+	•	Templates are configuration, not code.
+Implementation Sequence
+	•	Migration: commission_notifications + log.
+	•	Hook approval-pending, claim-overdue, dispute-raised, agreement-renewal events.
+	•	Dispatch via the platform notification/email service.
+Acceptance Criteria
+	•	An approval-pending action notifies an eligible approver and logs it.
+Regression Requirements
+	•	No workflow blocks if notification dispatch fails (log + continue).
+
+F4.4  Soft deletes on financial tables
+Purpose
+Recoverability + audit. Rationale: NN-10; financial rows must never be physically destroyed.
+Business Rules
+	•	deleted_at set instead of DELETE; all reads filter deleted_at IS NULL.
+	•	Immutable rows (posted receipts, snapshots) still cannot be soft-deleted either.
+Implementation Sequence
+	•	Migration: add deleted_at to financial tables; update read views/RPCs to filter.
+	•	Replace any hard-delete paths with soft-delete RPCs.
+Acceptance Criteria
+	•	“Deleting” a draft hides it from lists but retains the row + audit trail.
+Regression Requirements
+	•	Existing lists show identical active rows (deleted_at IS NULL default).
+
+8.3 Phase 5 — Multi-Entity & Multi-Channel
+F5.1  Payee + earning-allocation model
+Purpose
+The core EXTEND (§7). Unlocks split, shared, multi-level, agent, counselor, branch, and future service-line payouts.
+Business Rules
+	•	One earning → one or many payee allocations; allocations sum to 100% (percent) or to gross (fixed).
+	•	Single-payee institution commission is the degenerate case and must behave identically to today.
+	•	Each allocation records its own payout currency.
+Implementation Sequence
+	•	Migrations: commission_payees, commission_earnings, commission_earning_allocations (§7.1).
+	•	Back-fill one earning + one 100% institution allocation per existing student row.
+	•	Sync legacy student view; prove parity before enabling splits.
+	•	Then enable split/multi-level allocation UI + RPCs.
+Acceptance Criteria
+	•	Post back-fill, all Phase 1–2B numbers are byte-identical (parity milestone).
+	•	A two-payee split produces two allocations summing to the earning.
+Regression Requirements
+	•	Full Phase 1–2B UAT suite passes unchanged after back-fill.
+
+F5.2  Org-unit / legal-entity / company dimensions
+Purpose
+Enable multi-company, multi-brand, multi-branch, multi-country scale. Rationale: Review §11 identifies these as the true enterprise-scale blockers.
+Business Rules
+	•	Every earning/allocation carries legal_entity_id and (optional) org_unit_id / brand_id.
+	•	Base currency and tax jurisdiction derive from the legal entity.
+Implementation Sequence
+	•	Migrations: org-unit / legal-entity / brand dimension tables + FKs.
+	•	Back-fill existing rows to the default entity.
+	•	Scope reads/reports by dimension.
+Acceptance Criteria
+	•	Commission can be reported and settled per legal entity and currency.
+Regression Requirements
+	•	Single-entity deployments behave exactly as today (default entity).
+
+F5.3  Tax/GST engine + effective-dated FX + clawback
+Purpose
+Complete the financial correctness set. Rationale: tax computation, dated FX, and clawback are all Missing/partial (Review §5, §4).
+Business Rules
+	•	Tax computed per jurisdiction from config; results published to Finance (Finance files).
+	•	fx_rate_history replaces the hardcoded fallback; conversions record the dated rate used.
+	•	Clawback uses the reserved clawback_amount/clawback_status columns and emits a clawback event.
+Implementation Sequence
+	•	Migrations: tax config, fx_rate_history; wire clawback RPC to existing columns.
+	•	Compute tax on invoice/receipt; emit events; never book locally.
+Acceptance Criteria
+	•	A GST-applicable invoice shows tax; a clawback reduces payout and emits an event.
+Regression Requirements
+	•	Zero-tax jurisdictions and CAD-only flows behave as today.
+
+8.4 Phase 6 — Reporting, Recognition & Close
+F6.1  Reporting mart + core report suite
+Purpose
+Deliver enterprise reporting without straining transactional tables. Rationale: no materialized views/reports exist today (Review §9).
+Business Rules
+	•	Reports read from materialized views / aggregate tables, refreshed on a schedule — not from live transactional joins at scale.
+	•	Every report respects RLS and entity scope.
+Implementation Sequence
+	•	Create materialized views: aging, outstanding, pipeline, settlement, profitability.
+	•	Scheduled refresh job.
+	•	UI: report screens with drill-down + export (reuse claimsExport patterns).
+Acceptance Criteria
+	•	Aging and pipeline reports match transactional truth at a chosen cut date.
+Regression Requirements
+	•	Existing KPI strips continue to function; reports are additive.
+
+F6.2  Reconciliation, period close & revenue recognition (Finance-led)
+Purpose
+Close the finance-operations loop. Rationale: three-way reconciliation, period close, and recognition are Missing (Review §5).
+Business Rules
+	•	Commission PROVIDES data; Finance OWNS close, lock, and recognition (§5).
+	•	Once a period is closed by Finance, Commission blocks back-dated financial events into it.
+Implementation Sequence
+	•	Expose reconciliation data (invoice–receipt–event) to Finance.
+	•	Honor a Finance period-lock signal; reject events into closed periods (surface as exception).
+Acceptance Criteria
+	•	An event dated into a Finance-closed period is rejected with a clear reason.
+Regression Requirements
+	•	Open-period posting behaves as before.
+
+9. Workflow & Approval Diagrams
+Text-form state and approval flows. Cursor implements these as RPC-enforced transitions; UI reflects state but never bypasses it.
+9.1 Earning → payout lifecycle (target, post-Phase 5)
+source event (admission/CRM)  →  pending earning         ↓ (calculate: simulateCommission / fn_resolve_commission_rule)    calculated earning  →  eligibility evaluate (single canonical evaluator)         ↓ eligible                        ↓ ineligible/hold    allocate to payee(s)                    (blocked / deferred)         ↓    claim cycle  →  [APPROVAL]  →  submitted  →  invoice         ↓    receipt draft → ready → [APPROVAL] → posted → financial_event(pending)         ↓                                              ↓      voided                                    Finance posts journal
+9.2 Receipt state machine (existing — preserve exactly)
+draft  ─(mark ready)→  ready  ─(post)→  posted   [immutable]   │                      │   └─────(void)─────────┘            posted ─(void)→ voided [immutable]   canEditReceipt: draft only   ·   canPost: ready (or draft that can mark ready) canVoid: draft or posted     ·   FX review required if receipt ccy ≠ invoice ccy
+9.3 Approval flow (new — F4.1)
+maker initiates financial action    │    ├─ amount ≤ threshold  →  execute + audit    └─ amount > threshold  →  approval pending (notify approver)                                  │                     approver ≠ maker  →  approve  →  execute + audit                                  └─  reject   →  halted + audit + notify
+9.4 Correction flow (new — F3.2, immutable-safe)
+original invoice/receipt  [immutable]    │  needs correction    └→ raise credit/debit note or adjustment  (links to original)         → [APPROVAL]  →  financial_event(pending)  →  Finance posts         (original row is NEVER edited)
+
+10. UI Standards
+	•	Reuse the institution-tab workspace: new capabilities appear as tabs/panels within the existing InstitutionDetailPage pattern; do not fork a parallel workspace.
+	•	Reuse shared primitives: shadcn/ui (Card, Table, Dialog, Badge, Tabs). No bespoke component when a primitive exists.
+	•	State reflects DB, never leads it: UI shows RPC-computed state; it must not compute or persist business state locally.
+	•	Every financial action shows its guard: immutability, approval-required, and FX-review states are visible (as the receipt panel already states “posted receipts are immutable”).
+	•	Confidentiality: amount-hiding for non-privileged roles (counselor view) is preserved on every new screen.
+	•	Decompose the ClaimsPanel monolith: when touching it, extract sub-components without behavior change (CONSOLIDATE, not rewrite).
+	•	Drill-down: the global dashboard gains navigation into institution workflows (fixes the known UX gap).
+
+11. Coding Standards
+Area
+Standard
+Write path
+Business writes via .rpc() only. No client-side .insert/.update/.delete on financial tables.
+Types
+Regenerate Supabase types after each migration. No as any on financial tables (fixes Phase 2B gap).
+Determinism
+Keep TS calculators and SQL RPCs mirrored; a change to one requires the same change to the other + a parity test.
+Single source of a rule
+A business rule exists once in SQL (authoritative). TS may mirror for preview but must not diverge.
+Errors
+RPCs raise typed, actionable errors; the UI surfaces reason strings (never a bare failure).
+Idempotency
+Event emission and auto-creation are idempotent (guard against double-fire).
+Tests
+Each feature ships unit tests (logic) + at least one E2E workflow test (§14).
+Migrations
+Forward-only, additive, one concern per migration, named by concern + timestamp (existing convention).
+No hardcoded finance
+No hardcoded FX (e.g. 61.7), tax rates, or thresholds — all from config tables.
+PR discipline
+Every PR states the REUSE/EXTEND/CREATE decision and lists regression tests run.
+
+12. Migration Sequence & Implementation Order
+Build strictly in this order. Each step depends on the prior. Do not start a step until the previous step’s acceptance criteria and regression suite are green.
+Step
+Feature
+Gate before proceeding
+1
+F3.4 RLS remediation
+Security-critical; do first so all later work runs under correct policies.
+2
+F3.3 Audit log
+Everything after must be auditable, so build the log next.
+3
+F3.1 Financial-event publishing
+Establishes the Finance boundary before any new financial action exists.
+4
+F3.2 Adjustments / credit / debit notes
+Immutable-safe corrections depend on events (step 3).
+5
+F4.1 Approval engine
+Gate financial actions before enabling automation.
+6
+F4.3 Notifications
+Approvals need to notify; build alongside/after F4.1.
+7
+F4.4 Soft deletes
+Recoverability before higher-volume automation.
+8
+F4.2 CRM/Admission auto-creation
+Only after approvals + audit + soft delete exist (removes bottleneck safely).
+9
+F5.1 Payee/earning model
+The core EXTEND; back-fill + parity milestone is the hardest gate.
+10
+F5.2 Org/entity dimensions
+Depends on the earning/allocation rows to scope.
+11
+F5.3 Tax + FX history + clawback
+Financial correctness on top of the entity model.
+12
+F6.1 Reporting mart
+Report on the completed model.
+13
+F6.2 Reconciliation / close / recognition
+Finance-led; last, needs everything above.
+The single hardest gate:  Step 9 (payee/earning back-fill) must reproduce Phase 1–2B numbers exactly before any split/multi-level feature turns on. Treat parity as a hard stop — if numbers differ, do not proceed.
+
+13. Acceptance Criteria & UAT Scenarios
+Phase-level exit criteria plus representative UAT scenarios. A phase is not done until every scenario passes and the full prior-phase regression suite is green.
+13.1 Phase exit criteria
+Phase
+Exit criteria
+3
+Every financial action emits an event; audit log covers all mutations; RLS tightened; corrections work without editing originals; all Phase 1–2B UATs still pass.
+4
+Above-threshold actions require a different approver; auto-creation produces single canonical-eligibility earnings; notifications logged; no hard deletes remain.
+5
+Back-fill parity proven (identical numbers); a split earning allocates to multiple payees; commission reportable per legal entity/currency.
+6
+Aging/pipeline/settlement reports reconcile to transactional truth; events into a Finance-closed period are rejected.
+13.2 Representative UAT scenarios
+ID
+Scenario
+Expected
+UAT-3A
+Post a CAD receipt fully allocated.
+Receipt posted; one pending financial event; accounting_journal_id NULL until Finance posts.
+UAT-3B
+Attempt to edit a posted receipt.
+Blocked by trigger; audit shows the attempt is not persisted as an edit.
+UAT-3C
+Issue a credit note against an invoice.
+Invoice unchanged; linked credit note + event; outstanding reduced.
+UAT-4A
+Maker posts above-threshold receipt.
+Enters approval-pending; maker cannot self-approve; approver approves; audited.
+UAT-4B
+Admission event fires for a qualifying student.
+One pending earning created; eligibility equals canonical evaluator; no duplicate on manual entry.
+UAT-5A
+Back-fill legacy student rows.
+Every prior claim/invoice/receipt total is identical to pre-migration.
+UAT-5B
+Split an earning 70/30 across two payees.
+Two allocations summing to gross; each in its payout currency.
+UAT-6A
+Run aging report at a cut date.
+Buckets reconcile to outstanding at that date.
+UAT-6B
+Post an event into a Finance-closed period.
+Rejected with a clear reason; surfaced as a reconciliation exception.
+
+14. Edge Cases & Test Cases
+Cursor must implement a test for each. These are the failure modes most likely to corrupt money or audit integrity.
+Edge case
+Required handling
+Multi-currency receipt vs invoice
+FX review mandatory (NN-4); base_amount derived; dated rate recorded.
+Partial payment then overpayment
+Outstanding tracks correctly; overpayment handled as credit-on-account, not silent absorption.
+Void of an already-reconciled receipt
+Compensating event emitted; Finance notified; original remains immutable.
+Duplicate admission event
+Idempotent — second event does not create a second earning.
+Rule change mid-claim-cycle
+Earnings already snapshotted keep their matched rule version; new earnings use the new published version.
+Allocation that doesn’t sum to gross
+Rejected by constraint/RPC; cannot post.
+Clawback exceeding paid amount
+Rejected or capped per config; emits a clawback event; never produces a negative payout silently.
+Back-dated event into closed period
+Rejected (F6.2); surfaced as exception.
+Concurrent posting of the same receipt
+Serialized; second attempt sees posted state and no-ops (idempotent).
+Approver equals maker
+Blocked (NN-7).
+FX rate missing for a date
+Fail explicitly with reason; never fall back to a hardcoded constant.
+Soft-deleted row reappearing in a report
+Excluded (deleted_at IS NULL filter on all reads).
+
+15. Performance Expectations
+Concern
+Expectation
+Scale target
+10,000+ students, 500+ institutions, multiple entities/currencies (Review §11).
+List/detail reads
+Paginated; indexed on cycle, institution, status, lifecycle, period (existing idx_ucs_* pattern extended to new tables).
+Reporting
+Served from materialized views/aggregate tables (F6.1), not live transactional joins at scale.
+Recalculation
+Batchable; long-running recalcs move off the synchronous request path (background job) as volume grows.
+Event emission
+In-transaction, cheap (single insert); Finance consumption is asynchronous.
+Audit log
+Append-only insert; indexed by entity + time; never on the read hot-path of transactional screens.
+Migrations/back-fill
+Chunked and resumable; the F5.1 back-fill must run without locking the module for users.
+
+16. Rollback Strategy
+Because migrations are additive and behavior changes are gated, each step is independently reversible with minimal blast radius.
+Layer
+Rollback approach
+Feature flags
+Every new behavior (auto-creation, approvals, splits) ships behind a config flag. Rollback = flip the flag off; data model stays.
+Additive migrations
+New tables/columns are additive; disabling a feature leaves them dormant and harmless (mirrors the existing dormant-bridge pattern).
+Event publishing
+If Finance integration must be paused, events queue as pending; nothing double-posts because Commission never posts journals itself.
+Payee/earning back-fill
+Legacy student rows are retained and kept in sync; revert = read from the legacy view until parity is re-confirmed.
+Approvals
+Threshold can be raised to effectively disable gating without code change.
+RLS
+Policies are versioned migrations; a scoped policy can be replaced by a prior migration if an access regression appears (then fixed forward — never revert to auth_all).
+Data safety
+Soft deletes + append-only audit mean no rollback destroys financial history.
+
+Rollback principle:  No rollback ever edits or deletes an immutable or financial record. Reversal is always additive (compensating event, flag flip, or superseding version) — the same discipline the module already applies to receipts and snapshots.
+
+End of Implementation Bible v1.0. This document, together with the AS-IS Technical Inventory and the TO-BE Enterprise Architecture Review, constitutes the complete build package for the Commission Module’s enterprise phases. Implement in §12 order; never violate §2; treat Finance as SSOT per §5.

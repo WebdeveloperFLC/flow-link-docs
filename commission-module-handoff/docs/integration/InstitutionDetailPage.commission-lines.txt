@@ -1,0 +1,50 @@
+18:import { AgreementsPanel } from "../components/AgreementsPanel";
+19:import { CommissionsPanel } from "../components/CommissionsPanel";
+20:import { ClaimsPanel } from "../components/ClaimsPanel";
+21:import { CommissionReceiptsPanel } from "../components/CommissionReceiptsPanel";
+22:import { BillingProfilesPanel } from "../components/BillingProfilesPanel";
+23:import { EligibilityConfigPanel } from "../components/EligibilityConfigPanel";
+108:  const { isCommissionAdmin, isAccountingMember } = useAuth();
+110:  const canSeeCommissions = isCommissionAdmin || isAccountingMember;
+116:        Only Commission admins or Accounting admins can view {label.toLowerCase()}.
+117:        Ask an admin to grant the <b>Commission admin</b> role or add you to Accounting users.
+122:    | "program_sheet" | "agreement" | "commission_sheet" | "brochure"
+130:    if (/commission|payout|tariff/.test(n)) return "commission_sheet";
+147:    { value: "commission_sheet", label: "Commission sheet" },
+156:    (o) => canSeeCommissions || !isConfidentialDocKind(o.value),
+248:    if (!canSeeCommissions && (CONFIDENTIAL_SOURCE_TYPES as readonly string[]).includes(newSourceType)) {
+249:      return toast.error("Commission admin access required for this source type");
+253:      "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+434:    if (!canSeeCommissions && isConfidentialDocKind(docKind)) {
+435:      return toast.error("Commission admin access required for this document type");
+510:      body: { institution_id: id, channel: campaignChannel, context_flags: { programs: true, promotions: true, commission: true }, tone: "professional" },
+588:            {canSeeCommissions && <TabsTrigger value="billing">Billing</TabsTrigger>}
+589:            {canSeeCommissions && <TabsTrigger value="eligibility">Eligibility</TabsTrigger>}
+590:            {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
+591:            {canSeeCommissions && <TabsTrigger value="commissions">Commissions</TabsTrigger>}
+592:            {canSeeCommissions && <TabsTrigger value="claims">Claims</TabsTrigger>}
+593:            {canSeeCommissions && <TabsTrigger value="receipts">Receipts</TabsTrigger>}
+658:                  "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+666:                  { value: "commission_sheet",   label: "Commission sheet (from Knowledge Sources)" },
+678:                  (o) => canSeeCommissions || !(CONFIDENTIAL_SOURCE_TYPES as readonly string[]).includes(o.value),
+687:                  commission_sheet:   "commission_sheet",
+694:                ).filter((d: any) => canSeeCommissions || !isConfidentialDocKind(d.metadata?.doc_kind));
+881:              {suggestedKind && suggestedKind !== docKind && (!isConfidentialDocKind(suggestedKind) || canSeeCommissions) && (
+903:                    if (guess && guess !== docKind && (!isConfidentialDocKind(guess) || canSeeCommissions)) {
+921:              {canSeeCommissions ? (
+931:                  {confidentialDocs.length} confidential document{confidentialDocs.length === 1 ? "" : "s"} hidden — commission admin access required.
+941:          <TabsContent value="billing">
+942:            {canSeeCommissions ? <BillingProfilesPanel institutionId={id} /> : <LockedPanel label="Billing" />}
+945:          <TabsContent value="eligibility">
+946:            {canSeeCommissions ? <EligibilityConfigPanel institutionId={id} /> : <LockedPanel label="Eligibility" />}
+949:          <TabsContent value="agreements">
+950:            {canSeeCommissions ? <AgreementsPanel institutionId={id} /> : <LockedPanel label="Agreements" />}
+953:          <TabsContent value="commissions">
+954:            {canSeeCommissions ? <CommissionsPanel institutionId={id} /> : <LockedPanel label="Commissions" />}
+957:          <TabsContent value="claims">
+958:            {canSeeCommissions ? (
+959:              <ClaimsPanel
+963:                  setActiveTab("receipts");
+971:          <TabsContent value="receipts">
+972:            {canSeeCommissions ? (
+973:              <CommissionReceiptsPanel

@@ -1,0 +1,650 @@
+
+COMMISSION MODULE
+TO-BE Enterprise Architecture Review
+Chief Enterprise ERP Architect — Findings & Roadmap
+Implementation strategy input for the next development phase
+Field
+Detail
+Reviewer role
+Chief Enterprise ERP Architect (advisory)
+System
+Future Link ERP — Commission Module
+AS-IS baseline
+Commission Module Technical Inventory & Implementation Baseline (30 Jun 2026)
+Review type
+Architecture review only — no code, no redesign of working components
+Guiding principle
+REUSE → EXTEND → CREATE
+Review date
+30 June 2026
+
+Scope discipline:  This document is the TO-BE review. It does not rewrite or summarize the inventory. Every finding is tagged Existing / Partial / Missing / Recommendation and is grounded in evidence already recorded in the AS-IS baseline. No implementation detail is invented.
+
+Contents
+1.  Executive Assessment
+2.  Missing Enterprise Business Scenarios
+3.  Business Rule Gap Analysis
+4.  Database Gap Analysis
+5.  Financial Architecture Review
+6.  Workflow Review
+7.  Integration Review
+8.  Security Review
+9.  Reporting Review
+10.  Technical Debt Review (Prioritized)
+11.  Scalability Review
+12.  Future ERP Roadmap
+13.  Implementation Priority Matrix
+14.  Final Enterprise Verdict
+Legend used throughout — Existing (green) · Partial (amber) · Missing (red) · Recommendation (blue).
+
+1. Executive Assessment
+The Commission Module is a well-built vertical slice of a commission engine: it models the institution partner-commission lifecycle cleanly, enforces immutability where it matters (snapshots, posted receipts), and routes all writes through SECURITY DEFINER RPCs. Judged as a feature it is strong. Judged as an enterprise ERP financial module, it is early — it lacks the accounting spine, approval fabric, audit trail, and multi-entity scaffolding that ERP-grade commission engines require. The scores below reflect that dual reality.
+
+Architecture
+ 
+ 
+
+74/100
+Database Design
+ 
+ 
+
+72/100
+Scalability
+ 
+ 
+
+58/100
+Maintainability
+ 
+ 
+
+66/100
+Business Coverage
+ 
+ 
+
+55/100
+ERP Readiness
+ 
+ 
+
+48/100
+Financial Controls
+ 
+ 
+
+42/100
+Security
+ 
+ 
+
+52/100
+Auditability
+ 
+ 
+
+45/100
+Extensibility
+ 
+ 
+
+70/100
+
+Weighted overall ERP-readiness: ~58/100 — solid module, not yet an enterprise engine.
+1.1 Score rationale
+Dimension
+Score
+Why
+Architecture
+74
+Clean RPC-centric write path, pure calculation libraries mirrored by SQL, immutability triggers. Loses points for no service/API tier, no eventing, and a ~1200-line ClaimsPanel monolith.
+Database Design
+72
+Coherent 3-axis lifecycle model, snapshots, allocation tables, sensible indexes. Loses points for no audit/history tables, no approval/workflow tables, permissive early RLS, and Phase 2B tables missing from generated types.
+Scalability
+58
+Supabase/Postgres scales, but no background jobs, no materialized views, synchronous operator-driven recalculation, and single-currency consolidation (INR view) cap throughput and multi-entity growth.
+Maintainability
+66
+Strong test seeds on core logic and clear file structure, but duplicated eligibility logic (TS + SQL + dormant bridge), a monolithic ClaimsPanel, and doc drift raise change cost.
+Business Coverage
+55
+Institution + aggregator commissions are real; referral, agent, branch, franchise, counselor, team, split, and multi-level commissions are absent (see §2).
+ERP Readiness
+48
+No GL posting, no period close, no approvals, no revenue recognition, no credit/debit notes. These are table-stakes for an ERP financial module and are all Missing.
+Financial Controls
+42
+accounting_journal_id exists but is never populated; no maker-checker approvals; no reconciliation to a ledger; clawback columns without logic. Controls are the weakest dimension.
+Security
+52
+RBAC roles and confidential RLS exist, but early tables carry auth_all USING(true) policies, there are no soft deletes, no field-level audit, and no approval-level security.
+Auditability
+45
+Snapshots and updated_at triggers give partial history, but there is no dedicated audit-log table, no who-changed-what trail on financial rows, and no immutable event log.
+Extensibility
+70
+Good seams: rule scoping, partnership routes, billing profiles, aggregator scope, reserved clawback/journal columns, AI extraction. Extending is feasible; the seams are real.
+
+Headline:  The module is a strong Phase-1–2B feature that has not yet crossed into ERP territory. The gap is concentrated in three areas — accounting/financial controls, approvals & auditability, and multi-entity scalability. Everything in this review orbits those three.
+
+2. Missing Enterprise Business Scenarios
+Commission types an international education company typically needs, mapped against the AS-IS baseline. Status reflects only what the inventory evidences.
+Scenario
+Status
+Recommendation
+Institution commissions
+Existing
+Keep as the reference implementation for all other channels.
+Aggregator commissions
+Existing
+Regenerate types; harden as the template for parent-child orgs.
+Bonus commissions
+Partial
+Modeled as rule_type=bonus; extend rules before building a separate engine.
+Incentive campaigns
+Partial
+Adjacent staff-incentives module exists; define partner-facing campaign entity.
+Seasonal promotions
+Partial
+scope_promotion exists on rules; add time-boxed promotion master.
+Clawbacks
+Partial
+clawback_amount/status columns exist; clawback logic is Missing — build the engine.
+Retroactive adjustments
+Missing
+Create adjustment entity + re-snapshot path; today snapshots are immutable with no correction flow.
+Referral commissions
+Missing
+New domain — referral source, payout, and payee tables (PH subtitle text only).
+Agent commissions
+Missing
+No agent tables/routes; extend partnership-route model to agent payees.
+Branch commissions
+Missing
+Needs org-unit dimension on students/claims; not modeled.
+Franchise commissions
+Missing
+Needs legal-entity + revenue-share model; not modeled.
+Counselor commissions
+Missing
+client_id link exists; counselor payee + rule scope is Missing.
+Team commissions
+Missing
+Staff incentives are separate; partner-side team payout not modeled.
+Marketing partner commissions
+Missing
+No marketing-partner payee entity.
+Split commissions
+Missing
+Single payee per student row; needs allocation-split across payees.
+Shared commissions
+Missing
+Same as split; requires many-payees-per-earning model.
+Multi-level commissions
+Missing
+No hierarchy/override model; needs payee tree + override rates.
+Parent-child org commissions
+Missing
+Aggregator is a first step; generalize to org hierarchy.
+
+Architectural read: the single-payee, single-earning student row is the central constraint. Split, shared, multi-level, and most channel scenarios all require the same underlying change — a payee dimension and a commission-earning → payee-allocation model. Solve that once and the majority of missing scenarios become configuration, not new subsystems. This is the highest-leverage EXTEND in the review.
+
+3. Business Rule Gap Analysis
+Reviewing the business rules documented in the inventory (rule resolution, calculation, eligibility, claim readiness, transfer, receipt state machine, currency) against enterprise expectations.
+Gap area
+Status
+Finding & recommendation
+Missing validation
+Partial
+Rule conflict detection exists (detectRuleConflicts); missing cross-entity validation (agreement date vs claim period, currency consistency, duplicate-payee guards).
+Missing workflows
+Missing
+No claim-approval, invoice-approval, receipt-approval, or adjustment workflows — operator actions commit directly.
+Missing approval processes
+Missing
+No maker-checker anywhere. Financial actions (post receipt, generate invoice, write-off) need multi-eyes approval in an ERP.
+Missing automation
+Missing
+No background jobs, no auto-recalc on data change, no auto student-row creation (CRM bridge dormant, BRIDGE_ENABLED=false).
+Missing exception handling
+Partial
+Hold/transfer cover some exceptions; missing disputed-claim, partial-eligibility, and FX-exception queues beyond the receipt FX review.
+Missing reconciliation
+Partial
+Batch reconciliation view exists (2B); missing invoice-to-receipt-to-GL three-way reconciliation and period reconciliation.
+Missing accounting integration
+Missing
+accounting_journal_id is never populated (UAT 2A-18, 2B-14). No journal, no ledger posting.
+Missing audit logging
+Missing
+Snapshots + updated_at give partial trails; no dedicated audit log capturing actor, before/after, reason on financial mutations.
+Missing compliance controls
+Missing
+No tax/GST computation, no segregation-of-duties enforcement, no retention/immutability policy beyond snapshots and posted receipts.
+
+4. Database Gap Analysis
+No redesign proposed. The existing schema is coherent. The items below are additive entities an enterprise commission engine would require, each with the enterprise reason it exists.
+Missing element
+Why an ERP needs it
+Payee / earning-allocation tables
+Enables split, shared, multi-level, agent, counselor, and branch commissions without duplicating the student row model (see §2).
+Accounting journal + journal-line tables
+The GL spine. accounting_journal_id already reserves the FK; the target tables do not exist. Required for ledger posting and revenue recognition.
+Adjustment / credit-note / debit-note tables
+Correct posted financials without violating snapshot/receipt immutability. Documented out-of-scope today.
+Audit-log table (append-only)
+Actor, timestamp, before/after, reason on every financial mutation. Non-negotiable for SOX-style auditability.
+History / version tables
+Point-in-time reconstruction of commissions, rules, and agreements beyond agreement_versions and snapshots.
+Approval / approval-step tables
+Persist maker-checker state for claims, invoices, receipts, write-offs, and adjustments.
+Workflow / workflow-state tables
+Model states and transitions declaratively instead of encoding them in component logic.
+Notification / notification-log tables
+Drive and record renewal, overdue-claim, dispute, and approval-pending alerts (no commission-specific notifications today).
+Configuration / feature-flag tables
+Externalize thresholds, rounding, FX fallbacks (currently hardcoded, e.g. CAD=61.7), and channel toggles.
+Reporting / aggregate tables (or materialized views)
+Precomputed aging, pipeline, settlement, and profitability marts — no materialized views exist today.
+Tax / GST configuration tables
+Jurisdictional tax rules for invoices and receipts across countries and entities.
+Org-unit / legal-entity dimension tables
+Multi-company, multi-brand, multi-branch scoping across all commission rows.
+FX-rate history table
+Auditable, effective-dated exchange rates rather than a single rate_to_inr with a hardcoded fallback.
+Dispute / exception-queue tables
+First-class disputed claims and exceptions beyond hold reasons and the 2B batch dispute.
+
+Note on immutability:  Snapshots and posted receipts are correctly immutable. That is a strength to preserve — but it makes adjustment, credit-note, and reversal tables mandatory, because corrections must be additive posting events, never edits. The missing tables above are the counterpart to the immutability the module already enforces.
+
+5. Financial Architecture Review
+The module has a strong front-of-house (claims, invoices, receipts, allocations) but no back-of-house (ledger, period, recognition). This is the single largest enterprise gap.
+Financial process
+Status
+Finding
+Receipts
+Existing
+Full lifecycle draft→ready→posted→void; immutable when posted.
+Invoices
+Existing
+Generated from claims with line items; auto-numbering is a placeholder (FLC-YYYY-AUTO-*).
+Claims
+Existing
+Cycle-based submit; no approval gate.
+Payment allocation
+Existing
+Receipt→invoice and receipt→student allocation tables and RPCs.
+Partial payments
+Existing
+payment_status partially_paid; amount_outstanding maintained.
+FX
+Partial
+exchange_rate + generated base_amount + receipt FX review; no effective-dated rate history.
+Outstanding balances
+Existing
+Tracked per student/invoice; surfaced in Claims KPIs.
+Overpayments
+Missing
+No overpayment/credit-on-account handling.
+Write-offs
+Partial
+payment_status written_off exists; no controlled write-off workflow/approval.
+Adjustments
+Missing
+No adjustment entity; immutable snapshots have no correction path.
+Credit notes
+Missing
+Documented out of scope; required for invoice correction.
+Debit notes
+Missing
+Not modeled.
+Taxes / GST / VAT
+Missing
+Billing profile stores a GST number but no tax computation on invoices/receipts.
+Accounting / ledger
+Missing
+No GL. accounting_journal_id reserved but never populated.
+Journal posting
+Missing
+No journal creation on receipt post (UAT 2A-18, 2B-14).
+Reconciliation
+Partial
+2B batch reconciliation only; no GL/period reconciliation.
+Period closing
+Missing
+No accounting period or close/lock mechanism.
+Revenue recognition
+Missing
+No recognition schedule/deferral despite year-1-tuition commission timing.
+
+Sequenced fix: (1) accounting journal + lines, (2) journal posting on receipt post, (3) adjustments + credit/debit notes for immutable corrections, (4) tax computation, (5) period close & GL reconciliation, (6) revenue recognition. This ordering respects the existing immutability model and the reserved accounting_journal_id seam.
+
+6. Workflow Review
+Each workflow evaluated for missing states, approvals, automation, bottlenecks, and manual work. The dominant theme: workflows are correct but operator-driven and un-gated.
+Workflow
+Missing / bottleneck
+Eligibility
+custom trigger unimplemented; no auto-evaluation on milestone change (manual recalc).
+Student row creation
+Fully manual/import; CRM/admission auto-create dormant — primary data-entry bottleneck.
+Claim submission
+No approval state between submitted and institution validation; no maker-checker.
+Invoice generation
+No approval gate; placeholder numbering; no dunning/reminder automation.
+Receipt posting
+Correct state machine, but no approval before posting a financial record.
+Transfer
+Good state coverage (5 outcomes); under_review has no assignee/queue.
+Hold / release
+Works; no auto-release on condition clearing; no escalation.
+Aggregator reconciliation
+Dispute states exist; resolution lacks approval + audit trail.
+Write-off
+Status exists; no controlled workflow, threshold, or approval.
+Adjustment / correction
+No workflow at all — blocked by immutability with no additive-correction path.
+
+Cross-cutting: the module has no declarative workflow/approval layer. Every enterprise workflow gap above is a symptom of the same missing capability — a workflow + approval engine (see §4 and the roadmap). Recommend introducing it once and routing claims, invoices, receipts, write-offs, and adjustments through it.
+
+7. Integration Review
+Integration surface assessed against the cross-module dependency map in the inventory.
+Integration
+Status
+Finding
+Institution
+Existing
+Host of tabs, routes, aggregators, documents. Solid.
+Student / CRM
+Partial
+client_id FK + counselor status view; no auto-linking (UI “Coming soon”).
+Lead
+Missing
+No direct link from lead to commission earning.
+Admissions
+Missing
+Planned bridge only; application_submitted does not create student rows.
+Documents
+Existing
+commission_sheet/agreement kinds feed AI extraction.
+Accounting
+Missing
+Reserved FK only; no journal/ledger integration.
+Performance Hub
+Partial
+Read-only INR overlay; no bidirectional sync.
+Notifications
+Missing
+No commission-specific notifications.
+Email
+Missing
+No invoice/claim/dispute email dispatch from the module.
+WhatsApp
+Missing
+No channel integration.
+Automation
+Missing
+No jobs/queues/event listeners (bridge dormant).
+AI
+Existing
+upi-extract-commission-sheet, upi-analyze-agreement edge functions.
+Reporting
+Partial
+KPI strips only; no dedicated reporting integration (see §9).
+
+Priority integrations: (1) Accounting (financial correctness), (2) CRM/Admissions auto-creation (removes the manual bottleneck by activating the already-designed but dormant bridge), (3) Notifications/Email (approval and dunning workflows depend on it).
+
+8. Security Review
+Control
+Status
+Finding & recommendation
+Permissions (RBAC)
+Existing
+isCommissionAdmin, isAccountingMember, useModulePermission gate routes/tabs.
+RLS
+Partial
+Confidential tables use can_view_upi_confidential; early tables carry auth_all USING(true) — tighten to role/entity scope.
+Role design
+Partial
+Admin/accounting roles exist; no approver, auditor, or read-only-finance roles for segregation of duties.
+Approval security
+Missing
+No approval layer, therefore no approval-level authorization.
+Financial security
+Partial
+Posted-receipt immutability trigger is strong; no maker-checker, no threshold controls on financial actions.
+Audit trails
+Missing
+No dedicated audit log; partial history via snapshots/updated_at only.
+Sensitive data
+Partial
+Confidential flag hides amounts from counselors; no field-level encryption/masking policy.
+Deletion protection
+Partial
+Immutability triggers protect snapshots/posted receipts; other rows can be hard-deleted.
+Soft deletes
+Missing
+No soft-delete pattern — required for financial recoverability and audit.
+Versioning
+Partial
+Agreement versions + snapshots; no general versioning on rules/commissions.
+Compliance
+Missing
+No SoD enforcement, retention policy, or regulatory tax/audit posture.
+
+Highest-risk item:  The auth_all USING(true) policies on upi_commission_students, upi_commission_invoices, and upi_invoice_line_items give any authenticated user full read/write on financial rows. This is the top security remediation and should be treated as Critical (see §10).
+
+9. Reporting Review
+AS-IS: the module exposes KPI strips (Claims tab, Performance Hub) and read-only lists. There are no dedicated report or analytics screens (Reports route Not Found; no materialized views). The reports below are what an enterprise commission engine should provide.
+Report class
+Reports (Missing unless noted)
+Operational
+Claim pipeline, pending claims, blocked/held students, overdue claims, recalculation exceptions.
+Financial
+Commission P&L, invoiced-vs-received, outstanding AR, write-offs, adjustments, journal register.
+Executive
+Commission earned/paid by period, margin trend, top institutions/partners, KPI dashboard with drill-down.
+Institution
+Per-institution statement, agreement compliance, claim cycle history.
+Counselor
+Counselor-attributed commissions (needs counselor payee model, §2).
+Branch / Country
+Commission by branch/country (needs org-unit + country dimensions).
+Partner / Aggregator
+Aggregator settlement statement, remittance reconciliation (partial KPIs exist in workbench).
+Audit
+Change log, approval history, immutability exceptions, actor activity.
+Tax
+GST/VAT summary by jurisdiction and period (needs tax engine).
+Forecast
+Expected commission pipeline by eligibility stage and intake.
+Profitability
+Net commission margin per institution/channel.
+Aging
+Outstanding commission AR aging buckets.
+Outstanding
+Live outstanding by institution/partner/period.
+Commission pipeline
+Funnel from calculated → eligible → claimed → invoiced → received.
+Settlement
+Aggregator/partner settlement and dispute status.
+Cash flow
+Expected vs actual commission inflows by period.
+
+Enabler: most of these require a reporting layer — materialized views or aggregate tables (§4) — plus the org-unit and payee dimensions. Recommend a reporting mart rather than querying transactional tables directly at enterprise volume.
+
+10. Technical Debt Review (Prioritized)
+The inventory's technical-debt register re-prioritized by enterprise risk. Priority reflects financial/security impact, not effort.
+Item
+Priority
+Why this priority
+auth_all USING(true) RLS on financial tables
+CRITICAL
+Any authenticated user can mutate commission/invoice rows. Direct financial + data-integrity risk.
+No accounting journal / GL posting
+CRITICAL
+Financials cannot be trusted or reconciled without a ledger. Blocks ERP status.
+No audit log on financial mutations
+CRITICAL
+No defensible trail of who changed what — fails audit/compliance.
+No approval / maker-checker
+HIGH
+Financial actions commit unilaterally; SoD is impossible.
+Clawback columns without logic
+HIGH
+Reserved fields imply capability that does not exist; revenue-recovery gap.
+Phase 2B tables missing from types (as any)
+HIGH
+Type-unsafe access to financial tables risks silent errors.
+Duplicate eligibility logic (TS + SQL + bridge)
+HIGH
+Divergence risk on a core business rule.
+Manual student-row creation (bridge dormant)
+HIGH
+Scale bottleneck and data-quality risk at volume.
+ClaimsPanel monolith (~1200 lines)
+MEDIUM
+Maintainability drag; CONSOLIDATE without behavior change.
+Invoice auto-numbering placeholder
+MEDIUM
+Enterprise invoices need guaranteed, gapless numbering.
+No soft deletes
+MEDIUM
+Financial recoverability and audit expectation.
+No commission-specific notifications
+MEDIUM
+Blocks approval + dunning workflows.
+Global dashboard has no drill-down
+MEDIUM
+UX gap; not financial risk.
+No E2E tests for workflows
+MEDIUM
+Regression risk as the module grows.
+AI help doc / doc drift
+LOW
+Documentation hygiene.
+Aggregator statement “placeholder upload” label
+LOW
+Cosmetic.
+
+11. Scalability Review
+Can the current architecture support enterprise scale? Postgres/Supabase provides the raw capacity; the constraints are architectural, not infrastructural.
+Dimension
+Supported?
+Reasoning
+10,000 students
+Yes, with care
+Indexed student table handles volume; synchronous recalc and list screens need pagination/reporting mart.
+100 institutions
+Yes
+Institution-scoped model handles this comfortably today.
+500 institutions
+Conditional
+Global dashboard/reporting will strain without materialized views/aggregate marts.
+10 countries
+Partial
+scope_country exists; per-country tax, eligibility, and reporting dimensions are Missing.
+Multiple companies
+No
+No legal-entity/company dimension across commission rows.
+Multiple currencies
+Partial
+Multi-currency columns + FX review exist; consolidation limited to a single INR view with hardcoded fallback.
+Multiple business units
+No
+No org-unit/branch dimension.
+Multiple brands
+No
+No brand dimension.
+Multiple legal entities
+No
+Billing profiles are per-institution; no first-class legal-entity model driving GL and tax.
+
+Scalability verdict:  Scales well within a single company / few countries. The blockers to true enterprise scale are the missing org-unit / legal-entity / company dimensions and the absence of a reporting mart — not database capacity. These are additive (EXTEND), not a rebuild.
+
+12. Future ERP Roadmap
+Phases 1–2B are delivered (AS-IS). The roadmap below sequences the enterprise work, ordered so each phase unblocks the next and respects REUSE → EXTEND → CREATE.
+Phase 3 — Financial Backbone & Controls
+Objective: Make commission financials trustworthy and auditable. This is the ERP-readiness gate.
+Features: Accounting journal + journal-line tables; journal posting on receipt post (populate the reserved accounting_journal_id); audit-log table; tighten auth_all RLS; adjustments + credit/debit notes for immutable corrections.
+Dependencies: Reserved accounting_journal_id seam; existing receipt/posting RPCs; accounting module entity_id.
+Risk: HIGH — touches money and immutability; must not break posted-receipt guarantees.
+Estimated complexity: High
+
+Phase 4 — Approvals, Audit & Automation
+Objective: Add the workflow fabric and remove the manual bottleneck.
+Features: Declarative workflow + approval tables; maker-checker on claims/invoices/receipts/write-offs; activate the dormant CRM/admission bridge for auto student-row creation; notification + email dispatch; soft deletes.
+Dependencies: Phase 3 audit log; existing clientIntegrationBridge design; notification infrastructure.
+Risk: MEDIUM — mostly additive; bridge activation needs careful eligibility-logic de-duplication.
+Estimated complexity: Medium–High
+
+Phase 5 — Multi-Entity & Multi-Channel
+Objective: Unlock enterprise scale and the missing commission scenarios.
+Features: Payee + earning-allocation model (splits, shared, multi-level, agent, counselor, branch); org-unit / legal-entity / company / brand dimensions; per-country tax/GST engine; effective-dated FX history; clawback engine.
+Dependencies: Phase 3 GL (payees post to accounts); Phase 4 approvals (channel payouts need approval).
+Risk: HIGH — broad schema surface; the payee model is central and must generalize cleanly.
+Estimated complexity: High
+
+Phase 6 — Reporting, Recognition & Close
+Objective: Enterprise finance operations and analytics.
+Features: Reporting mart (materialized views / aggregate tables); the §9 report suite; revenue recognition schedules; accounting period close & lock; three-way (invoice–receipt–GL) and period reconciliation; forecast/pipeline analytics.
+Dependencies: Phases 3–5 (needs GL, dimensions, payees to report on).
+Risk: MEDIUM — read-heavy and additive; main risk is reporting drift if source models are still changing.
+Estimated complexity: Medium
+
+
+13. Implementation Priority Matrix
+Every missing/partial feature classified by enterprise necessity. MoSCoW, weighted toward financial correctness and controls.
+13.1 Must Have
+	•	Accounting journal + GL posting on receipt post (populate accounting_journal_id).
+	•	Audit-log table on all financial mutations.
+	•	Tighten auth_all RLS on financial tables (security-critical).
+	•	Approval / maker-checker on financial actions.
+	•	Adjustments + credit/debit notes (immutable-safe corrections).
+	•	Tax / GST computation on invoices and receipts.
+13.2 Should Have
+	•	Payee + earning-allocation model (splits, shared, multi-level, agent, counselor).
+	•	Activate CRM/admission bridge for auto student-row creation.
+	•	Org-unit / legal-entity / company dimensions (multi-entity).
+	•	Notification + email dispatch; soft deletes.
+	•	Clawback engine (columns already reserved).
+	•	Reporting mart + core report suite (aging, outstanding, pipeline, settlement).
+13.3 Nice to Have
+	•	Global dashboard drill-down and filters.
+	•	ClaimsPanel decomposition (CONSOLIDATE).
+	•	Regenerate Phase 2B Supabase types (remove as any).
+	•	WhatsApp channel integration.
+	•	Executive analytics / profitability dashboards.
+13.4 Future
+	•	Franchise / brand revenue-share commissions.
+	•	Revenue recognition schedules and period close.
+	•	Forecast engine and cash-flow projection.
+	•	Full bidirectional Performance Hub sync.
+
+14. Final Enterprise Verdict
+Can this become an enterprise-grade commission engine?
+Yes — by extension, not replacement. The core — rule engine, lifecycle RPCs, snapshot/receipt immutability, allocation model, and institution workspace — is a sound foundation that already exhibits enterprise instincts (immutability, RPC-mediated writes, confidential RLS, reserved seams for journal and clawback). The missing 40-odd points of ERP-readiness are concentrated in additive layers: accounting, approvals/audit, multi-entity dimensions, and reporting. None require rebuilding what works.
+Biggest strengths
+	•	Immutable snapshots and posted receipts — correct financial instinct.
+	•	RPC-centric write path with a mirrored pure calculation library.
+	•	Clean, scoped rule-resolution and eligibility model with tests.
+	•	Real extension seams: partnership routes, billing profiles, aggregator scope, reserved accounting_journal_id and clawback columns, AI extraction.
+Biggest weaknesses
+	•	No accounting/GL spine — financials cannot be posted, reconciled, or recognized.
+	•	No approval, audit-log, or segregation-of-duties layer.
+	•	Permissive auth_all RLS on financial tables (security-critical).
+	•	Single-payee student row blocks split/shared/multi-level/channel commissions.
+	•	No multi-company / legal-entity / org-unit dimensions for true enterprise scale.
+What must never be changed
+	•	Snapshot and posted-receipt immutability (triggers) — the integrity backbone.
+	•	The RPC-mediated write model (no direct table mutation for business writes).
+	•	The mirrored TS/SQL calculation contract for the rule engine.
+What should definitely be reused
+REUSE: commissionEngine + rule resolver, Phase 1 lifecycle RPCs, the receipt allocation model, billing-profile and partnership-route patterns, and the institution-tab workspace structure.
+What should be extended
+EXTEND: commission rules (bonus/promotion → campaigns), the student row into a payee/earning-allocation model, aggregator scope into a general org hierarchy, currency handling into effective-dated FX + tax, and the reserved accounting_journal_id into live journal posting.
+What should be newly created
+CREATE: the accounting journal/ledger, audit log, approval/workflow tables, adjustment/credit/debit notes, notification layer, org-unit/legal-entity dimensions, and the reporting mart with the §9 report suite.
+
+One-line verdict:  A strong commission feature with genuine enterprise bones. Deliver the financial backbone (Phase 3) and the approval/audit fabric (Phase 4) first — those two phases convert it from a good module into a defensible enterprise commission engine.
