@@ -1,0 +1,13 @@
+88:import AggregatorWorkbenchPage from "./institutions/pages/AggregatorWorkbenchPage";
+93:import { CommissionsProtectedRoute } from "./institutions/components/CommissionsProtectedRoute";
+101:import CommissionsPage from "./pages/CommissionsPage";
+125:import PerformanceCommissions from "@/pages/PerformanceCommissions";
+514:                      <CommissionsProtectedRoute>
+515:                        <AggregatorWorkbenchPage />
+516:                      </CommissionsProtectedRoute>
+535:                    path="/commissions"
+537:                      <CommissionsProtectedRoute>
+538:                        <CommissionsPage />
+539:                      </CommissionsProtectedRoute>
+681:                    path="/performance/commissions"
+684:                        <PerformanceCommissions />

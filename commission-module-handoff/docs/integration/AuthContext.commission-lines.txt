@@ -1,0 +1,8 @@
+38:  isCommissionAdmin: boolean;
+226:    ? roleIncludesAdmin(roles) || roles.includes("commission_admin")
+252:          "commission_admin",
+256:    canEdit: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
+257:    canUpload: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
+259:    isCommissionAdmin:
+260:      roles.includes("commission_admin") || roles.includes("manager") || effectiveIsAccountingAdmin,
+296:      isCommissionAdmin: false,

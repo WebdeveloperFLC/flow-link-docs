@@ -1,0 +1,1059 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Upload, RefreshCw, Sparkles, Plus, ArrowUp, Trash2, BookOpen, Send, MessageSquarePlus } from "lucide-react";
+import type { UpiInstitution, UpiSource } from "../types/upi";
+import { RunCampaignDialog } from "../components/RunCampaignDialog";
+import { AgreementsPanel } from "../components/AgreementsPanel";
+import { CommissionsPanel } from "../components/CommissionsPanel";
+import { ClaimsPanel } from "../components/ClaimsPanel";
+import { CommissionReceiptsPanel } from "../components/CommissionReceiptsPanel";
+import { BillingProfilesPanel } from "../components/BillingProfilesPanel";
+import { EligibilityConfigPanel } from "../components/EligibilityConfigPanel";
+import { AiReviewPanel } from "../components/AiReviewPanel";
+import { OverviewPanel } from "../components/OverviewPanel";
+import { PromotionsPanel } from "../components/PromotionsPanel";
+import { CampaignsPanel } from "../components/CampaignsPanel";
+import { AiSuggestionsPanel } from "../components/AiSuggestionsPanel";
+import { useAuth } from "@/contexts/AuthContext";
+import { useModulePermission } from "@/hooks/useModulePermission";
+import { Lock } from "lucide-react";
+import { ALLOW_TEST_DELETIONS, CONFIDENTIAL_SOURCE_TYPES, isConfidentialDocKind } from "../config";
+import { isSupabaseNotFound } from "../lib/scope";
+import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
+import { InstitutionLogo } from "../components/InstitutionLogo";
+import { PartnershipRoutesPanel } from "../components/PartnershipRoutesPanel";
+import { InstitutionFeeSchedulePanel } from "../components/InstitutionFeeSchedulePanel";
+import { InstitutionContactsPanel } from "../components/InstitutionContactsPanel";
+import { InstitutionGovernancePanel } from "../components/InstitutionGovernancePanel";
+import { InstitutionProfileOverview } from "../components/InstitutionProfileOverview";
+import { InstitutionOfficialResourcesSection } from "../components/InstitutionOfficialResourcesSection";
+import { CurrentOpportunitiesPanel } from "../components/CurrentOpportunitiesPanel";
+import { KnowledgeInboxArchitecturePanel, knowledgeInboxStatusBadge } from "../components/KnowledgeInboxArchitecturePanel";
+import { InstitutionStatusBadge } from "../components/InstitutionStatusBadge";
+import {
+  buildAiExtractCompletedPatch,
+  buildProcessingPolicyPatch,
+  canSyncNow,
+  defaultProcessingPolicy,
+  readProcessingPolicy,
+  shouldIncludeInSyncAll,
+} from "@/institutions/lib/sourceProcessingPolicy";
+import {
+  SourceProcessingPolicyBadge,
+  SourceProcessingPolicySelect,
+} from "@/institutions/components/SourceProcessingPolicyControl";
+import type { ProcessingPolicy } from "@/institutions/types/knowledgeSources";
+import { PROCESSING_POLICIES, PROCESSING_POLICY_HINTS, PROCESSING_POLICY_LABELS } from "@/institutions/types/knowledgeSources";
+import type { CatalogStatus } from "../types/partnership";
+
+// Sanitize a filename for use as a Supabase Storage object key.
+// Storage path must round-trip through createSignedUrl, which percent-encodes the
+// key. Literal `%`, spaces, accented chars, parentheses etc. cause double-encoding
+// and a 400 from storage (preview iframe shows a broken-image icon).
+function safeStorageName(name: string): string {
+  const lastDot = name.lastIndexOf(".");
+  const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+  const ext = lastDot > 0 ? name.slice(lastDot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const cleanBase = base
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .slice(0, 120) || "file";
+  return ext ? `${cleanBase}.${ext}` : cleanBase;
+}
+
+export default function InstitutionDetailPage() {
+  const { id = "" } = useParams();
+  if (!id) {
+    return (
+      <AppLayout>
+        <div className="p-8 text-sm text-muted-foreground">No institution selected.</div>
+      </AppLayout>
+    );
+  }
+  const [inst, setInst] = useState<UpiInstitution | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [sources, setSources] = useState<UpiSource[]>([]);
+  const [docs, setDocs] = useState<any[]>([]);
+  const [newSourceUrl, setNewSourceUrl] = useState("");
+  const [newSourceType, setNewSourceType] = useState("website_url");
+  const [newSourceDocId, setNewSourceDocId] = useState<string>("");
+  const [newSourcePolicy, setNewSourcePolicy] = useState<ProcessingPolicy | "">("");
+  const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
+  const [syncingSourceIds, setSyncingSourceIds] = useState<Set<string>>(new Set());
+  const [sourceErrors, setSourceErrors] = useState<Record<string, string | null>>({});
+  const urlInputRef = useRef<HTMLInputElement>(null);
+  const [campaignChannel, setCampaignChannel] = useState("email");
+  const [generated, setGenerated] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [receiptInvoiceId, setReceiptInvoiceId] = useState<string | null>(null);
+  const { isCommissionAdmin, isAccountingMember } = useAuth();
+  const { canEdit } = useModulePermission("institutions");
+  const canSeeCommissions = isCommissionAdmin || isAccountingMember;
+  const LockedPanel = ({ label }: { label: string }) => (
+    <Card className="p-10 max-w-xl mx-auto text-center space-y-2">
+      <Lock className="size-6 mx-auto text-muted-foreground" />
+      <div className="text-base font-medium">{label} are restricted</div>
+      <div className="text-sm text-muted-foreground">
+        Only Commission admins or Accounting admins can view {label.toLowerCase()}.
+        Ask an admin to grant the <b>Commission admin</b> role or add you to Accounting users.
+      </div>
+    </Card>
+  );
+  type DocKind =
+    | "program_sheet" | "agreement" | "commission_sheet" | "brochure"
+    | "promotion_campaign" | "invoice_template" | "renewal_document" | "other";
+  const [docKind, setDocKind] = useState<DocKind | "">("");
+  const [suggestedKind, setSuggestedKind] = useState<DocKind | null>(null);
+
+  const guessKindFromName = (name: string): DocKind | null => {
+    const n = name.toLowerCase();
+    if (/agreement|contract|\braa\b|\bmoa\b|\bmou\b/.test(n)) return "agreement";
+    if (/commission|payout|tariff/.test(n)) return "commission_sheet";
+    if (/invoice/.test(n)) return "invoice_template";
+    if (/renewal/.test(n)) return "renewal_document";
+    if (/program|course|prospect/.test(n)) return "program_sheet";
+    if (/brochure|flyer/.test(n)) return "brochure";
+    if (/promo|campaign|offer/.test(n)) return "promotion_campaign";
+    return null;
+  };
+  const [askPrompt, setAskPrompt] = useState("");
+  const [askAnswer, setAskAnswer] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [campaignPromo, setCampaignPromo] = useState<{ id: string; title: string } | null>(null);
+  const [reviewDoc, setReviewDoc] = useState<any | null>(null);
+
+  const DOC_KIND_OPTIONS: { value: DocKind | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"; label: string }[] = [
+    { value: "program_sheet", label: "Program sheet (extract programs)" },
+    { value: "agreement", label: "Agreement" },
+    { value: "commission_sheet", label: "Commission sheet" },
+    { value: "brochure", label: "Brochure" },
+    { value: "promotion_campaign", label: "Promotion / Campaign" },
+    { value: "invoice_template", label: "Invoice template" },
+    { value: "renewal_document", label: "Renewal document" },
+    { value: "other", label: "Other" },
+  ];
+
+  const visibleDocKindOptions = DOC_KIND_OPTIONS.filter(
+    (o) => canSeeCommissions || !isConfidentialDocKind(o.value),
+  );
+
+  const catalogDocs = useMemo(
+    () => docs.filter((d) => !isConfidentialDocKind(d.metadata?.doc_kind)),
+    [docs],
+  );
+  const confidentialDocs = useMemo(
+    () => docs.filter((d) => isConfidentialDocKind(d.metadata?.doc_kind)),
+    [docs],
+  );
+
+  const renderDocRow = (d: any) => (
+    <Card key={d.id} className="p-4 flex items-center gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">{d.file_name}</div>
+        <div className="text-xs text-muted-foreground">
+          {d.metadata?.doc_kind ?? d.mime_type ?? "?"} · confidence {d.confidence_score}% ·{" "}
+          {knowledgeInboxStatusBadge(d)}
+        </div>
+      </div>
+      <Badge variant={d.pipeline_status === "approved" ? "default" : d.pipeline_status === "failed" ? "destructive" : "secondary"}>
+        {knowledgeInboxStatusBadge(d)}
+      </Badge>
+      <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
+      {canEdit && d.file_path && /%/.test(d.file_path) && (
+        <Button size="sm" variant="outline" onClick={() => repairDocPath(d)} disabled={busy}>
+          Fix preview
+        </Button>
+      )}
+      {canEdit && ALLOW_TEST_DELETIONS && (
+        <Button size="sm" variant="ghost" onClick={() => deleteDoc(d)} className="text-destructive hover:text-destructive">
+          <Trash2 className="size-4" />
+        </Button>
+      )}
+    </Card>
+  );
+
+  const load = async () => {
+    setLoading(true);
+    setNotFound(false);
+    setLoadError(null);
+    const [i, s, d, j] = await Promise.all([
+      supabase.from("upi_institutions").select("*").eq("id", id).single(),
+      supabase.from("upi_institution_sources").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
+      supabase.from("upi_uploaded_documents").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
+      supabase.from("upi_sync_jobs").select("source_id,status,error_summary").eq("institution_id", id).order("started_at", { ascending: false }).limit(100),
+    ]);
+    if (i.error || !i.data) {
+      setInst(null);
+      const missing = !i.data || isSupabaseNotFound(i.error);
+      setNotFound(missing);
+      if (i.error && !missing) {
+        setLoadError(i.error.message);
+        toast.error(i.error.message);
+      }
+      setLoading(false);
+      return;
+    }
+    setInst(i.data as UpiInstitution);
+    const secondary = [s, d, j];
+    const firstSecondaryError = secondary.find((r) => r.error)?.error;
+    if (firstSecondaryError) toast.error(firstSecondaryError.message);
+    setSources((s.data ?? []) as UpiSource[]);
+    setDocs(d.data ?? []);
+    const latestErrors: Record<string, string | null> = {};
+    (j.data ?? []).forEach((row: any) => {
+      if (row.source_id && latestErrors[row.source_id] === undefined) latestErrors[row.source_id] = row.error_summary ?? null;
+    });
+    setSourceErrors(latestErrors);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, [id]);
+
+  const saveInst = async (patch: Partial<UpiInstitution>) => {
+    if (!canEdit) return toast.error("View-only access — cannot save changes");
+    if (!inst) return;
+    const { data, error } = await supabase
+      .from("upi_institutions")
+      .update(patch as any)
+      .eq("id", inst.id)
+      .select("*")
+      .single();
+    if (error) toast.error(error.message);
+    else if (data) {
+      setInst(data as UpiInstitution);
+      toast.success("Saved");
+    }
+  };
+
+  const addSource = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot add sources");
+    if (!canSeeCommissions && (CONFIDENTIAL_SOURCE_TYPES as readonly string[]).includes(newSourceType)) {
+      return toast.error("Commission admin access required for this source type");
+    }
+    const DOC_TYPES = new Set([
+      "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
+      "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+    ]);
+    const isDocType = DOC_TYPES.has(newSourceType);
+    let insertPayload: any = { institution_id: id, source_type: newSourceType };
+    if (isDocType) {
+      if (!newSourceDocId) return toast.error("Pick an uploaded knowledge source — or upload one in the Knowledge Sources tab first");
+      const doc = docs.find((d) => d.id === newSourceDocId);
+      if (!doc) return toast.error("Selected document not found");
+      insertPayload = {
+        ...insertPayload,
+        document_id: doc.id,
+        file_path: doc.file_path,
+        name: doc.file_name,
+      };
+    } else {
+      const raw = newSourceUrl.trim();
+      if (!raw) return toast.error("URL required");
+      try {
+        const u = new URL(raw);
+        if (u.protocol !== "http:" && u.protocol !== "https:") {
+          return toast.error("URL must start with http:// or https://");
+        }
+      } catch {
+        return toast.error("Invalid URL — paste a full https://… link");
+      }
+      insertPayload.url = raw;
+    }
+    const effectivePolicy =
+      newSourcePolicy ||
+      defaultProcessingPolicy({
+        source_type: newSourceType,
+        document_id: insertPayload.document_id,
+        url: insertPayload.url,
+        metadata: {},
+      });
+    insertPayload.metadata = buildProcessingPolicyPatch(
+      { source_type: newSourceType, metadata: {} },
+      effectivePolicy,
+    );
+    insertPayload.crawl_status = "idle";
+    const { data, error } = await supabase
+      .from("upi_institution_sources")
+      .insert(insertPayload)
+      .select()
+      .single();
+    if (error) return toast.error(`Add source failed: ${error.message}`);
+    setNewSourceUrl("");
+    setNewSourceDocId("");
+    setNewSourcePolicy("");
+    await load();
+    if (data?.id) {
+      setHighlightSourceId(data.id);
+      setTimeout(() => {
+        document.getElementById(`source-row-${data.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      setTimeout(() => setHighlightSourceId(null), 2500);
+      const added = data as UpiSource;
+      const policy = readProcessingPolicy(added);
+      if (policy === "reference_only") {
+        toast.success("Source added as reference link — not crawled automatically");
+      } else if (policy === "ai_extract_once") {
+        toast.success("Source added — running one-time AI extraction…");
+        void syncNow(added, true);
+      } else {
+        toast.success("Source added — click Sync now when ready to extract");
+      }
+      return;
+    }
+    toast.success("Source added");
+  };
+
+  const updateProcessingPolicy = async (source: UpiSource, policy: ProcessingPolicy) => {
+    if (!canEdit) return toast.error("View-only access — cannot update processing policy");
+    const { error } = await supabase
+      .from("upi_institution_sources")
+      .update({ metadata: buildProcessingPolicyPatch(source, policy) as any })
+      .eq("id", source.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Processing policy set to ${PROCESSING_POLICY_LABELS[policy]}`);
+    await load();
+  };
+
+  const pollSyncJob = async (jobId: string) => {
+    for (let attempt = 0; attempt < 90; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { data } = await supabase
+        .from("upi_sync_jobs")
+        .select("status,error_summary,records_upserted,pages_scanned,pages_discovered")
+        .eq("id", jobId)
+        .maybeSingle();
+      if (!data || ["running", "queued"].includes(data.status as string)) continue;
+      return data as any;
+    }
+    return null;
+  };
+
+  const syncNow = async (source: UpiSource, quiet = false) => {
+    if (!canEdit) return 0;
+    if (!canSyncNow(source)) {
+      const policy = readProcessingPolicy(source);
+      if (!quiet) {
+        if (policy === "reference_only") {
+          toast.error("Reference Only — this link is not extracted. Change policy to Manual Sync to run Sync now.");
+        } else {
+          toast.info("AI Extract Once already completed for this source.");
+        }
+      }
+      return 0;
+    }
+    if (!quiet) toast.info("Sync started — watching job status…");
+    setSyncingSourceIds((prev) => new Set(prev).add(source.id));
+    await supabase.from("upi_institution_sources").update({ crawl_status: "queued" }).eq("id", source.id);
+    const { data, error } = await supabase.functions.invoke("upi-sync-source", {
+      body: { source_id: source.id },
+    });
+    if (error) {
+      setSyncingSourceIds((prev) => { const next = new Set(prev); next.delete(source.id); return next; });
+      toast.error(error.message);
+      await load();
+      return 0;
+    }
+    const jobId = (data as any)?.job_id;
+    const job = jobId ? await pollSyncJob(jobId) : null;
+    setSyncingSourceIds((prev) => { const next = new Set(prev); next.delete(source.id); return next; });
+    await load();
+    if (!job) {
+      if (!quiet) toast.info("Sync is still running — refresh in a moment to see results");
+      return 0;
+    }
+    if (job.status === "failed") {
+      toast.error(job.error_summary ?? "Sync failed");
+      return 0;
+    }
+    if (readProcessingPolicy(source) === "ai_extract_once") {
+      await supabase
+        .from("upi_institution_sources")
+        .update({ metadata: buildAiExtractCompletedPatch(source) as any })
+        .eq("id", source.id);
+    }
+    const upserted = job.records_upserted ?? 0;
+    if (!quiet) toast.success(`Sync ${job.status} — ${upserted} course(s) staged for review`);
+    return upserted;
+  };
+
+  const syncAll = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot sync sources");
+    if (sources.length === 0) return;
+    setSyncingAll(true);
+    let total = 0;
+    for (const s of sources) {
+      if (!shouldIncludeInSyncAll(s)) continue;
+      // Skip sources that are already known to be blocked — user can retry manually
+      if (s.crawl_status === "failed" && /blocks automated fetch|cloudflare|credits exhausted/i.test(sourceErrors[s.id] ?? "")) {
+        continue;
+      }
+      try {
+        total += await syncNow(s, true);
+      } catch (e: any) {
+        toast.error(`${s.url}: ${e?.message ?? "failed"}`);
+      }
+    }
+    setSyncingAll(false);
+    toast.success(`Sync all complete — ${total} course(s) staged`);
+    load();
+  };
+
+  const deleteSource = async (s: UpiSource) => {
+    if (!canEdit) return toast.error("View-only access — cannot delete sources");
+    if (!confirm(`Delete this source?\n\n${s.url ?? s.file_path}\n\nExtracted programs will remain in the Program Workspace.`)) return;
+    const { error } = await supabase.from("upi_institution_sources").delete().eq("id", s.id);
+    if (error) return toast.error(error.message);
+    toast.success("Source deleted");
+    load();
+  };
+
+  const uploadDoc = async (file: File) => {
+    if (!canEdit) return toast.error("View-only access — cannot upload documents");
+    if (!docKind) {
+      toast.error("Pick a document type first");
+      return;
+    }
+    if (!canSeeCommissions && isConfidentialDocKind(docKind)) {
+      return toast.error("Commission admin access required for this document type");
+    }
+    setBusy(true);
+    const path = `${id}/${Date.now()}-${safeStorageName(file.name)}`;
+    const { error: upErr } = await supabase.storage.from("institution-documents").upload(path, file);
+    if (upErr) { setBusy(false); return toast.error(upErr.message); }
+    const { data: doc, error: dErr } = await supabase.from("upi_uploaded_documents").insert({
+      institution_id: id, file_name: file.name, file_path: path, file_size_bytes: file.size, mime_type: file.type,
+      metadata: { doc_kind: docKind },
+    }).select().single();
+    if (dErr) { setBusy(false); return toast.error(dErr.message); }
+    toast.success("Uploaded — AI pipeline started");
+    await supabase.from("upi_document_pipeline_events").insert({
+      document_id: doc!.id, state: "uploaded", message: `Uploaded as ${docKind}`,
+    });
+    const { data: orch, error: orchErr } = await supabase.functions.invoke("upi-document-orchestrator", {
+      body: { document_id: doc!.id, institution_id: id, doc_kind: docKind },
+    });
+    if (orchErr) toast.error(orchErr.message);
+    else toast.success("Extraction complete — open Review to verify");
+    setBusy(false); load();
+  };
+
+  // Rename a doc's storage object to a sanitized key (fixes broken iframe preview
+  // when the original file_path contains `%` or other URL-unsafe chars).
+  const repairDocPath = async (d: any) => {
+    if (!canEdit) return toast.error("View-only access — cannot repair documents");
+    if (!d?.file_path || !/%/.test(d.file_path)) return;
+    setBusy(true);
+    try {
+      const oldPath: string = d.file_path;
+      const segs = oldPath.split("/");
+      const last = segs.pop() ?? "";
+      // strip the leading "<timestamp>-" prefix when re-sanitizing
+      const dashIdx = last.indexOf("-");
+      const ts = dashIdx > 0 ? last.slice(0, dashIdx) : String(Date.now());
+      const rest = dashIdx > 0 ? last.slice(dashIdx + 1) : last;
+      const newLast = `${ts}-${safeStorageName(rest)}`;
+      const newPath = [...segs, newLast].join("/");
+      if (newPath === oldPath) { setBusy(false); return; }
+      const { error: mvErr } = await supabase.storage
+        .from("institution-documents")
+        .move(oldPath, newPath);
+      if (mvErr) throw mvErr;
+      const { error: upErr } = await supabase
+        .from("upi_uploaded_documents")
+        .update({ file_path: newPath })
+        .eq("id", d.id);
+      if (upErr) throw upErr;
+      toast.success("Preview link repaired");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Repair failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteDoc = async (d: any) => {
+    if (!canEdit) return toast.error("View-only access — cannot delete documents");
+    if (!confirm(`Delete document "${d.file_name}"?\n\nThis removes the file and all pipeline events. Irreversible.`)) return;
+    if (d.file_path) {
+      await supabase.storage.from("institution-documents").remove([d.file_path]);
+    }
+    await supabase.from("upi_document_pipeline_events").delete().eq("document_id", d.id);
+    const { error } = await supabase.from("upi_uploaded_documents").delete().eq("id", d.id);
+    if (error) return toast.error(error.message);
+    toast.success("Document deleted");
+    load();
+  };
+
+  const generateContent = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot generate campaigns");
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("upi-generate-content", {
+      body: { institution_id: id, channel: campaignChannel, context_flags: { programs: true, promotions: true, commission: true }, tone: "professional" },
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    setGenerated((data as any)?.content ?? "");
+  };
+
+  const saveCampaign = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot save campaigns");
+    if (!generated) return;
+    const { error } = await supabase.from("upi_marketing_campaigns").insert({
+      institution_id: id, channel: campaignChannel, generated_content: generated, status: "approved", approved_at: new Date().toISOString(),
+    });
+    if (error) return toast.error(error.message);
+    setGenerated(""); load(); toast.success("Campaign saved");
+  };
+
+  const askAi = async (mode?: "generate") => {
+    if (!canEdit) return toast.error("View-only access — cannot run AI prompts");
+    setAsking(true); setAskAnswer("");
+    const { data, error } = await supabase.functions.invoke("upi-ask-suggestions", {
+      body: { institution_id: id, prompt: askPrompt, mode },
+    });
+    setAsking(false);
+    if (error) return toast.error(error.message);
+    const res = data as { answer?: string; suggestions_count?: number };
+    setAskAnswer(res?.answer ?? "");
+    if (res?.suggestions_count) toast.success(`${res.suggestions_count} new suggestion(s) saved`);
+    load();
+  };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="p-8 text-center text-muted-foreground">Loading…</div>
+      </AppLayout>
+    );
+  }
+  if (!inst) {
+    return (
+      <AppLayout>
+        <div className="p-8 text-center space-y-4">
+          <p className="text-muted-foreground">
+            {notFound ? "Institution not found." : loadError ?? "Unable to load institution."}
+          </p>
+          <Button asChild variant="outline">
+            <Link to="/institutions">Back to institutions</Link>
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout>
+      <PageHeader
+        title={inst.name}
+        description={`${inst.country_name ?? "—"} · ${inst.institution_type ?? "—"}`}
+        actions={<InstitutionLogo url={inst.logo_url} name={inst.name} size="lg" />}
+      />
+      <div className="px-8 -mt-2 pb-2 flex flex-wrap items-center gap-2">
+        <InstitutionStatusBadge status={inst.institution_status} className="text-xs" />
+        <Badge variant="outline" className="text-xs tabular-nums">
+          {Math.round(Number(inst.completeness_score ?? 0))}% complete
+        </Badge>
+        <Badge variant="outline" className="text-xs capitalize">
+          CF catalog: {inst.catalog_status ?? "promoted"}
+        </Badge>
+      </div>
+      <div className="p-8 pt-4">
+        {!canEdit && <div className="mb-6"><ViewOnlyNotice /></div>}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="flex flex-wrap h-auto">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="sources">Sources</TabsTrigger>
+            <TabsTrigger value="documents">Knowledge Sources</TabsTrigger>
+            <TabsTrigger value="fee-schedule">Fee Schedule</TabsTrigger>
+            {canSeeCommissions && <TabsTrigger value="billing">Billing</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="eligibility">Eligibility</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="commissions">Commissions</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="claims">Claims</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="receipts">Receipts</TabsTrigger>}
+            <TabsTrigger value="promotions">Promotions</TabsTrigger>
+            <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+            <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <OverviewPanel institutionId={id} />
+            <PartnershipRoutesPanel
+              institutionId={id}
+              catalogStatus={(inst.catalog_status ?? "promoted") as CatalogStatus}
+              promotionNotes={inst.promotion_notes ?? null}
+              institutionPortalUrl={inst.application_portal_url}
+              canEdit={canEdit}
+              onCatalogChange={(patch) => {
+                setInst({ ...inst, ...patch });
+                saveInst(patch);
+              }}
+            />
+            <InstitutionGovernancePanel
+              institution={inst}
+              canEdit={canEdit}
+              onStatusApplied={() => { void load(); }}
+            />
+            <InstitutionProfileOverview
+              institutionId={id}
+              inst={inst}
+              canEdit={canEdit}
+              onChange={(patch) => setInst({ ...inst, ...patch })}
+              onSave={saveInst}
+            />
+            <InstitutionOfficialResourcesSection
+              inst={inst}
+              canEdit={canEdit}
+              onChange={(patch) => setInst({ ...inst, ...patch })}
+              onSave={saveInst}
+            />
+            <CurrentOpportunitiesPanel institutionId={id} institutionName={inst.name} />
+            {Object.keys(inst.metadata ?? {}).length > 0 && (
+              <Card className="p-6 space-y-3 max-w-3xl">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Discovered fields (metadata)
+                </div>
+                <div className="space-y-1">
+                  {Object.entries(inst.metadata).map(([k, v]) => (
+                    <div key={k} className="text-sm flex justify-between gap-3">
+                      <span className="text-muted-foreground">{k}</span>
+                      <span className="truncate">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="contacts">
+            <InstitutionContactsPanel institutionId={id} canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="sources">
+            <Card className="p-4 mb-4 flex gap-2 flex-wrap items-end">
+              {(() => {
+                // Source kinds that pull from an already-uploaded knowledge source.
+                const DOC_TYPES = new Set([
+                  "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
+                  "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+                ]);
+                const isDocType = DOC_TYPES.has(newSourceType);
+                const linkedDocIds = new Set(sources.map((s: any) => s.document_id).filter(Boolean));
+                // Friendly labels — keep stored values stable for the backend.
+                const SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+                  { value: "program_sheet",      label: "Program sheet (from Knowledge Sources)" },
+                  { value: "brochure",           label: "Brochure (from Knowledge Sources)" },
+                  { value: "commission_sheet",   label: "Commission sheet (from Knowledge Sources)" },
+                  { value: "agreement",          label: "Agreement (from Knowledge Sources)" },
+                  { value: "promotion_campaign", label: "Promotion / Campaign (from Knowledge Sources)" },
+                  { value: "website_url",        label: "Website URL" },
+                  { value: "listing_page",       label: "Program listing page (URL)" },
+                  { value: "scholarship_page",   label: "Scholarship page (URL)" },
+                  { value: "tuition_page",       label: "Tuition page (URL)" },
+                  { value: "international_page", label: "International page (URL)" },
+                  { value: "sitemap",            label: "Sitemap (URL)" },
+                  { value: "api_endpoint",       label: "API endpoint (URL)" },
+                  { value: "json_feed",          label: "JSON feed (URL)" },
+                ].filter(
+                  (o) => canSeeCommissions || !(CONFIDENTIAL_SOURCE_TYPES as readonly string[]).includes(o.value),
+                );
+                // When the chosen doc kind narrows the doc list, only show
+                // matching uploaded documents (e.g. Program sheet → program_sheet docs).
+                const KIND_FOR_TYPE: Record<string, string> = {
+                  program_sheet:      "program_sheet",
+                  brochure:           "brochure",
+                  pdf_brochure:       "brochure",
+                  agreement:          "agreement",
+                  commission_sheet:   "commission_sheet",
+                  promotion_campaign: "promotion_campaign",
+                };
+                const wantedKind = KIND_FOR_TYPE[newSourceType];
+                const filteredDocs = (wantedKind
+                  ? docs.filter((d: any) => (d.metadata?.doc_kind ?? "") === wantedKind)
+                  : docs
+                ).filter((d: any) => canSeeCommissions || !isConfidentialDocKind(d.metadata?.doc_kind));
+                const suggestedPolicy = defaultProcessingPolicy({
+                  source_type: newSourceType,
+                  document_id: isDocType && newSourceDocId ? newSourceDocId : undefined,
+                  url: !isDocType ? newSourceUrl.trim() || undefined : undefined,
+                  metadata: {},
+                });
+                const addFormPolicy = newSourcePolicy || suggestedPolicy;
+                return (
+                  <>
+                    <select
+                      className="h-10 px-3 rounded-md border bg-background text-sm"
+                      value={newSourceType}
+                      onChange={(e) => { setNewSourceType(e.target.value); setNewSourceDocId(""); setNewSourcePolicy(""); }}
+                    >
+                      {SOURCE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                    {isDocType ? (
+                      <div className="flex-1 min-w-[260px] flex flex-col gap-1">
+                        <select
+                          className="h-10 px-3 rounded-md border bg-background text-sm"
+                          value={newSourceDocId}
+                          onChange={(e) => setNewSourceDocId(e.target.value)}
+                        >
+                          <option value="">
+                            {filteredDocs.length === 0
+                              ? (wantedKind
+                                  ? `No ${wantedKind.replace("_", " ")} knowledge sources — upload one in the Knowledge Sources tab`
+                                  : "No knowledge sources uploaded yet — upload one in the Knowledge Sources tab")
+                              : "Choose an uploaded document…"}
+                          </option>
+                          {filteredDocs.map((d: any) => {
+                            const dt = d.created_at ? new Date(d.created_at).toLocaleDateString() : "";
+                            const used = linkedDocIds.has(d.id) ? " · already linked" : "";
+                            return (
+                              <option key={d.id} value={d.id}>
+                                {d.file_name}{dt ? ` · ${dt}` : ""}{used}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <div className="text-xs text-muted-foreground">
+                          Pulls from a file already uploaded in the Knowledge Sources tab — no re-upload needed.
+                          {filteredDocs.length === 0 && (
+                            <>  Go to <span className="font-semibold">Knowledge Sources</span> and upload one first.</>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <Input
+                        ref={urlInputRef}
+                        className="flex-1 min-w-[260px]"
+                        placeholder="https://university.edu/programs"
+                        value={newSourceUrl}
+                        onChange={(e) => setNewSourceUrl(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && addSource()}
+                      />
+                    )}
+                    <div className="flex flex-col gap-1 min-w-[11rem]">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Processing Policy</label>
+                      <Select
+                        value={addFormPolicy}
+                        disabled={!canEdit}
+                        onValueChange={(v) => setNewSourcePolicy(v as ProcessingPolicy)}
+                      >
+                        <SelectTrigger className="h-10 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROCESSING_POLICIES.map((p) => (
+                            <SelectItem key={p} value={p} className="text-xs">
+                              {PROCESSING_POLICY_LABELS[p]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-muted-foreground leading-snug max-w-[14rem]">
+                        {PROCESSING_POLICY_HINTS[addFormPolicy]}
+                      </p>
+                    </div>
+                    <Button onClick={addSource} disabled={!canEdit}><Plus className="size-4" /> Add source</Button>
+                  </>
+                );
+              })()}
+              {sources.length > 0 && canEdit && (
+                <Button variant="secondary" onClick={syncAll} disabled={syncingAll}>
+                  <RefreshCw className={`size-4 ${syncingAll ? "animate-spin" : ""}`} /> Sync all
+                </Button>
+              )}
+              <Button asChild variant="outline">
+                <Link to={`/institutions/review?institutionId=${id}`}>
+                  <BookOpen className="size-4" /> Program Workspace
+                </Link>
+              </Button>
+            </Card>
+            <div className="space-y-2">
+              {sources.map((s) => {
+                const isSyncing = syncingSourceIds.has(s.id) || s.crawl_status === "queued" || s.crawl_status === "running";
+                const sourceError = sourceErrors[s.id];
+                const syncEligible = canSyncNow(s);
+                return (
+                <Card
+                  key={s.id}
+                  id={`source-row-${s.id}`}
+                  className={`p-4 flex flex-wrap items-center gap-4 transition-colors ${highlightSourceId === s.id ? "ring-2 ring-primary bg-primary/5" : ""}`}
+                >
+                  <div className="flex-1 min-w-[12rem]">
+                    <div className="font-medium truncate flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{(s as any).name ?? s.url ?? s.file_path}</span>
+                      <SourceProcessingPolicyBadge source={s} />
+                      {(s as any).document_id && (
+                        <span className="text-xs text-muted-foreground">(from Knowledge Sources)</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
+                    {s.crawl_status === "failed" && sourceError && (
+                      <div className="mt-1 text-xs text-destructive line-clamp-2">{sourceError}</div>
+                    )}
+                  </div>
+                  <SourceProcessingPolicySelect
+                    source={s}
+                    canEdit={canEdit}
+                    onChange={(policy) => updateProcessingPolicy(s, policy)}
+                  />
+                  <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
+                  <Button
+                    onClick={() => syncNow(s)}
+                    className="shrink-0"
+                    disabled={!canEdit || isSyncing || !syncEligible}
+                    title={!syncEligible ? PROCESSING_POLICY_HINTS[readProcessingPolicy(s)] : undefined}
+                  >
+                    <RefreshCw className={`size-4 ${isSyncing ? "animate-spin" : ""}`} /> {isSyncing ? "Syncing" : "Sync now"}
+                  </Button>
+                  {canEdit && (
+                  <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteSource(s)} title="Delete source">
+                    <Trash2 className="size-4" />
+                  </Button>
+                  )}
+                </Card>
+              );})}
+              {sources.length === 0 && (
+                <Card className="p-8 border-dashed">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <ArrowUp className="size-6 text-primary animate-bounce" />
+                    <div className="font-medium">No sources yet</div>
+                    <div className="text-sm text-muted-foreground max-w-md">
+                      Add a website URL as a <strong>reference link</strong> (default — not crawled), or link an uploaded document for one-time AI extraction. Change <strong>Processing Policy</strong> on any row to enable <strong>Manual Sync</strong>.
+                    </div>
+                    <Button variant="outline" size="sm" className="mt-2" onClick={() => urlInputRef.current?.focus()}>
+                      Focus URL field
+                    </Button>
+                  </div>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="documents">
+            <KnowledgeInboxArchitecturePanel />
+            {canEdit && (
+            <Card className="p-6 mb-4">
+              <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                Uploading to: <span className="font-semibold">{inst.name}</span>
+                <span className="text-muted-foreground"> · {inst.country_name ?? "—"}</span>
+              </div>
+              <div className="flex items-end gap-3 mb-4">
+                <div className="space-y-1 w-64">
+                  <label className="text-xs text-muted-foreground">Document type</label>
+                  <Select value={docKind} onValueChange={(v) => { setDocKind(v as DocKind); setSuggestedKind(null); }}>
+                    <SelectTrigger><SelectValue placeholder="Pick a document type…" /></SelectTrigger>
+                    <SelectContent>
+                      {visibleDocKindOptions.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-muted-foreground flex-1">
+                  {!docKind
+                    ? "Pick a document type — this controls how AI processes the file."
+                    : docKind === "program_sheet"
+                    ? "AI will extract every program and stage them for review."
+                    : "AI will extract structured fields and surface as suggestions."}
+                </p>
+              </div>
+              {suggestedKind && suggestedKind !== docKind && (!isConfidentialDocKind(suggestedKind) || canSeeCommissions) && (
+                <div className="mb-3 flex items-center justify-between gap-3 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
+                  <span>
+                    Filename suggests <span className="font-semibold">{suggestedKind}</span>
+                    {docKind ? <> — currently picked <span className="font-semibold">{docKind}</span>.</> : "."}
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => { setDocKind(suggestedKind); setSuggestedKind(null); }}>
+                    Switch to {suggestedKind}
+                  </Button>
+                </div>
+              )}
+              <label className={`block border-2 border-dashed rounded-lg p-8 text-center ${docKind ? "cursor-pointer hover:bg-muted/40" : "opacity-60 cursor-not-allowed"}`}>
+                <Upload className="size-6 mx-auto mb-2 text-muted-foreground" />
+                <div className="text-sm">{docKind ? "Click or drop a file to upload" : "Pick a document type above first"}</div>
+                <input
+                  type="file"
+                  className="hidden"
+                  disabled={busy || !docKind}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    const guess = guessKindFromName(f.name);
+                    if (guess && guess !== docKind && (!isConfidentialDocKind(guess) || canSeeCommissions)) {
+                      setSuggestedKind(guess);
+                    }
+                    uploadDoc(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </Card>
+            )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Knowledge sources</div>
+                {catalogDocs.map(renderDocRow)}
+                {catalogDocs.length === 0 && (
+                  <div className="text-center text-sm text-muted-foreground py-8">No knowledge sources yet.</div>
+                )}
+              </div>
+              {canSeeCommissions ? (
+                confidentialDocs.length > 0 && (
+                  <div className="space-y-2 border-t pt-4">
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Confidential</div>
+                    {confidentialDocs.map(renderDocRow)}
+                  </div>
+                )
+              ) : confidentialDocs.length > 0 ? (
+                <Card className="p-4 border-dashed text-sm text-muted-foreground flex items-center gap-2">
+                  <Lock className="size-4 shrink-0" />
+                  {confidentialDocs.length} confidential document{confidentialDocs.length === 1 ? "" : "s"} hidden — commission admin access required.
+                </Card>
+              ) : null}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="fee-schedule">
+            <InstitutionFeeSchedulePanel institutionId={id} canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="billing">
+            {canSeeCommissions ? <BillingProfilesPanel institutionId={id} /> : <LockedPanel label="Billing" />}
+          </TabsContent>
+
+          <TabsContent value="eligibility">
+            {canSeeCommissions ? <EligibilityConfigPanel institutionId={id} /> : <LockedPanel label="Eligibility" />}
+          </TabsContent>
+
+          <TabsContent value="agreements">
+            {canSeeCommissions ? <AgreementsPanel institutionId={id} /> : <LockedPanel label="Agreements" />}
+          </TabsContent>
+
+          <TabsContent value="commissions">
+            {canSeeCommissions ? <CommissionsPanel institutionId={id} /> : <LockedPanel label="Commissions" />}
+          </TabsContent>
+
+          <TabsContent value="claims">
+            {canSeeCommissions ? (
+              <ClaimsPanel
+                institutionId={id}
+                onRecordReceipt={(invoiceId) => {
+                  setReceiptInvoiceId(invoiceId);
+                  setActiveTab("receipts");
+                }}
+              />
+            ) : (
+              <LockedPanel label="Claims" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="receipts">
+            {canSeeCommissions ? (
+              <CommissionReceiptsPanel
+                institutionId={id}
+                institutionName={inst.name}
+                initialInvoiceId={receiptInvoiceId}
+                onInitialInvoiceConsumed={() => setReceiptInvoiceId(null)}
+              />
+            ) : (
+              <LockedPanel label="Receipts" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="promotions">
+            <CurrentOpportunitiesPanel institutionId={id} institutionName={inst.name} />
+            <PromotionsPanel institutionId={id} readOnly={!canEdit} onRunCampaign={canEdit ? (p) => setCampaignPromo(p) : undefined} />
+          </TabsContent>
+
+          <TabsContent value="campaigns">
+            {canEdit && (
+            <Card className="p-4 mb-4 space-y-3">
+              <div className="flex gap-2 items-end">
+                <select className="h-10 px-3 rounded-md border bg-background text-sm" value={campaignChannel} onChange={(e) => setCampaignChannel(e.target.value)}>
+                  {["email","whatsapp","social_post","brochure","counselor_note","sms","push"].map((c) => <option key={c}>{c}</option>)}
+                </select>
+                <Button onClick={generateContent} disabled={busy}><Sparkles className="size-4" /> Generate</Button>
+              </div>
+              {generated && (
+                <>
+                  <Textarea className="min-h-[160px] font-mono text-xs" value={generated} onChange={(e) => setGenerated(e.target.value)} />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={saveCampaign}>Approve & save</Button>
+                    <Button size="sm" variant="outline" onClick={generateContent}>Regenerate</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setGenerated("")}>Discard</Button>
+                  </div>
+                </>
+              )}
+            </Card>
+            )}
+            <CampaignsPanel institutionId={id} />
+          </TabsContent>
+
+          <TabsContent value="suggestions">
+            {canEdit && (
+            <Card className="p-4 mb-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <Textarea
+                  rows={2}
+                  placeholder="Ask AI about this institution — e.g. 'Which programs should I prioritize publishing?'"
+                  value={askPrompt}
+                  onChange={(e) => setAskPrompt(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => askAi()} disabled={asking}>
+                  <MessageSquarePlus className="size-4 mr-1" /> {asking ? "Thinking…" : "Ask AI"}
+                </Button>
+                <Button variant="outline" onClick={() => askAi("generate")} disabled={asking}>
+                  <Sparkles className="size-4 mr-1" /> Generate suggestions
+                </Button>
+              </div>
+              {askAnswer && (
+                <div className="rounded border bg-muted/30 p-3 text-sm whitespace-pre-wrap">{askAnswer}</div>
+              )}
+            </Card>
+            )}
+            <AiSuggestionsPanel institutionId={id} readOnly={!canEdit} />
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-6"><Link to="/institutions" className="text-sm text-muted-foreground hover:text-foreground">← Back to institutions</Link></div>
+      </div>
+      <RunCampaignDialog
+        open={!!campaignPromo}
+        onOpenChange={(v) => !v && setCampaignPromo(null)}
+        institutionId={id}
+        promotion={campaignPromo}
+        onSent={load}
+      />
+      <AiReviewPanel
+        open={!!reviewDoc}
+        onOpenChange={(v) => !v && setReviewDoc(null)}
+        document={reviewDoc}
+        institutionId={id}
+        onChanged={load}
+      />
+    </AppLayout>
+  );
+}

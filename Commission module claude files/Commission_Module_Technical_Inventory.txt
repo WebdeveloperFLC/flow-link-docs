@@ -1,0 +1,904 @@
+
+COMMISSION MODULE
+Technical Inventory & Implementation Baseline
+Enterprise Architecture Handoff Document
+
+Field
+Detail
+Project
+flow-link-docs — Future Link Education Platform
+Stack
+Vite + React + TypeScript + Supabase (PostgreSQL RPCs, RLS, Edge Functions)
+Module scope
+Institution partner commissions — Phases 1, 2A, 2B + Performance Hub overlay
+Audit date
+30 June 2026
+Audit type
+Documentation & architecture audit — no code modified
+Guiding principle
+REUSE → EXTEND → CREATE
+Prepared for handoff to an enterprise product architect.
+All conclusions are tied to observed files, migrations, and documentation; unverified behavior is marked “Not Found.”
+
+Contents
+1.  Executive Summary
+2.  Database Architecture
+3.  Business Process Architecture
+4.  Backend Architecture
+5.  Frontend Architecture
+6.  Existing Business Logic
+7.  APIs, Hooks & Services
+8.  Reusable Components
+9.  Current User Interface
+10.  Technical Debt
+11.  Reuse Analysis (Evidence-Based)
+12.  Extension Points
+13.  Cross-Module Dependencies
+14.  Deliverables Summary & Handoff Notes
+Note: this document uses styled headings; open in Word and update fields (Ctrl/Cmd+A, F9) to generate a page-numbered, clickable table of contents.
+
+1. Executive Summary
+The Commission module automates institution partner commissions for an international education agency: from the commercial agreement with a partner institution, through per-student commission calculation and eligibility, into claims, invoicing, receipt posting, and aggregator reconciliation. It is a Supabase-first application — persistence, business logic, access control, and workflow all run through PostgreSQL tables, RPC functions, row-level security, and Edge Functions, with a React institution-tab workspace as the operational core.
+Overall completion is estimated at ~72% for institution partner-commission operations through Phase 2B. The three delivered phases (Phase 1 lifecycle, Phase 2A receipts, Phase 2B aggregator) are internally documented as UAT-ready. Enterprise integrations — Finance general-ledger posting, CRM automation, and additional commission channels (referral, B2B, agent) — remain largely unbuilt and are documented as out-of-scope or missing.
+1.1 Completion by area
+Area
+Est.
+Evidence
+Institution setup (billing, agreements, eligibility, rules)
+~90%
+Phase 1 UAT readiness doc; UI panels exist
+Student lifecycle (eligibility, hold, transfer, snapshots)
+~85%
+RPCs + CommissionLifecycleDialog; custom trigger not built
+Claims & invoicing
+~80%
+ClaimsPanel: recalc, submit, invoice; manual client link missing
+Receipt posting & allocation (Phase 2A)
+~85%
+Full receipt schema, RPCs, wizard; no accounting bridge
+Aggregator workbench (Phase 2B)
+~75%
+Workbench + RPCs; 2B tables missing from generated types.ts
+Performance Hub finance overlay
+~60%
+Read-only INR ledger; operations stay in /commissions
+CRM auto-integration
+~5%
+clientIntegrationBridge.ts dormant (BRIDGE_ENABLED = false)
+Finance GL posting
+~0%
+accounting_journal_id column exists; no live bridge
+Global admin / reports / pending-claims screens
+~25%
+Global /commissions is summary-only; dedicated screens Not Found
+
+Bottom line:  Conditionally UAT-ready for institution partner commission operations (Phases 1, 2A, 2B). Not yet enterprise-production-ready for full Finance integration, CRM automation, or multi-channel commission types without the additional work documented below.
+1.2 Production-ready features (observed)
+	•	Institution billing profiles (BillingProfilesPanel, upi_billing_profiles).
+	•	Agreement CRUD with version effective-dating (AgreementsPanel).
+	•	Eligibility config publish workflow (EligibilityConfigPanel, fn_evaluate_eligibility).
+	•	Commission rules with publish gate and simulator (CommissionsPanel, fn_publish_commission_rules).
+	•	Partnership route → default-commission link (PartnershipRoutesPanel).
+	•	Student recalculate, mark-eligible, hold/release, transfer (ClaimsPanel, CommissionLifecycleDialog).
+	•	Immutable commission snapshots (DB trigger blocks UPDATE/DELETE).
+	•	Claim submit + invoice generation + PDF/CSV export (ClaimsPanel, claimsExport.ts).
+	•	Receipt lifecycle draft → ready → posted → void (CommissionReceiptWizard, receipt RPCs).
+	•	Aggregator remittance batches + aggregator invoices (AggregatorWorkbenchPage).
+	•	Counselor-safe client status view (ClientCommissionStatusPanel, v_client_commission_status).
+	•	Performance Hub commission ledger with INR consolidation (PerformanceCommissions).
+1.3 Partially implemented features
+	•	Client ↔ commission-student linking (manual client_id only; UI button disabled — “Coming soon”).
+	•	Custom eligibility trigger (returns custom_not_implemented in both TypeScript and SQL).
+	•	FX review on receipts (implemented in RPCs; exercised only in multi-currency allocation scenarios).
+	•	Aggregator statement upload (RPC works; UI label reads “placeholder upload”).
+	•	Invoice numbering (FLC-YYYY-AUTO-* placeholder per UAT doc).
+	•	Phase 2B type safety (aggregator tables accessed via `as any` casts).
+	•	Clawback columns exist on upi_commission_students; clawback logic is Not Found in application code.
+1.4 Placeholder / stub features
+	•	CRM event bridge (src/institutions/planned/clientIntegrationBridge.ts — all handlers are TODO stubs).
+	•	Institution Claim Eligibility Rules (backlog doc only — distinct from Phase 1 eligibility config).
+	•	Accounting bridge (explicitly out of Phase 1/2A scope in UAT docs).
+	•	Bonus engine (bonuses modeled as commission rules, not a separate engine).
+	•	Forecast engine and credit notes (documented out of scope).
+1.5 Major dependencies
+Dependency
+Role
+Supabase
+All persistence, RPCs, RLS, storage
+Institution module
+Host UI, partnership routes, aggregators, documents
+Auth / RBAC
+isCommissionAdmin, isAccountingMember, useModulePermission(“commissions”), can_view_upi_confidential
+Performance Hub
+Read-only overlay; FX rates from fx_rates
+Commercial Agreement Engine (CAE)
+upi_agreements templates, settlement eligibility
+AI Edge Functions
+upi-extract-commission-sheet, upi-analyze-agreement
+1.6 Known limitations
+	•	No REST/OpenAPI layer — Supabase client + RPCs only.
+	•	No commission-specific background jobs or queue workers (Not Found).
+	•	No materialized views (Not Found).
+	•	Finance posting does not create accounting journals on receipt post.
+	•	Student rows are not auto-created from CRM/admission events.
+	•	Global dashboard lacks drill-down navigation into institution workflows.
+	•	Separate Commission Administration and Reports routes are Not Found.
+
+2. Database Architecture
+The commission schema is delivered across sequential Supabase migrations (20260723120000 through 20260815120500), with earlier UPI institution migrations providing host tables. The concatenated DDL is available in docs/database/COMMISSION_SCHEMA.sql. All commission entities are prefixed upi_commission* or scoped under the upi_ namespace.
+2.1 Core setup & master tables
+Table
+PK
+Purpose
+upi_agreements
+id uuid
+Institution commercial agreements
+upi_agreement_versions
+id uuid
+Versioned agreement files/terms
+upi_billing_profiles
+id uuid
+Billing entities (institution or aggregator-scoped)
+upi_commissions
+id uuid
+Commission plan definitions (no separate plan table)
+upi_commission_rules
+id uuid
+Scoped payout rules (slabs, bonuses, conditions)
+upi_commission_eligibility_configs
+id uuid
+Published student eligibility triggers
+upi_commission_hold_reasons
+code text
+11 hold/deferral reason codes
+upi_commission_periods
+code text
+Commission period master (application → year_1)
+upi_partnership_routes
+id uuid
+Routes with default_commission_id FK
+upi_aggregators
+id uuid
+Aggregator partners (Phase 2B)
+2.2 Operational / transactional tables
+Table
+PK
+Purpose
+upi_claim_cycles
+id uuid
+Claim submission cycles per institution
+upi_commission_students
+id uuid
+Per-student commission row (3-axis lifecycle)
+upi_commission_snapshots
+id uuid
+Immutable calculation audit records
+upi_commission_transfer_events
+id uuid
+Transfer / amendment / cancellation events
+upi_commission_invoices
+id uuid
+Commission invoices to institutions
+upi_invoice_line_items
+id uuid
+Invoice lines linked to students/snapshots
+upi_commission_receipts
+id uuid
+Payment receipts (Phase 2A)
+upi_commission_receipt_invoice_allocations
+id uuid
+Receipt → invoice allocation
+upi_commission_receipt_student_allocations
+id uuid
+Receipt → student allocation
+upi_commission_receipt_attachments
+id uuid
+Receipt file attachments
+upi_commission_remittance_batches
+id uuid
+Remittance batch grouping (Phase 2B)
+upi_commission_remittance_batch_statements
+id uuid
+Batch statement files (Phase 2B)
+upi_commission_aggregator_invoices
+id uuid
+Aggregator-level invoices (Phase 2B; not in types.ts)
+upi_commission_aggregator_invoice_lines
+id uuid
+Lines on aggregator invoices (not in types.ts)
+
+Terminology note:  “Commission Plan” in the UI maps to the upi_commissions table — there is no separate commission_plan entity. A legacy upi_invoices table also exists separately from upi_commission_invoices (institution-module invoices vs. commission invoices).
+2.3 Key columns (selected)
+upi_commissions: institution_id, agreement_id, name, model_type (fixed/percentage/slab/…), currency, is_active, is_proposed, effective_from/to, base_rate_percent, agreement_version_id, published_at/by.
+upi_commission_rules: rule_type (base/slab_tier/bonus/…), condition_field/operator/value, payout_amount, payout_type, scope_* (country, campus, program, intake, promotion), precedence_rank.
+upi_commission_students carries a three-axis lifecycle plus amounts, hold, and link columns:
+Axis / group
+Columns & states
+Eligibility axis
+eligibility_status: pending / eligible / ineligible / cancelled
+Claim axis
+claim_status: not_ready / ready / submitted / approved / rejected / carried_forward
+Payment axis
+payment_status: unpaid / partially_paid / paid / written_off
+Amounts
+expected_amount, amended_expected_amount, amount_received, amount_outstanding
+Hold
+hold_status, hold_reason → FK to hold-reasons master
+Links
+client_id, claim_cycle_id, commission_id, partnership_route_id, commission_snapshot_id, billing_profile_id
+Reserved
+clawback_amount, clawback_status (columns only; logic Not Found)
+2.4 Views
+Views split into those exposed through the generated Supabase types.ts (used directly by the app) and Phase 2B aggregator views accessed via casts.
+View
+In types.ts
+Purpose
+v_client_commission_status
+Yes
+Counselor-safe status (no amounts)
+v_commission_receipt_open_items
+Yes
+Open items for receipt allocation
+v_commission_receipts_in_progress
+Yes
+In-progress receipts
+v_commission_student_receipt_ledger
+Yes
+Student receipt ledger
+v_commission_aggregator_student_rows
+No
+Aggregator workbench student rows
+v_commission_institution_metrics_agg
+No
+Institution metrics for aggregator
+v_commission_aggregator_metrics
+No
+Aggregator KPI metrics
+v_commission_batch_reconciliation
+No
+Batch reconciliation
+Materialized views: Not Found.
+2.5 Functions / stored procedures (PostgreSQL RPCs)
+All business writes flow through SECURITY DEFINER RPCs rather than direct table mutation. Thirty-eight commission RPCs are grouped by phase.
+Phase 1 — lifecycle & calculation
+fn_resolve_commission_rule, fn_evaluate_eligibility, fn_create_commission_snapshot, fn_mark_student_eligible, fn_publish_commission_rules, fn_apply_commission_hold, fn_release_commission_hold, fn_initiate_commission_transfer, fn_create_replacement_commission, fn_process_transfer_outcome, is_commission_admin.
+Phase 2A — receipts
+fn_create_commission_receipt, fn_update_commission_receipt, fn_upsert_receipt_invoice_allocations, fn_upsert_receipt_student_allocations, fn_approve_receipt_fx_review, fn_mark_receipt_ready, fn_post_commission_receipt, fn_void_commission_receipt, fn_reopen_receipt, fn_receipt_summary, fn_register_receipt_attachment, fn_sync_student_from_receipts, fn_sync_invoice_from_receipts, fn_student_commission_expected, fn_validate_receipt_allocations, fn_refresh_receipt_allocation_totals, fn_refresh_receipt_fx_review, fn_assert_commission_receipt_actor.
+Phase 2B — aggregator
+fn_create_remittance_batch, fn_dispute_remittance_batch, fn_resolve_batch_dispute, fn_register_batch_statement, fn_create_aggregator_invoice, fn_add_invoices_to_aggregator_invoice, fn_submit_aggregator_invoice, fn_get_aggregator_workbench_summary, fn_assert_commission_aggregator_actor, fn_refresh_remittance_batch_totals, fn_refresh_aggregator_invoice_totals.
+2.6 Triggers (observed)
+Trigger
+Table
+Purpose
+trg_block_snapshot_update
+upi_commission_snapshots
+Immutability — blocks UPDATE/DELETE
+trg_block_receipt_edit
+upi_commission_receipts
+Blocks edits on posted/voided receipts
+trg_sync_ucs_legacy_status
+upi_commission_students
+Syncs legacy commission_status from 3-axis fields
+trg_sync_is_partner_on_route
+upi_partnership_routes
+Maintains partner flag on route change
+trg_*_updated_at
+Multiple
+touch_updated_at() on UPDATE across commission tables
+2.7 Indexes, storage buckets & RLS
+Indexes (selected): idx_upi_billing_profiles_inst and a unique partial index for default billing profiles; idx_ucs_cycle, idx_ucs_inst, idx_ucs_status, idx_ucs_lifecycle, idx_ucs_period on students; a unique (client_id, partnership_route_id, commission_period_code) where client_id NOT NULL; receipt indexes on status, payer, and remittance reference.
+Storage buckets: upi-commission-receipts (receipt attachments) and upi-commission-aggregator-statements (aggregator batch statements).
+Row-level security: Confidential tables (billing profiles, eligibility configs, transfer events, snapshots) use a can_view_upi_confidential(auth.uid()) policy. Hold reasons and periods are readable by all authenticated users. An early upi_commission_students policy remains permissive (authenticated USING true) — flagged in Technical Debt.
+2.8 Existing data flow
+The end-to-end persistence flow moves from institution setup, through per-student calculation, into claims and invoicing, then receipts, and finally aggregator reconciliation:
+	•	Setup: billing profiles, agreement versions, eligibility configs, and commissions+rules are authored per institution; partnership routes carry a default_commission_id.
+	•	Per-student: upi_commission_students rows are calculated against a published commission, producing an immutable upi_commission_snapshots record; transfer events branch replacement rows.
+	•	Claims: students are grouped into upi_claim_cycles; submitting a cycle generates upi_commission_invoices with upi_invoice_line_items.
+	•	Receipts (2A): upi_commission_receipts are allocated to invoices and students; posting updates payment_status columns.
+	•	Aggregator (2B): remittance_batches and aggregator_invoices group receipts and invoices for reconciliation.
+
+ER diagram: docs/system-map/diagrams/generated/15_commissions.mmd (Mermaid) captures 54 relationships across UPI commission entities, institutions, aggregators, partnership routes, and profiles. A copy travels in the handoff package at docs/architecture/15_commissions-er.mmd.
+
+3. Business Process Architecture
+The commission workflow is a linear pipeline with two branch points (hold/deferral and transfer). Each stage below lists its inputs, outputs, dependencies, and current implementation status.
+Stage
+Purpose → Output
+Status
+Institution Agreement
+Legal/commercial basis → upi_agreements + versions
+Implemented
+Commission Plan
+Payout structure → upi_commissions + rules
+Implemented
+Billing Profile
+Invoice/remittance identity → upi_billing_profiles
+Implemented
+Eligibility Config
+When a student becomes eligible → published config
+Implemented*
+Partnership Route Link
+Route-specific commission → default_commission_id
+Implemented
+Student Row Creation
+Track per-student commission → upi_commission_students
+Partial
+Commission Calculation
+Compute expected → expected_amount, matched_rule_id
+Implemented
+Eligibility Evaluation
+Mark eligible → eligibility_status, snapshot
+Implemented
+Hold / Deferral
+Block claim temporarily → hold_status=active
+Implemented
+Transfer
+Route/institution change → transfer event + replacement
+Implemented
+Claim Creation
+Submit eligible students → claim_status=submitted
+Implemented
+Invoice Generation
+Bill institution → upi_commission_invoices + lines
+Implemented
+Receipt Posting
+Record payment → posted receipt, payment_status
+Implemented†
+Aggregator Reconciliation
+Match remittance → reconciled batch
+Implemented
+Finance (GL posting)
+Posted receipts → accounting journals
+Not Found
+Performance Hub
+Finance oversight → INR KPIs, ledger
+Partial
+* custom trigger type Not Implemented.  † no general-ledger journal created on post.
+
+Manual, not event-driven:  Student rows are created by manual entry or institution import; CRM/admission auto-creation is Not Found (the bridge is dormant). Claim creation and invoice generation are operator-initiated from the Claims panel rather than triggered automatically.
+
+4. Backend Architecture
+The pattern is Supabase-first: React panels call the Supabase client directly for reads and invoke RPCs for writes. There are no dedicated commission REST controllers (Not Found) and no separate service tier — “services” here are the React panel + repository/library + RPC groupings that own each domain.
+4.1 Service inventory
+Domain
+Files / entry point
+Status
+Agreements
+AgreementsPanel.tsx, agreementsRepo — Institution → Agreements
+Implemented
+Commission Plans
+CommissionsPanel.tsx, commissionsRepo — Institution → Commissions
+Implemented
+Billing
+BillingProfilesPanel.tsx — Institution → Billing
+Implemented
+Eligibility
+EligibilityConfigPanel.tsx, commissionEligibilityEvaluator.ts
+Implemented (gap)
+Claims
+ClaimsPanel.tsx, claimCyclesRepo, studentsRepo
+Implemented
+Calculations
+commissionEngine.ts, commissionRuleResolver.ts
+Implemented
+Lifecycle
+CommissionLifecycleDialog.tsx, Phase 1 RPCs
+Implemented
+Invoicing
+ClaimsPanel.tsx (generate invoice)
+Implemented
+Receipts
+CommissionReceiptsPanel.tsx, CommissionReceiptWizard.tsx, RPCs
+Implemented
+Aggregator
+AggregatorWorkbenchPage.tsx, aggregator RPCs
+Implemented (types)
+Institution Integration
+PartnershipRoutesPanel.tsx, InstitutionDetailPage.tsx
+Implemented
+Student Integration
+ClientCommissionStatusPanel.tsx, v_client_commission_status
+Partial
+CRM Integration
+planned/clientIntegrationBridge.ts (not imported at runtime)
+Stub / dormant
+Finance Integration
+Receipt accounting_journal_id column
+Not implemented
+Performance Hub
+PerformanceCommissions.tsx, commissionTrackingCmsLogic.ts
+Read-only
+Referral / B2B
+—
+Not Found
+AI Extraction
+supabase/functions/upi-extract-commission-sheet/
+Implemented
+4.2 Edge functions
+Function
+Purpose
+upi-extract-commission-sheet
+AI extraction of commission terms from uploaded sheets
+upi-analyze-agreement
+Agreement analysis (commission-adjacent)
+4.3 Background jobs, scheduled tasks & event listeners
+Type
+Status
+pg_cron commission jobs
+Not Found
+Queue workers
+Not Found
+CRM event listeners (visa, tuition, enrollment)
+Stub only — clientIntegrationBridge.ts (BRIDGE_ENABLED=false)
+
+Implication: the module has no autonomous background processing. Every state transition — recalculation, eligibility evaluation, claim submission, invoice generation, receipt posting — is initiated by an operator action in the UI, which calls an RPC synchronously.
+
+5. Frontend Architecture
+5.1 Routes
+Route
+Component
+Access
+/commissions
+CommissionsPage
+CommissionsProtectedRoute
+/institutions/:id
+InstitutionDetailPage (tabs)
+isCommissionAdmin || isAccountingMember
+/institutions/aggregators/:aggregatorId/workbench
+AggregatorWorkbenchPage
+CommissionsProtectedRoute
+/performance/commissions
+PerformanceCommissions
+Admin/director/manager/viewer
+Sidebar: AppLayout.tsx renders a “Commissions” section → /commissions when useModulePermission(“commissions”).canView is true.
+5.2 Institution workspace screens (/institutions/:id)
+Tab
+Component(s)
+Functionality • Missing
+Overview
+OverviewPanel
+Recent claim-cycles summary • not a dedicated commission overview
+Billing
+BillingProfilesPanel
+Profile CRUD, default profile • —
+Eligibility
+EligibilityConfigPanel
+Create/publish configs • custom-trigger UI
+Agreements
+AgreementsPanel
+Agreement CRUD, version history • —
+Commissions
+CommissionsPanel
+Rules, conflict detection, simulator, publish • dedicated plan wizard
+Claims
+ClaimsPanel + CommissionLifecycleDialog
+Recalc, eligible, hold, transfer, submit, invoice, export • manual client-link UI
+Receipts
+CommissionReceiptsPanel + CommissionReceiptWizard
+List, create wizard, post, void • —
+5.3 Global, Performance Hub, aggregator & CRM screens
+Screen
+Route / location
+Status
+Dashboard
+/commissions
+Partial — invoice counts + claim-cycles table only
+Claim Cycles
+/commissions + institution Claims tab
+Partial — global list read-only
+Pending Claims
+—
+Not Found (standalone)
+Reports
+—
+Not Found
+Administration
+—
+Not Found (commission-specific)
+Commission CMS
+/performance/commissions
+Read-only ledger + KPIs
+Aggregator Workbench
+/institutions/aggregators/:id/workbench
+KPIs, claims, batches, reconciliation
+Client commission status
+Client detail (Payments area)
+Counselor-safe, no amounts
+5.4 Screen hierarchy map
+App ├─ Sidebar: Commissions → /commissions │   └─ CommissionsPage (Dashboard — summary only) │       ├─ Invoices by status (cards) │       └─ Claim cycles (read-only table) ├─ Institutions → /institutions/:id │   ├─ Overview (recent claim cycles snippet) │   ├─ [Gated] Billing     → BillingProfilesPanel │   ├─ [Gated] Eligibility → EligibilityConfigPanel │   ├─ [Gated] Agreements  → AgreementsPanel │   ├─ [Gated] Commissions → CommissionsPanel │   ├─ [Gated] Claims      → ClaimsPanel │   │                        └─ CommissionLifecycleDialog (modal) │   └─ [Gated] Receipts    → CommissionReceiptsPanel │                            └─ CommissionReceiptWizard (multi-step) ├─ Aggregators → /institutions/aggregators/:id/workbench │   └─ AggregatorWorkbenchPage (KPIs, Claims, Batches, Reconciliation) ├─ Performance Hub → /performance/commissions │   └─ PerformanceCommissions (read-only ledger + KPIs) └─ Clients → Client detail     └─ ClientCommissionStatusPanel (counselor-safe, no amounts)
+
+Not Found as implemented screens: Commission Reports, Commission Administration, Pending Claims (standalone).
+
+6. Existing Business Logic
+Business rules are implemented twice by design: pure TypeScript functions power the client-side simulator and previews, while SQL RPCs are the authoritative source of truth for persisted writes. The two are intended to mirror each other.
+6.1 Rule resolution precedence
+Evidence: commissionRuleResolver.ts and fn_resolve_commission_rule. Rules are matched most-specific-first:
+Promotion → Intake → Program → Category → Campus → Country → Default.
+Commission selection resolves the partnership route’s default_commission_id first; if absent, it falls back to the institution’s active commission by effective_from.
+6.2 Commission calculation
+Evidence: commissionEngine.ts.
+	•	Base: tuition × (base_rate_percent / 100).
+	•	Rule payout types: fixed, percentage, multiplier.
+	•	Slab tiers match on student_count against min_value / max_value.
+	•	Conditional rules match condition_field/operator/value using =, !=, >, <, in.
+6.3 Eligibility
+Evidence: commissionEligibilityEvaluator.ts, fn_evaluate_eligibility.
+Trigger
+Condition
+deposit
+tuition_paid_date OR tuition_paid_amount > 0
+visa
+study_permit_approved_date is set
+enrolled
+enrollment_status = enrolled AND enrollment_confirmed_date
+registered
+registered_credits > 0
+started_classes
+enrollment_status = enrolled
+custom
+Returns eligible:false, reason custom_not_implemented
+(no config)
+Fallback: deposit-paid check
+Config selection: the route-specific published config (highest version) wins over the institution default.
+6.4 Claim readiness
+Evidence: CommissionLifecycleDialog.tsx — isReadyForClaim() requires eligible + claim ready + no active hold, checked before submit and invoice.
+6.5 Transfer outcomes
+Evidence: commissionTransferHelpers.ts, fn_process_transfer_outcome. Outcomes are unchanged, amended, cancelled, replaced, under_review; a replacement creates a new student row and a new snapshot path.
+6.6 Receipt state machine
+Evidence: commissionReceiptRules.ts.
+draft → ready → posted                  ↓ voided draft/ready editable; posted/voided blocked by DB trigger
+Posting requires full allocation; FX review is required when the receipt currency differs from the invoice currency.
+6.7 Currency handling
+	•	Per-student columns: snapshot_currency, invoice_currency, receipt_currency, base_currency.
+	•	Receipts carry exchange_rate and a generated base_amount.
+	•	Performance Hub converts to INR via fx_rates.rate_to_inr (fallback CAD = 61.7).
+6.8 Finance posting
+Not Found. Receipt posting updates student and invoice payment columns; the accounting_journal_id column on receipts is not populated by any observed code.
+
+7. APIs, Hooks & Services
+7.1 Data-access pattern
+All access is through @/integrations/supabase/client: .from(table).select/insert/update/delete, .rpc(fn, params), and .storage.from(bucket). There is no REST/OpenAPI abstraction layer.
+7.2 Hooks
+Hook
+File • params → returns
+Used by
+useCommissions
+useInstitutionData.ts • institutionId → commissions
+CommissionsPanel
+useCommissionRules
+useInstitutionData.ts • commissionIds[] → rules
+CommissionsPanel, ClaimsPanel
+useClaimCycles
+useInstitutionData.ts • institutionId → cycles
+ClaimsPanel, OverviewPanel
+useInvoices
+useInstitutionData.ts • institutionId → invoices
+ClaimsPanel
+useStudents
+useInstitutionData.ts • institutionId → students
+Various
+useCommissionTrackingCmsData
+useCommissionTrackingCmsData.ts • period → rows, kpis
+PerformanceCommissions
+useModulePermission
+useModulePermission.ts • module key → canView, canEdit
+Routes, layout
+7.3 Libraries & utilities
+Module
+File • purpose
+simulateCommission
+commissionEngine.ts • pure payout calculator
+resolveCommissionForStudent
+commissionRuleResolver.ts • client-side rule resolution
+evaluateStudentEligibility
+commissionEligibilityEvaluator.ts • client-side eligibility
+detectRuleConflicts
+claimEngine.ts • slab/condition overlap detection
+buildClaimCsv, printWithRoot
+claimsExport.ts • CSV/PDF export
+Receipt validators
+commissionReceiptRules.ts • canEdit / canPost / FX review
+Aggregator helpers
+commissionAggregatorRules.ts • Phase 2B helpers
+CMS ledger
+commissionTrackingCmsLogic.ts • Performance Hub aggregation
+7.4 Repositories
+Repository
+Tables
+commissionsRepo
+upi_commissions, upi_commission_rules
+claimCyclesRepo
+upi_claim_cycles
+studentsRepo
+upi_commission_students
+paymentsRepo
+Derived from upi_commission_invoices payment columns
+
+8. Reusable Components
+The module ships institution-scoped panels plus a handful of genuinely reusable dialogs and badges. Shared shadcn/ui primitives (Card, Table, Dialog, Badge, Tabs) are used throughout but are not commission-specific.
+Component
+Purpose • key props
+Reusability
+CommissionsPanel
+Commission plans + simulator • institutionId
+Institution-scoped
+ClaimsPanel
+Full claims workflow • institutionId, onOpenReceipt
+Monolith (~1200 lines)
+CommissionLifecycleDialog
+Hold/eligible/transfer • student, institutionId
+Reusable dialog
+LifecycleBadges
+Status chips • student
+High
+CommissionReceiptWizard
+Multi-step receipt • institutionId, invoiceId?
+High
+CommissionReceiptsPanel
+Receipt list/actions • institutionId
+Institution-scoped
+BillingProfilesPanel
+Billing CRUD • institutionId
+Institution-scoped
+EligibilityConfigPanel
+Eligibility CRUD • institutionId
+Institution-scoped
+AgreementsPanel
+Agreements • institutionId
+Institution-scoped
+ClientCommissionStatusPanel
+Counselor status • clientId
+Cross-module
+PerformanceCommissionLedgerTable
+PH ledger table • rows, loading
+Performance Hub
+CommissionsProtectedRoute
+RBAC gate • children
+Route wrapper
+
+Charts: Not Found in the commission module (a KPI strip exists only in the Performance Hub).
+
+9. Current User Interface
+The captures below were taken from the running application (localhost:8080) with an authenticated owner/commission-admin session against seeded institution data (Seneca Polytechnic and others). They document the as-built state of each major screen and supersede the earlier audit note that screenshots were not captured.
+9.1 Global commission dashboard — /commissions
+
+Figure 1. Global dashboard: “Invoices by status” cards (Submitted 1, Draft 1, Paid 2, Approved 1, Sent 1) over a read-only Claim cycles table. Note the summary-only design — rows are not clickable into institution workflows (see Technical Debt).
+9.2 Commission plans & simulator — Institution → Commissions
+
+Figure 2. Two active plans for Seneca Polytechnic: a percentage “Main Commission Plan 2024–2027” (base 15%) and a “Pathway Bonus Plan” (bonus, 250 CAD on program_type = pathway). The inline Commission Simulator previews a 2,700.00 CAD payout for 18,000 tuition — client-side commissionEngine output. The bonus rule does not match the sample inputs, so its simulator shows 0.00 CAD.
+9.3 Agreements — Institution → Agreements
+
+Figure 3. Agreement list with lifecycle badges (expired / active) and renewal countdowns. The expanded “Recruitment Agency Agreement” shows the upi-analyze-agreement AI summary and structured terms (governing law, claim/invoice deadlines, termination notice, sub-agent and B2B allowances).
+9.4 Claims workflow — Institution → Claims
+
+Figure 4. Claims panel for the Fall 2025 intake: KPI strip (Expected / Received / Outstanding / Blocked / Carried forward), an overdue submitted cycle, and per-student rows showing the three-axis lifecycle (Eligibility + Claim status), calculated commission, and row actions (view, recalc, hold, transfer, link). Blocked/ineligible students carry no calculated amount.
+9.5 Claim submission dialog
+
+Figure 5. The Submit-claim confirmation modal lists the four eligible students and their commission amounts before the operator confirms submission to the institution for validation — an explicit, operator-initiated step (no background automation).
+9.6 Receipts — empty state and creation wizard
+
+Figure 6. Receipts tab empty state, with the immutability contract stated up front: “Posted receipts are immutable — void and recreate to correct.”
+
+Figure 7. New commission receipt wizard, step 1 of 4 (Header → Invoices → Students → Review). Header captures amount, currency, exchange-rate-to-CAD, date, and remittance/bank references, with a “Save draft & exit” path. Steps 2–3 drive the invoice and student allocations required before posting.
+9.7 Billing profile form — Institution → Billing
+
+Figure 8. Billing profile creation: legal entity, billing contacts, tax/GST number, payment terms, separate invoice and receipt currencies, remittance instructions, and a default-profile toggle. The subtitle notes the optional aggregator override reserved for Phase 2.
+
+Not captured (screens without seeded data at capture time):  Aggregator Workbench (/institutions/aggregators/:id/workbench), Performance Hub ledger (/performance/commissions), and the client-detail ClientCommissionStatusPanel. Capture with an aggregator-scoped institution and Performance Hub role to complete the visual baseline.
+
+10. Technical Debt
+Every item below is tied to a source file. Types range from missing logic and placeholder UI to security and test gaps.
+Item
+Type
+Source
+Custom eligibility trigger not implemented
+Missing logic
+commissionEligibilityEvaluator.ts L101–103; phase1_rpcs.sql
+Manual client ↔ student linking disabled
+Placeholder UI
+ClaimsPanel.tsx L695–700 (“Coming soon”)
+CRM bridge dormant
+Stub
+planned/clientIntegrationBridge.ts — all TODO(activation)
+Institution Claim Eligibility Rules
+Backlog
+docs/backlog/INSTITUTION_CLAIM_ELIGIBILITY_RULES.md
+Phase 2B types missing from generated types
+Type gap
+types.ts vs migrations; AggregatorWorkbenchPage uses as any
+Aggregator statement label “placeholder upload”
+UI debt
+AggregatorWorkbenchPage.tsx L483
+Accounting bridge not built
+Documented gap
+PHASE1_UAT_READINESS; accounting_journal_id unused
+Invoice auto-numbering placeholder
+Known limitation
+UAT doc: FLC-YYYY-AUTO-*
+Legacy direct mark-paid removed
+Migration note
+ClaimsPanel.tsx L390 comment
+Typed claim classifier deferred
+TODO
+claimEngine.ts L1–8 (“Phase 2.2”)
+AI help doc outdated
+Doc drift
+ai-help/knowledge/12-commissions.md
+ClaimsPanel monolith
+Maintainability
+ClaimsPanel.tsx (~1200 lines, mixed concerns)
+Duplicate eligibility logic
+Duplicate
+TS evaluator + SQL RPC + dormant bridge checker
+Permissive early-table RLS
+Security debt
+upi_commission_students policy (authenticated USING true)
+No E2E tests for commission workflows
+Test gap
+Only 5 unit-test files present
+Global dashboard has no navigation
+UX gap
+CommissionsPage.tsx — lists only, no links
+
+11. Reuse Analysis (Evidence-Based)
+Each major feature is classified KEEP AS IS, IMPROVE, CONSOLIDATE, REMOVE, or REBUILD, based only on observed implementation. The guiding principle is preserve-and-extend rather than replace.
+Feature
+Classification
+Reason • affected if changed
+Commission rule engine (engine + resolver)
+KEEP AS IS
+Pure, unit-tested, mirrors DB RPC • recalc, simulator, future API
+Phase 1 lifecycle RPCs
+KEEP AS IS
+UAT-ready, immutability triggers • all lifecycle UI
+Institution tab workspace
+KEEP AS IS
+Full operational workflow in one place • institution module
+Receipt wizard + RPCs
+IMPROVE
+Works per 2A; no GL bridge • finance, accounting
+Global /commissions dashboard
+IMPROVE
+Read-only summary • needs drill-down, filters, pending claims
+ClaimsPanel monolith
+CONSOLIDATE
+Extract sub-components without behavior change • claims maintenance
+clientIntegrationBridge
+REBUILD
+BRIDGE_ENABLED=false, all TODOs • CRM, admissions
+Dormant bridge eligibility checker
+REMOVE / merge
+Overlaps Phase 1 evaluator • conflicting-rule risk
+Legacy commission_status column
+KEEP (for now)
+Trigger keeps legacy UI working • backward compatibility
+Phase 2B as any table access
+IMPROVE
+Regenerate Supabase types • aggregator workbench
+Performance Hub CMS view
+KEEP AS IS
+Delegates ops to /commissions • finance reporting
+upi_invoices vs upi_commission_invoices
+CONSOLIDATE (future)
+Two invoice concepts • billing confusion risk
+Custom eligibility trigger
+REBUILD
+Returns false always • needs product spec first
+Institution Claim Eligibility Rules
+CREATE (future)
+Backlog only • claims validation
+Referral / B2B commissions
+CREATE (future)
+No tables/routes • new domain
+
+12. Extension Points
+What already exists in the architecture as a seam for future channels and integrations, versus what is missing.
+Extension
+Exists
+Evidence • what’s missing
+Multi-country commissions
+Partial
+scope_country on rules; country_of_origin on students • per-country eligibility rules
+Multi-currency
+Partial
+Currency columns + FX review • consolidation limited to PH INR view
+Multi-company / entity
+Partial
+Billing profiles; accounting entity_id • commission→entity mapping Not Found
+Aggregator commissions
+Yes
+Phase 2B tables, workbench, aggregator invoices • type generation
+Agent commissions
+Not Found
+No agent-specific tables/routes
+Team commissions
+Not Found
+Staff incentives are a separate module
+Referral commissions
+Not Found
+PH subtitle text only; no tables
+B2B commissions
+Not Found
+Agreement flag only; no tables
+Incentives / bonuses
+Partial
+bonus as rule_type • separate engine out of scope
+Performance Hub integration
+Yes
+/performance/commissions ledger • bidirectional sync Not Found
+Finance integration
+Partial
+accounting_journal_id reserved • journal creation Not Found
+CRM event automation
+Stub
+clientIntegrationBridge.ts • activation + implementation
+CAE integration
+Partial
+upi_agreements, commission_partner settlement • flow unverified
+AI commission extraction
+Yes
+upi-extract-commission-sheet edge function
+Clawback
+Schema only
+clawback_amount/status columns • logic Not Found
+Credit notes
+Not Found
+Documented out of scope
+
+13. Cross-Module Dependencies
+The Commission module is hosted by the Institution module and reads from / writes to several others. Solid arrows are live; dotted arrows are planned or reserved.
+Institution  ── hosts tabs, routes, aggregators ──▶  Commission Commission   ── client_id FK, status view       ──▶  CRM / Clients Admissions   ·· planned bridge only            ··▶  Commission Commission   ·· accounting_journal_id unused    ··▶  Finance Commission   ── ledger read                    ──▶  Performance Hub Auth/RBAC    ── isCommissionAdmin, confidential RLS ─▶ Commission
+
+Module
+Data / trigger
+Failure impact
+Institution
+institution_id, routes, aggregators, documents
+Commission UI inaccessible without institution
+Student / Client
+client_id, v_client_commission_status
+Counselors see no status if unlinked
+Admission
+Planned bridge (application_submitted) — not active
+No auto student-row creation
+Finance
+Receipt amounts; reserved journal FK
+Manual reconciliation required
+Performance Hub
+Aggregated student amounts, FX
+Oversight view empty/stale
+Users / Roles
+Commission admin, accounting member, module perms
+Tab lock / access denied
+Documents
+commission_sheet, agreement doc kinds
+Rules not auto-created from sheets
+CAE
+Agreements, settlement eligibility
+Adjacent; not primary commission path
+Incentives
+Shared PH nav shell only
+Separate domain (staff vs partner)
+Notifications
+Not Found commission-specific
+—
+Reporting
+KPI tooltip references claim cycles
+No dedicated commission reports
+
+14. Deliverables Summary & Handoff Notes
+This document is the implementation baseline for the Commission module in flow-link-docs. It covers all fourteen audit areas: executive summary, database, business process, backend, frontend, business logic, API inventory, component inventory, UI (now with captures), technical debt, reuse analysis, extension points, and cross-module dependencies.
+14.1 Key takeaways for an incoming architect
+	•	Terminology: “Commission Plan” = upi_commissions; there is no separate plan entity.
+	•	Architecture: Supabase RPC-centric backend; the React institution-tab workspace is the operational core; all writes go through SECURITY DEFINER RPCs.
+	•	Phases delivered: Phase 1 (lifecycle), 2A (receipts), 2B (aggregator) — evidenced by migrations 20260723120000 through 20260815120500 and the corresponding UI.
+	•	Explicit gaps: Finance GL bridge, CRM automation, custom eligibility, claim eligibility rules, global admin/reports/pending-claims screens, and referral/B2B/agent commission types.
+	•	Reuse principle: Preserve commissionEngine, the rule resolver, Phase 1 lifecycle RPCs, the receipt allocation model, and the institution-tab structure; extend rather than replace.
+14.2 Reference artifacts in the handoff package
+	•	TECHNICAL_INVENTORY.md — source audit this document is built from.
+	•	docs/database/COMMISSION_SCHEMA.sql — concatenated DDL + RPC migrations.
+	•	docs/database/RPC_INDEX.md — full RPC listing by phase.
+	•	docs/architecture/15_commissions-er.mmd — ER diagram (Mermaid).
+	•	docs/guides/PHASE*_COMMISSION_*.md — UAT guides and design docs.
+	•	docs/integration/ — AppRoutes, AppLayout, and InstitutionDetailPage integration excerpts.
+14.3 Audit constraints honored
+No code was modified. No redesign was proposed. No refactoring or new architecture was recommended beyond documenting existing limitations. All conclusions are tied to observed files, migrations, and documentation; behavior that could not be verified is marked “Not Found” rather than inferred. The UI section has been completed with screenshots supplied from the running application, replacing the earlier “not captured” placeholder.
