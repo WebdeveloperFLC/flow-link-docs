@@ -20,6 +20,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_cf_client_programs_one_qualification
   ON public.cf_client_programs (qualification_id)
   WHERE qualification_id IS NOT NULL;
 
+-- Drop legacy overloads before (re)create — avoids 42725 on drifted DBs.
+DROP FUNCTION IF EXISTS public.fn_mark_final_and_create_application(uuid, uuid, text, text, uuid, boolean, boolean, text);
+DROP FUNCTION IF EXISTS public.fn_mark_final_and_create_application(uuid, uuid, text, text, uuid, boolean);
+
 CREATE OR REPLACE FUNCTION public.fn_mark_final_and_create_application(
   p_client_program_id uuid,
   p_client_service_case_id uuid,

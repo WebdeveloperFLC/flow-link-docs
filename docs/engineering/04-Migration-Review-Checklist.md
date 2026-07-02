@@ -29,6 +29,26 @@ Before introducing **any** SQL function, helper, or RLS policy:
 - [ ] **Existing Functions Reused** section completed (below)
 - [ ] **Migration Dependency Verification** completed (below)
 - [ ] Contract test updated in `qa/hr-payroll/module-contract.test.ts` when HR migration added
+- [ ] **Legacy / optional object guard:** if migration touches a retired or module-optional table, wrap DDL in `to_regclass('public.table') IS NOT NULL` (see `20260722120000`, `20261101120100`)
+
+---
+
+## Legacy and retired objects
+
+If a migration references a table that was **retired** in an earlier migration (example: `service_catalogue` dropped in `20260610190000`), do **not** bare-`ALTER` it.
+
+Use:
+
+```sql
+DO $$
+BEGIN
+  IF to_regclass('public.legacy_table') IS NOT NULL THEN
+    -- legacy compatibility DDL
+  END IF;
+END $$;
+```
+
+For **required** core objects, fail loudly — do not guard away real missing prerequisites.
 
 ---
 

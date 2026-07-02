@@ -21,6 +21,9 @@ ALTER TABLE public.upi_institution_contacts
 -- Map legacy free-text country → ISO code (cf_countries / CRM master_items)
 -- ---------------------------------------------------------------------------
 
+ALTER TABLE public.upi_institution_contacts
+  ADD COLUMN IF NOT EXISTS country text;
+
 UPDATE public.upi_institution_contacts c
 SET country_code = cc.code
 FROM public.cf_countries cc

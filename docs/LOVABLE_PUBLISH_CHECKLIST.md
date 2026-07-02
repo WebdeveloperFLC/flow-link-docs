@@ -6,6 +6,23 @@
 
 ---
 
+## Platform Baseline — storage pre-steps (Lovable bucket tool)
+
+Lovable blocks `INSERT INTO storage.buckets` in migration SQL. Create buckets **before** applying the matching migration; strip the INSERT block if the tool rejects it.
+
+| Bucket | Create before migration | Policies in migration |
+|--------|----------------------|------------------------|
+| `accounting-attachments` | `20260720120130_accounting_attachments_and_helpers.sql` | Yes (after bucket exists) |
+| `upi-commission-receipts` | `20260801120200_commission_receipt_attachments_storage.sql` | Yes |
+| `upi-commission-aggregator-statements` | `20260815120500_commission_aggregator_statement_storage.sql` | Yes |
+| `kc-downloads` | `20261005120000_knowledge_centre_phase1_foundation.sql` | Yes |
+
+Detail: [`erp-governance/PLATFORM_BASELINE_RECOVERY.md`](./erp-governance/PLATFORM_BASELINE_RECOVERY.md).
+
+**Optional demo seeds (commission UAT):** `20261031120000`–`20261031120005` — skip if Seneca/demo data already present.
+
+---
+
 ## Performance Hub (5C–6B)
 
 See `scripts/ship.sh` output or [`INCENTIVE_PHASE5W_DEPLOY.md`](./INCENTIVE_PHASE5W_DEPLOY.md) for the full Performance Hub chain.

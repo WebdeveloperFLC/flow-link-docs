@@ -215,7 +215,9 @@ UPDATE public.upi_institutions i
 SET completeness_score = public.fn_compute_upi_institution_completeness_score(i.*);
 
 -- Extend readiness view with contact counts
-CREATE OR REPLACE VIEW public.v_upi_institution_profile_readiness AS
+DROP VIEW IF EXISTS public.v_upi_institution_profile_readiness CASCADE;
+
+CREATE VIEW public.v_upi_institution_profile_readiness AS
 SELECT
   i.id,
   i.name,

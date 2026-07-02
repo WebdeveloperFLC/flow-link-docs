@@ -307,6 +307,10 @@ BEGIN
 END;
 $$;
 
+-- Signature change 6-arg → 8-arg: CREATE OR REPLACE adds overload; drop first.
+DROP FUNCTION IF EXISTS public.fn_mark_final_and_create_application(uuid, uuid, text, text, uuid, boolean);
+DROP FUNCTION IF EXISTS public.fn_mark_final_and_create_application(uuid, uuid, text, text, uuid, boolean, boolean, text);
+
 CREATE OR REPLACE FUNCTION public.fn_mark_final_and_create_application(
   p_client_program_id uuid,
   p_client_service_case_id uuid,

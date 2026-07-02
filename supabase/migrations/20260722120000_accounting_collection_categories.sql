@@ -113,8 +113,15 @@ ALTER TABLE public.accounting_trust_disbursements
 ALTER TABLE public.client_invoice_payment_allocations
   ADD COLUMN IF NOT EXISTS collection_category_id UUID REFERENCES public.accounting_collection_categories(id);
 
-ALTER TABLE public.service_catalogue
-  ADD COLUMN IF NOT EXISTS collection_category_id UUID REFERENCES public.accounting_collection_categories(id);
+-- service_catalogue retired in 20260610190000; guard for greenfield replay.
+DO $$
+BEGIN
+  IF to_regclass('public.service_catalogue') IS NOT NULL THEN
+    ALTER TABLE public.service_catalogue
+      ADD COLUMN IF NOT EXISTS collection_category_id
+      UUID REFERENCES public.accounting_collection_categories(id);
+  END IF;
+END $$;
 
 -- Reserved FX/bank columns on trust (R3/R5)
 ALTER TABLE public.accounting_trust_accounts
